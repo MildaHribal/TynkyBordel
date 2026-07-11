@@ -89,6 +89,8 @@ export const auth = betterAuth({
       city: { type: 'string', required: false, defaultValue: null, input: false },
       zip: { type: 'string', required: false, defaultValue: null, input: false },
       role: { type: 'string', required: false, defaultValue: 'user', input: false },
+      // Boolean admin flag — the primary way to grant admin: set is_admin=true in DB.
+      isAdmin: { type: 'boolean', required: false, defaultValue: false, input: false },
     },
   },
   plugins: [
@@ -97,7 +99,10 @@ export const auth = betterAuth({
     // gate and every requireAdmin() check see the elevated role consistently.
     customSession(async ({ user, session }) => {
       const email = (user.email || '').toLowerCase()
-      const role = adminEmails.includes(email) ? 'admin' : ((user as any).role || 'user')
+      // Admin if the DB boolean is set (primary), OR the email is allowlisted
+      // (env / builtin fallback so you're never locked out).
+      const isAdmin = (user as any).isAdmin === true || adminEmails.includes(email)
+      const role = isAdmin ? 'admin' : ((user as any).role || 'user')
       return { user: { ...user, role }, session }
     }),
   ],

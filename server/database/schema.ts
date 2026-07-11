@@ -16,6 +16,8 @@ export const user = pgTable('user', {
   city: text('city'),
   zip: text('zip'),
   role: text('role').notNull().default('user'), // 'user' | 'admin'
+  // Simple admin flag — flip to true in the DB to grant admin access.
+  isAdmin: boolean('is_admin').notNull().default(false),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });
