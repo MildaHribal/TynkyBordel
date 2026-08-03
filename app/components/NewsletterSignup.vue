@@ -61,7 +61,12 @@ const submit = async () => {
         </div>
 
         <p v-if="state === 'error'" class="nl-error">{{ errorMsg }}</p>
-        <p class="nl-fineprint">Žádný spam, odhlásit se můžeš kdykoliv.</p>
+        <p class="nl-fineprint">
+          Žádný spam. Přihlášením souhlasíš se zasíláním novinek —
+          <NuxtLink to="/newsletter/odhlaseni" class="nl-fineprint-link">odhlásit</NuxtLink>
+          se můžeš kdykoliv. Podrobnosti v
+          <NuxtLink to="/ochrana-osobnich-udaju" class="nl-fineprint-link">zásadách ochrany údajů</NuxtLink>.
+        </p>
       </div>
     </div>
   </section>
@@ -223,6 +228,14 @@ const submit = async () => {
   margin: 0.9rem 0 0;
   font-family: 'Manrope', system-ui;
   font-size: 0.75rem;
+  line-height: 1.6;
   color: rgba(251, 244, 234, 0.4);
+  max-width: 46ch;
 }
+.nl-fineprint-link {
+  color: rgba(251, 244, 234, 0.7);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.nl-fineprint-link:hover { color: #ffffff; }
 </style>

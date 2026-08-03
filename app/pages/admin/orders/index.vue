@@ -13,6 +13,7 @@ const STATUSES = [
   { value: 'pending',   label: 'Čekající',  cls: 'badge-pending' },
   { value: 'shipped',   label: 'Odesláno',  cls: 'badge-shipped' },
   { value: 'delivered', label: 'Doručeno',  cls: 'badge-delivered' },
+  { value: 'cancelled', label: 'Stornováno', cls: 'badge-cancelled' },
 ] as const
 
 const PAYMENT_LABELS: Record<string, string> = {
@@ -59,6 +60,8 @@ async function changeStatus(orderId: number, newStatus: string) {
     await refresh()
     if (newStatus === 'shipped' || newStatus === 'delivered') {
       toast.success('Aktualizováno', `Status změněn, email zákazníkovi odeslán.`)
+    } else if (newStatus === 'cancelled') {
+      toast.success('Stornováno', 'Kusy z objednávky se vrátily zpět na sklad.')
     } else {
       toast.success('Aktualizováno', 'Status objednávky změněn.')
     }

@@ -2,6 +2,7 @@
 import { useCartStore } from "~/stores/cart";
 import { Icon } from "@iconify/vue";
 import { useAuth } from "~/composables/useAuth";
+import { COD_FEE, SHIPPING_FEE } from "~~/shared/shop";
 
 const cart = useCartStore();
 const { currentUser } = useAuth();
@@ -50,8 +51,8 @@ const form = ref({
   phone: '',
 });
 
-const SHIPPING_PRICE = 79;
-const COD_FEE = 60;
+// Same constants the server prices the order with — see shared/shop.ts.
+const SHIPPING_PRICE = SHIPPING_FEE;
 
 // ── Packeta widget: load script once ────────────────────────────────
 useHead({
@@ -164,6 +165,8 @@ function orderBody() {
     shippingMethod: shippingMethod.value,
     packetaBranchId: pickupPoint.value?.id,
     packetaBranchName: shippingAddressText,
+    // Recorded on the order as evidence the terms/GDPR checkbox was ticked.
+    agreedToTerms: agreedToTerms.value,
     items: cart.items.map((item) => ({ id: item.id, quantity: item.quantity })),
   };
 }

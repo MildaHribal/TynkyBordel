@@ -3,8 +3,11 @@ import { orders, orderItems } from '../../../database/schema';
 import { eq } from 'drizzle-orm';
 import { sendOrderStatusEmail } from '../../../utils/email';
 import { requireAdmin } from '../../../utils/session';
+import { releaseStock } from '../../../utils/createOrder';
 
-const VALID_STATUSES = ['pending', 'shipped', 'delivered'] as const;
+// 'cancelled' also returns the reserved pieces to stock — see below. Without it
+// an unpaid bank-transfer order would hold a one-of-a-kind item forever.
+const VALID_STATUSES = ['pending', 'shipped', 'delivered', 'cancelled'] as const;
 const VALID_PAYMENTS = ['unpaid', 'paid', 'refunded'] as const;
 
 export default defineEventHandler(async (event) => {
@@ -51,6 +54,27 @@ export default defineEventHandler(async (event) => {
 
   const updated = result[0];
   const newStatus = updated.status as string;
+
+  // Cancelling frees the reserved pieces so they can be sold again. Guarded by
+  // the previous status so re-saving a cancelled order can't restock it twice.
+  if (hasStatus && newStatus === 'cancelled' && prevStatus !== 'cancelled') {
+    const cancelledItems = await db
+      .select()
+      .from(orderItems)
+      .where(eq(orderItems.orderId, id));
+
+    await releaseStock(
+      cancelledItems
+        .filter((i) => i.productId != null)
+        .map((i) => ({
+          productId: i.productId as number,
+          title: i.title,
+          price: i.price,
+          quantity: i.quantity,
+          image: i.image,
+        })),
+    );
+  }
 
   // Load items once if we might send any email.
   const willEmailStatus =

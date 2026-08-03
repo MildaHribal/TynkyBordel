@@ -4,7 +4,19 @@ import { existsSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { requireAdmin } from '~~/server/utils/session'
 
-const UPLOAD_DIR = resolve(process.cwd(), 'public/uploads/products')
+// Where the running server actually serves static files from differs by mode:
+//   dev  — Nuxt serves the project's `public/` directly
+//   prod — Nitro serves `.output/public/`, and docker-compose mounts the
+//          persistent `uploads` volume at `/app/.output/public/uploads`
+// Writing to `public/` in production put files somewhere nothing serves and
+// nothing persists, so every uploaded product image 404'd and vanished on the
+// next rebuild.
+const UPLOAD_DIR = resolve(
+  process.cwd(),
+  process.env.NODE_ENV === 'production'
+    ? '.output/public/uploads/products'
+    : 'public/uploads/products',
+)
 const PUBLIC_URL_BASE = '/uploads/products'
 
 const ALLOWED_MIME = new Set(['image/png', 'image/jpeg', 'image/webp', 'image/gif', 'image/avif'])

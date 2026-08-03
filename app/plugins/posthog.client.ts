@@ -3,9 +3,13 @@ import posthog from 'posthog-js'
 /**
  * PostHog product analytics (client-side).
  *
- * Init only fires when NUXT_PUBLIC_POSTHOG_KEY is set, so dev machines and
- * previews without the key stay silent. Pageviews (incl. SPA route changes)
- * and pageleaves are handled automatically by the `defaults` config below.
+ * Two gates before anything loads:
+ *   1. NUXT_PUBLIC_POSTHOG_KEY must be set (dev machines/previews stay silent)
+ *   2. the visitor must have actively accepted analytics in the cookie banner —
+ *      analytics is not strictly necessary, so it needs opt-in consent
+ *
+ * Pageviews (incl. SPA route changes) and pageleaves are handled automatically
+ * by the `defaults` config below.
  *
  * Usage in components:  const { $posthog } = useNuxtApp()
  *                       $posthog()?.capture('add_to_cart', { itemId })
@@ -16,6 +20,8 @@ export default defineNuxtPlugin(() => {
   const host = (config.public.posthogHost as string) || 'https://eu.i.posthog.com'
 
   if (!key) return
+
+  const { analyticsAllowed } = useCookieConsent()
 
   let client: ReturnType<typeof posthog.init> | undefined
 
@@ -46,11 +52,21 @@ export default defineNuxtPlugin(() => {
 
   // Defer init until the browser is idle so analytics/session-replay never
   // competes with hydration or the first paint (keeps page load snappy).
-  if (typeof (window as any).requestIdleCallback === 'function') {
-    ;(window as any).requestIdleCallback(start, { timeout: 3000 })
-  } else {
-    setTimeout(start, 1500)
+  const startWhenIdle = () => {
+    if (typeof (window as any).requestIdleCallback === 'function') {
+      ;(window as any).requestIdleCallback(start, { timeout: 3000 })
+    } else {
+      setTimeout(start, 1500)
+    }
   }
+
+  // Runs now if consent was already given on an earlier visit, and again the
+  // moment it's granted in the banner — so accepting takes effect immediately
+  // instead of on the next page load. Declining never calls start() at all,
+  // so the PostHog script is never even loaded.
+  watch(analyticsAllowed, (allowed) => {
+    if (allowed) startWhenIdle()
+  }, { immediate: true })
 
   return {
     provide: {

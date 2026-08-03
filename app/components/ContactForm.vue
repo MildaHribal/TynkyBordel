@@ -11,13 +11,21 @@ const isSubmitting = ref(false);
 const toast = useCosmicToast();
 
 const handleSubmit = async () => {
+  if (isSubmitting.value) return;
   isSubmitting.value = true;
-  await new Promise(resolve => setTimeout(resolve, 1200));
 
-  toast.success('Zpráva odeslána!', 'Brzy se ti ozvu zpátky.');
-
-  form.value = { name: '', email: '', message: '' };
-  isSubmitting.value = false;
+  try {
+    await $fetch('/api/contact', { method: 'POST', body: { ...form.value } });
+    toast.success('Zpráva odeslána!', 'Brzy se ti ozvu zpátky.');
+    form.value = { name: '', email: '', message: '' };
+  } catch (err: any) {
+    toast.error(
+      'Zprávu se nepodařilo odeslat',
+      err?.data?.statusMessage || err?.statusMessage || 'Zkus to prosím znovu, nebo napiš na info@tynkybordel.shop.',
+    );
+  } finally {
+    isSubmitting.value = false;
+  }
 };
 </script>
 

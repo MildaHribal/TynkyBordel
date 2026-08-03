@@ -11,9 +11,6 @@
         "seed": "tsx server/database/seed.ts",
         "seed:test": "tsx server/database/seed-test.ts"
     },
-    "prisma": {
-        "seed": "tsx prisma/seed.ts"
-    },
     "dependencies": {
         "@iconify-json/lucide": "^1.2.82",
         "@iconify-json/simple-icons": "^1.2.64",

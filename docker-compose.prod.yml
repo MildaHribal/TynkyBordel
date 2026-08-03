@@ -10,10 +10,19 @@
 # Caddy auto-provisions Let's Encrypt certificates for the domain listed in
 # Caddyfile. Cloudflare should be set to "Full (strict)" SSL/TLS mode.
 
+# Cap every container's logs — an unbounded json-file driver will happily fill
+# the VPS disk and take the shop down with it.
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
 services:
   postgres:
     image: postgres:17-alpine
     restart: always
+    logging: *default-logging
     env_file:
       - .env.production
     environment:
@@ -35,6 +44,7 @@ services:
       context: .
       dockerfile: Dockerfile
     restart: always
+    logging: *default-logging
     env_file:
       - .env.production
     environment:
@@ -46,6 +56,13 @@ services:
     volumes:
       # Persist user-uploaded product images across rebuilds.
       - uploads:/app/.output/public/uploads
+    healthcheck:
+      # node is the only runtime in the image — no curl/wget to rely on.
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/robots.txt').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 40s
     networks:
       - internal
       - web
@@ -53,6 +70,7 @@ services:
   caddy:
     image: caddy:2-alpine
     restart: always
+    logging: *default-logging
     ports:
       - "80:80"
       - "443:443"

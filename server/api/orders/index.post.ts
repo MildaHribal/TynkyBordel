@@ -1,11 +1,22 @@
 import { getOptionalSession } from '../../utils/session';
-import { sendOrderStatusEmail, type BankTransferBlock } from '../../utils/email';
+import { sendOrderStatusEmail, sendNewOrderNotification, type BankTransferBlock } from '../../utils/email';
 import { buildSpayd, getBankAccount, spaydToDataUrl, spaydToBuffer } from '../../utils/spayd';
 import { persistOrder } from '../../utils/createOrder';
 
 export default defineEventHandler(async (event) => {
   const body = await readBody(event);
   const session = await getOptionalSession(event);
+
+  // Card orders MUST come through the PayPal capture flow, which only persists
+  // an order once the money has actually been captured and verified. Accepting
+  // "card" here would let anyone create an order marked as a card payment
+  // without paying anything.
+  if (body?.paymentMethod === 'card') {
+    throw createError({
+      statusCode: 400,
+      statusMessage: 'Platbu kartou dokonči prosím přes platební tlačítko.',
+    });
+  }
 
   // Validate, re-price and persist (shared with the PayPal flow).
   const { order: newOrder, items: orderItemsData, totalPrice } = await persistOrder(body, {
@@ -52,6 +63,21 @@ export default defineEventHandler(async (event) => {
     'created',
     bank,
   ).catch((err) => console.error('[orders] created email failed:', err));
+
+  // Tell the shop an order landed — otherwise the only way to notice is to open
+  // /admin/orders. Also fire-and-forget so SMTP never delays the customer.
+  sendNewOrderNotification({
+    orderNumber: newOrder.orderNumber || String(newOrder.id),
+    customerName: newOrder.customerName,
+    customerEmail: newOrder.customerEmail,
+    customerPhone: newOrder.customerPhone,
+    shippingAddress: newOrder.shippingAddress,
+    paymentMethod: newOrder.paymentMethod,
+    paymentStatus: newOrder.paymentStatus,
+    totalPrice: newOrder.totalPrice,
+    variableSymbol: newOrder.variableSymbol,
+    items: orderItemsData.map((i) => ({ title: i.title, quantity: i.quantity, price: i.price })),
+  }).catch((err) => console.error('[orders] shop notification failed:', err));
 
   return {
     success: true,

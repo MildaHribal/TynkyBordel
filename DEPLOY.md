@@ -32,14 +32,27 @@ nano .env.production          # set POSTGRES_PASSWORD, BETTER_AUTH_SECRET,
 # 4. Build & start
 docker compose -f docker-compose.prod.yml up -d --build
 
-# 5. Apply migrations (idempotent — safe to re-run on every deploy)
-docker compose -f docker-compose.prod.yml exec app npx tsx server/database/migrate.ts
-
-# 6. Seed initial products (only the first time, or after wiping DB)
+# 5. Seed initial products (only the first time, or after wiping the DB)
 docker compose -f docker-compose.prod.yml exec app npm run seed
 ```
 
+**Migrations run themselves.** `server/plugins/01-run-migrations.ts` applies every
+pending file in `server/database/migrations/` on each boot in production, so a
+plain code deploy is enough to migrate. The manual `npx tsx server/database/migrate.ts`
+step is only for debugging (set `DISABLE_BOOT_MIGRATE=true` to turn the automatic
+run off).
+
 Caddy will request a Let's Encrypt cert on first request to `https://tynkybordel.shop`. You'll see the cert issuance in `docker compose logs caddy`.
+
+## Before the first real customer
+
+- [ ] Fill in `shared/shop.ts` — IČO and the registered address appear on the
+      terms, privacy and returns pages. Empty values render as visible
+      `[DOPLNIT: …]` markers.
+- [ ] Set `PAYPAL_ENV=live` with live credentials (sandbox takes no real money).
+- [ ] Send yourself a test order and confirm both emails arrive (customer
+      confirmation + the shop notification).
+- [ ] Set up the nightly backup cron (see Backups below).
 
 ## Google OAuth
 
@@ -49,30 +62,48 @@ After DNS + HTTPS are live, edit the Google Cloud OAuth client:
 
 ## Deploy updates
 
+A push to `master` triggers `.github/workflows/build.yml`, which builds the image,
+pushes it to GHCR, calls `DEPLOY_WEBHOOK_URL` on the VPS and then purges the
+Cloudflare cache. Pending migrations are applied by the app itself on restart.
+
+To deploy by hand instead:
+
 ```bash
 cd shopik
 git pull
 docker compose -f docker-compose.prod.yml up -d --build
-docker compose -f docker-compose.prod.yml exec app npx tsx server/database/migrate.ts
 ```
 
 Zero downtime is not configured — compose will restart the app container in ~5s during `up -d --build`. For a small artisan shop that's fine.
 
+The GitHub Actions secrets involved: `DEPLOY_WEBHOOK_URL`, `CLOUDFLARE_API_TOKEN`,
+`CLOUDFLARE_ZONE_ID`. Each step skips itself (without failing) when its secret is
+missing.
+
 ## Backups
 
-The DB lives in the `pgdata` docker volume. Uploaded images live in `uploads`. Nightly backup script:
+The DB lives in the `pgdata` docker volume. Uploaded images live in `uploads`.
+Losing either means losing every order and every product photo, so this is not
+optional.
+
+`scripts/backup.sh` dumps both and prunes anything older than 30 days. Install it
+as a nightly cron:
 
 ```bash
-# Dump DB
-docker compose -f docker-compose.prod.yml exec -T postgres \
-  pg_dump -U shopik shopik | gzip > backup-$(date +%Y%m%d).sql.gz
+chmod +x scripts/backup.sh
 
-# Rsync uploads
-docker run --rm -v shopik_uploads:/data -v $(pwd)/backup:/backup alpine \
-  tar czf /backup/uploads-$(date +%Y%m%d).tar.gz -C /data .
+# Every night at 03:15. Adjust the project path if you cloned elsewhere.
+crontab -e
+15 3 * * * cd /home/$USER/shopik && ./scripts/backup.sh >> /var/log/shopik-backup.log 2>&1
 ```
 
-Put those two lines in a nightly cron.
+Backups land in `./backups/`. **Copy them off the VPS** — a backup on the same
+disk doesn't survive the failure it exists for. Restore with:
+
+```bash
+gunzip -c backups/db-20260727.sql.gz | \
+  docker compose -f docker-compose.prod.yml exec -T postgres psql -U shopik shopik
+```
 
 ## Common issues
 

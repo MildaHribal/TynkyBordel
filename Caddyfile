@@ -19,6 +19,27 @@ www.tynkybordel.shop {
 tynkybordel.shop {
     encode zstd gzip
 
+    # ── Security headers ────────────────────────────────────────────────────
+    # Applied to every response. No CSP here on purpose: the storefront loads
+    # PayPal + Packeta widgets and inlines styles, so a policy tight enough to
+    # be worth having needs testing against a real checkout first.
+    header {
+        # Force HTTPS for a year. Add `preload` + submit to hstspreload.org only
+        # once you're certain every subdomain will always be HTTPS — it's hard
+        # to undo.
+        Strict-Transport-Security "max-age=31536000; includeSubDomains"
+        # Don't let browsers guess a type other than what we declare.
+        X-Content-Type-Options "nosniff"
+        # No embedding in frames — blocks clickjacking of the checkout/admin.
+        X-Frame-Options "DENY"
+        # Send the origin only, and never to plain-HTTP sites.
+        Referrer-Policy "strict-origin-when-cross-origin"
+        # We use none of these APIs.
+        Permissions-Policy "camera=(), microphone=(), geolocation=(), interest-cohort=()"
+        # Don't advertise the server software.
+        -Server
+    }
+
     # Long cache for immutable Nuxt build assets + optimized images.
     @static path /_nuxt/* /_ipx/* /favicon.ico /manifest.webmanifest /pwa/*
     header @static Cache-Control "public, max-age=31536000, immutable"

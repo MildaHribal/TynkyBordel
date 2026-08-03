@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { BUSINESS } from "~~/shared/shop";
+
 const route = useRoute();
 const siteUrl = (useRuntimeConfig().public.siteUrl as string).replace(/\/$/, '');
 
@@ -26,10 +28,19 @@ const organizationSchema = {
   description: 'Autorský eshop s ručně dělanými originály — obrazy, sochy a klíčenky. Každý kousek je unikát.',
   email: 'info@tynkybordel.shop',
   slogan: 'Každý kousek je jeden na světě.',
-  foundingLocation: {
-    '@type': 'Place',
-    address: { '@type': 'PostalAddress', addressLocality: 'Praha', addressCountry: 'CZ' },
-  },
+  // Only claim a location once the real one is filled in (shared/shop.ts) —
+  // a wrong address in structured data is worse than none.
+  ...(BUSINESS.address.city
+    ? {
+        address: {
+          '@type': 'PostalAddress',
+          streetAddress: BUSINESS.address.street,
+          postalCode: BUSINESS.address.zip,
+          addressLocality: BUSINESS.address.city,
+          addressCountry: 'CZ',
+        },
+      }
+    : {}),
   areaServed: { '@type': 'Country', name: 'Česká republika' },
   sameAs: [
     'https://www.instagram.com/tynky_bordel/',
@@ -81,5 +92,10 @@ useHead({
         <NuxtLayout>
             <NuxtPage />
         </NuxtLayout>
+        <!-- Client-only: the banner's visibility depends on localStorage, so
+             rendering it on the server would mismatch on hydration. -->
+        <ClientOnly>
+            <CookieConsent />
+        </ClientOnly>
     </UApp>
 </template>

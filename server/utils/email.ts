@@ -17,6 +17,8 @@ type SendArgs = {
   subject: string;
   html: string;
   text?: string;
+  // Set on shop-facing mail so hitting "Reply" answers the customer, not us.
+  replyTo?: string;
   // Inline (CID) or regular attachments, passed straight to nodemailer.
   attachments?: Array<{
     filename: string;
@@ -82,7 +84,7 @@ export async function verifyMail(): Promise<{ ok: boolean; configured: boolean; 
   }
 }
 
-export async function sendMail({ to, subject, html, text, attachments }: SendArgs): Promise<boolean> {
+export async function sendMail({ to, subject, html, text, attachments, replyTo }: SendArgs): Promise<boolean> {
   try {
     const transport = await getTransport();
     if (!transport) {
@@ -90,12 +92,33 @@ export async function sendMail({ to, subject, html, text, attachments }: SendArg
       return false;
     }
     const from = process.env.MAIL_FROM || 'Tynky Bordel <noreply@localhost>';
-    await transport.sendMail({ from, to, subject, html, text, attachments });
+    await transport.sendMail({ from, to, subject, html, text, attachments, replyTo });
     return true;
   } catch (err) {
     console.error('[mail] send failed:', err);
     return false;
   }
+}
+
+/**
+ * Where shop-facing mail (new orders, contact form) is delivered.
+ *
+ * ORDER_NOTIFICATION_EMAIL wins; otherwise fall back to the mailbox we already
+ * send from, so notifications work out of the box on any correctly configured
+ * SMTP setup without another env var to forget.
+ */
+export function getShopNotificationRecipient(): string | null {
+  const explicit = process.env.ORDER_NOTIFICATION_EMAIL?.trim();
+  if (explicit) return explicit;
+
+  // MAIL_FROM may be "Name <box@domain.tld>" — pull the address out.
+  const mailFrom = process.env.MAIL_FROM?.trim();
+  const match = mailFrom?.match(/<([^>]+)>/);
+  if (match?.[1]) return match[1];
+  if (mailFrom?.includes('@')) return mailFrom;
+
+  const user = process.env.SMTP_USER?.trim();
+  return user?.includes('@') ? user : null;
 }
 
 // ── Shared email shell ──────────────────────────────────────────────────────────
@@ -104,6 +127,20 @@ export async function sendMail({ to, subject, html, text, attachments }: SendArg
 // using robust serif fallbacks — the "handmade cosmic receipt" of Tynky Bordel.
 const FONT_SERIF = "Georgia,'Times New Roman',serif";
 const FONT_SANS = "'Helvetica Neue',Helvetica,Arial,sans-serif";
+
+/**
+ * Escape anything customer-supplied before it goes into an email body.
+ * Names, addresses and contact-form messages are attacker-controlled text —
+ * without this they'd be injected as live HTML into our own inbox.
+ */
+function esc(value: unknown): string {
+  return String(value ?? '')
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#39;');
+}
 
 type PillTone = 'pink' | 'green' | 'violet' | 'teal';
 const PILL_TONES: Record<PillTone, { bg: string; fg: string; bd: string }> = {
@@ -189,7 +226,7 @@ function renderActionHtml(opts: {
 
 /** Sent after registration so the user can confirm their address (soft, non-blocking). */
 export async function sendVerificationEmail(args: { to: string; name?: string; url: string }): Promise<boolean> {
-  const greeting = args.name ? `Ahoj <strong>${args.name}</strong>,` : 'Ahoj,';
+  const greeting = args.name ? `Ahoj <strong>${esc(args.name)}</strong>,` : 'Ahoj,';
   return sendMail({
     to: args.to,
     subject: 'Ověř svůj email ✨',
@@ -209,7 +246,7 @@ export async function sendVerificationEmail(args: { to: string; name?: string; u
 
 /** Sent on a password-reset request; the URL leads to the reset-password page. */
 export async function sendPasswordResetEmail(args: { to: string; name?: string; url: string }): Promise<boolean> {
-  const greeting = args.name ? `Ahoj <strong>${args.name}</strong>,` : 'Ahoj,';
+  const greeting = args.name ? `Ahoj <strong>${esc(args.name)}</strong>,` : 'Ahoj,';
   return sendMail({
     to: args.to,
     subject: 'Obnovení hesla 🔐',
@@ -317,7 +354,7 @@ function renderHtml(
     .map(
       (i) => `
       <tr>
-        <td style="padding:11px 0;border-bottom:1px solid rgba(42,19,64,0.08);font-family:${FONT_SERIF};font-size:15px;color:#2a1340;">${i.title} <span style="color:#9a7fab;">× ${i.quantity}</span></td>
+        <td style="padding:11px 0;border-bottom:1px solid rgba(42,19,64,0.08);font-family:${FONT_SERIF};font-size:15px;color:#2a1340;">${esc(i.title)} <span style="color:#9a7fab;">× ${i.quantity}</span></td>
         <td style="padding:11px 0;border-bottom:1px solid rgba(42,19,64,0.08);font-family:${FONT_SERIF};font-size:15px;color:#2a1340;text-align:right;white-space:nowrap;">${(i.price * i.quantity).toLocaleString('cs-CZ')} Kč</td>
       </tr>`,
     )
@@ -329,7 +366,7 @@ function renderHtml(
     ${statusPill(pill.label, pill.tone)}
     <h1 style="margin:14px 0 0;font-family:${FONT_SERIF};font-size:27px;line-height:1.18;color:#2a1340;">${copy.headline}</h1>
     <p style="margin:14px 0 0;font-family:${FONT_SERIF};font-size:16px;line-height:1.6;color:#4a3560;">
-      Ahoj <strong>${order.customerName}</strong>,<br>${copy.body}
+      Ahoj <strong>${esc(order.customerName)}</strong>,<br>${copy.body}
     </p>
 
     <div style="margin-top:28px;font-family:${FONT_SANS};font-size:11px;letter-spacing:0.2em;text-transform:uppercase;color:#9a7fab;font-weight:700;">Objednávka č. ${order.id}</div>
@@ -343,7 +380,7 @@ function renderHtml(
 
     <div style="margin-top:24px;padding:16px 18px;background:rgba(42,19,64,0.04);border-radius:14px;">
       <div style="font-family:${FONT_SANS};font-size:11px;letter-spacing:0.16em;text-transform:uppercase;color:#8a6f9a;font-weight:700;margin-bottom:6px;">Doručovací adresa</div>
-      <div style="font-family:${FONT_SERIF};font-size:15px;color:#3a2150;line-height:1.5;">${order.shippingAddress.replace(/\n/g, '<br>')}</div>
+      <div style="font-family:${FONT_SERIF};font-size:15px;color:#3a2150;line-height:1.5;">${esc(order.shippingAddress).replace(/\n/g, '<br>')}</div>
     </div>
 
     ${extra ? `
@@ -399,5 +436,148 @@ export async function sendOrderStatusEmail(
     html: renderHtml(order, copy, status, extra),
     text: `${copy.headline}\n\n${copy.body}\n\nObjednávka #${order.id}, celkem ${order.totalPrice.toFixed(0)} Kč.`,
     attachments,
+  });
+}
+
+// ── Shop-facing notifications ───────────────────────────────────────────────────
+/** One label/value row for the compact internal tables below. */
+function infoRow(label: string, value: string) {
+  return `<tr>
+    <td style="padding:6px 14px 6px 0;font-family:${FONT_SANS};font-size:12px;letter-spacing:0.08em;text-transform:uppercase;color:#8a6f9a;white-space:nowrap;vertical-align:top;">${esc(label)}</td>
+    <td style="padding:6px 0;font-family:${FONT_SERIF};font-size:15px;color:#2a1340;">${value}</td>
+  </tr>`;
+}
+
+export type NewOrderNotification = {
+  orderNumber: string;
+  customerName: string;
+  customerEmail: string;
+  customerPhone?: string | null;
+  shippingAddress: string;
+  paymentMethod?: string | null;
+  paymentStatus: string;
+  totalPrice: number;
+  variableSymbol?: string | null;
+  items: Array<{ title: string; quantity: number; price: number }>;
+};
+
+const PAYMENT_LABELS: Record<string, string> = {
+  cash: 'Dobírka',
+  'bank-transfer': 'Převod na účet',
+  card: 'Karta (PayPal)',
+};
+
+/**
+ * Tells the shop a new order has landed. Without this the only way to notice an
+ * order was to open /admin/orders and look.
+ *
+ * Returns false (and logs) when no recipient can be resolved, so callers can
+ * stay fire-and-forget.
+ */
+export async function sendNewOrderNotification(order: NewOrderNotification): Promise<boolean> {
+  const to = getShopNotificationRecipient();
+  if (!to) {
+    console.warn('[mail] no shop notification recipient configured — set ORDER_NOTIFICATION_EMAIL or MAIL_FROM.');
+    return false;
+  }
+
+  const paid = order.paymentStatus === 'paid';
+  const itemsRows = order.items
+    .map(
+      (i) => `<tr>
+        <td style="padding:9px 0;border-bottom:1px solid rgba(42,19,64,0.08);font-family:${FONT_SERIF};font-size:15px;color:#2a1340;">${esc(i.title)} <span style="color:#9a7fab;">× ${i.quantity}</span></td>
+        <td style="padding:9px 0;border-bottom:1px solid rgba(42,19,64,0.08);font-family:${FONT_SERIF};font-size:15px;color:#2a1340;text-align:right;white-space:nowrap;">${(i.price * i.quantity).toLocaleString('cs-CZ')} Kč</td>
+      </tr>`,
+    )
+    .join('');
+
+  const content = `
+    ${statusPill(paid ? 'Nová objednávka — zaplaceno' : 'Nová objednávka', paid ? 'green' : 'pink')}
+    <h1 style="margin:14px 0 0;font-family:${FONT_SERIF};font-size:27px;line-height:1.18;color:#2a1340;">Objednávka č. ${esc(order.orderNumber)}</h1>
+    <p style="margin:12px 0 0;font-family:${FONT_SERIF};font-size:16px;line-height:1.6;color:#4a3560;">
+      ${paid
+        ? 'Peníze už dorazily — můžeš balit.'
+        : order.paymentMethod === 'bank-transfer'
+          ? 'Čeká se na platbu převodem. Až přijde, přepni objednávku na „Zaplaceno".'
+          : 'Platba proběhne při převzetí (dobírka).'}
+    </p>
+
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:22px;border-collapse:collapse;">
+      ${infoRow('Zákazník', esc(order.customerName))}
+      ${infoRow('E-mail', `<a href="mailto:${esc(order.customerEmail)}" style="color:#b3305f;text-decoration:none;">${esc(order.customerEmail)}</a>`)}
+      ${order.customerPhone ? infoRow('Telefon', `<a href="tel:${esc(order.customerPhone)}" style="color:#b3305f;text-decoration:none;">${esc(order.customerPhone)}</a>`) : ''}
+      ${infoRow('Doručení', esc(order.shippingAddress))}
+      ${infoRow('Platba', esc(PAYMENT_LABELS[order.paymentMethod || ''] || order.paymentMethod || 'Neuvedeno'))}
+      ${order.variableSymbol ? infoRow('Variabilní symbol', esc(order.variableSymbol)) : ''}
+    </table>
+
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:22px;border-collapse:collapse;">
+      ${itemsRows}
+      <tr>
+        <td style="padding:14px 0 0;font-family:${FONT_SANS};font-size:12px;letter-spacing:0.14em;text-transform:uppercase;color:#8a6f9a;font-weight:700;vertical-align:bottom;">Celkem</td>
+        <td style="padding:14px 0 0;text-align:right;font-family:${FONT_SERIF};font-size:24px;font-weight:bold;color:#2a1340;">${order.totalPrice.toLocaleString('cs-CZ')} Kč</td>
+      </tr>
+    </table>`;
+
+  const textLines = [
+    `Nová objednávka č. ${order.orderNumber}${paid ? ' (ZAPLACENO)' : ''}`,
+    `${order.customerName} · ${order.customerEmail}${order.customerPhone ? ` · ${order.customerPhone}` : ''}`,
+    `Doručení: ${order.shippingAddress}`,
+    `Platba: ${PAYMENT_LABELS[order.paymentMethod || ''] || order.paymentMethod || 'Neuvedeno'}`,
+    '',
+    ...order.items.map((i) => `${i.title} × ${i.quantity} — ${i.price * i.quantity} Kč`),
+    '',
+    `Celkem: ${order.totalPrice} Kč`,
+  ];
+
+  return sendMail({
+    to,
+    subject: `🛒 Nová objednávka ${order.orderNumber} — ${order.totalPrice.toLocaleString('cs-CZ')} Kč`,
+    html: emailShell({
+      subject: `Nová objednávka ${order.orderNumber}`,
+      preheader: `${order.customerName} — ${order.totalPrice.toLocaleString('cs-CZ')} Kč`,
+      content,
+    }),
+    text: textLines.join('\n'),
+    // Reply goes straight to the customer.
+    replyTo: order.customerEmail,
+  });
+}
+
+/** Delivers a contact-form message to the shop mailbox. */
+export async function sendContactMessage(msg: {
+  name: string;
+  email: string;
+  message: string;
+}): Promise<boolean> {
+  const to = getShopNotificationRecipient();
+  if (!to) {
+    console.warn('[mail] contact form: no recipient configured — set ORDER_NOTIFICATION_EMAIL or MAIL_FROM.');
+    return false;
+  }
+
+  const content = `
+    ${statusPill('Zpráva z webu', 'violet')}
+    <h1 style="margin:14px 0 0;font-family:${FONT_SERIF};font-size:27px;line-height:1.18;color:#2a1340;">Nová zpráva z kontaktního formuláře</h1>
+
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:20px;border-collapse:collapse;">
+      ${infoRow('Od', esc(msg.name))}
+      ${infoRow('E-mail', `<a href="mailto:${esc(msg.email)}" style="color:#b3305f;text-decoration:none;">${esc(msg.email)}</a>`)}
+    </table>
+
+    <div style="margin-top:22px;padding:18px 20px;background:rgba(42,19,64,0.04);border-radius:14px;font-family:${FONT_SERIF};font-size:16px;line-height:1.6;color:#2a1340;white-space:pre-wrap;">${esc(msg.message)}</div>
+
+    <p style="margin:18px 0 6px;font-family:${FONT_SANS};font-size:12px;color:#8a6f9a;">Odpovědí na tenhle e-mail píšeš rovnou zákazníkovi.</p>`;
+
+  return sendMail({
+    to,
+    subject: `✉️ Zpráva z webu od ${msg.name}`,
+    html: emailShell({
+      subject: 'Nová zpráva z kontaktního formuláře',
+      preheader: msg.message.slice(0, 90),
+      content,
+    }),
+    text: `Od: ${msg.name} <${msg.email}>\n\n${msg.message}`,
+    replyTo: msg.email,
   });
 }

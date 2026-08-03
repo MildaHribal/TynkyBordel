@@ -6,10 +6,12 @@ import { getOptionalSession } from '../utils/session';
 
 export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig();
-  const stripe = new Stripe(config.stripeSecretKey, { apiVersion: '2026-02-25.clover' });
+  // Check BEFORE constructing the client: `new Stripe('')` throws, which turned
+  // a missing key into an opaque 500 instead of this 503.
   if (!config.stripeSecretKey) {
     throw createError({ statusCode: 503, statusMessage: 'Platební brána není nakonfigurovaná' });
   }
+  const stripe = new Stripe(config.stripeSecretKey, { apiVersion: '2026-02-25.clover' });
 
   const body = await readBody(event);
   const {

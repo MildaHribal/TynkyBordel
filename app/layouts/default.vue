@@ -2,6 +2,7 @@
 import Navbar from "~/components/Navbar.vue";
 import CartDrawer from "~/components/CartDrawer.vue";
 import { Icon } from "@iconify/vue";
+import { BUSINESS } from "~~/shared/shop";
 </script>
 
 <template>
@@ -72,7 +73,7 @@ import { Icon } from "@iconify/vue";
           <!-- Bottom bar -->
           <div class="footer-bottom">
             <div class="footer-copyright">
-              © {{ new Date().getFullYear() }} Tynky Bordel · Ručně dělané v Praze
+              © {{ new Date().getFullYear() }} {{ BUSINESS.legalName }}{{ BUSINESS.ico ? ` · IČO ${BUSINESS.ico}` : '' }} · Ručně dělané originály
             </div>
             <div class="footer-payments">
               <span class="footer-payments-label">Platby</span>

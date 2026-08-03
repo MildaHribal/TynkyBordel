@@ -106,6 +106,8 @@ export const orders = pgTable('orders', {
   totalPrice: doublePrecision('total_price').notNull(),
   status: text('status').notNull().default('pending'),
   paymentStatus: text('payment_status').notNull().default('unpaid'),
+  // When the customer ticked the terms/GDPR checkbox — evidence of consent.
+  termsAcceptedAt: timestamp('terms_accepted_at'),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
 });
