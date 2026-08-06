@@ -1,18 +1,26 @@
 import { db } from '../../utils/db';
 import { products, categories } from '../../database/schema';
-import { eq, ilike, or, sql, desc } from 'drizzle-orm';
+import { and, eq, ilike, or, sql, desc } from 'drizzle-orm';
 
 export default defineEventHandler(async (event) => {
   const query = getQuery(event);
   const search = typeof query.search === 'string' ? query.search.trim() : '';
+  // Filter by category NAME (matches what the product detail page passes when
+  // fetching "podobné kousky"). Without this the `category` param was ignored
+  // and the similar-products row was just the newest 8 products.
+  const category = typeof query.category === 'string' ? query.category.trim() : '';
 
-  let whereClause = undefined;
+  const conditions = [];
   if (search) {
-    whereClause = or(
+    conditions.push(or(
       ilike(products.name, `%${search}%`),
       ilike(products.description, `%${search}%`)
-    );
+    ));
   }
+  if (category) {
+    conditions.push(eq(categories.name, category));
+  }
+  const whereClause = conditions.length ? and(...conditions) : undefined;
 
   let queryBuilder = db
     .select({

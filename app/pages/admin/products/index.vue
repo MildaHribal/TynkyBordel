@@ -4,7 +4,7 @@ import { Icon } from '@iconify/vue'
 definePageMeta({ layout: 'admin', middleware: 'admin' })
 
 const { data: products, pending, refresh } = await useFetch<any[]>('/api/admin/products')
-const { data: allCategories } = await useFetch<any[]>('/api/categories')
+const { data: allCategories, refresh: refreshCategories } = await useFetch<any[]>('/api/categories')
 const toast = useCosmicToast()
 
 const searchQuery = ref('')
@@ -83,6 +83,47 @@ function setFinalCategory(cat: any) {
   form.value.category = cat.name
 }
 
+// ── Inline category creation ──────────────────────────────────────────────
+// Lets the admin add a brand-new category (or subcategory) straight from the
+// product form. The new category is created under whatever level the picker is
+// currently drilled into, then auto-selected for the product.
+const showNewCat = ref(false)
+const newCatName = ref('')
+const creatingCat = ref(false)
+// Where a new category would be created: the level the picker is currently in.
+const newCatParent = computed(() =>
+  pickerPath.value.length ? pickerPath.value[pickerPath.value.length - 1] : null,
+)
+function openNewCat() {
+  newCatName.value = ''
+  showNewCat.value = true
+}
+async function createCategory() {
+  const name = newCatName.value.trim()
+  if (!name || creatingCat.value) return
+  creatingCat.value = true
+  try {
+    const created: any = await $fetch('/api/admin/categories', {
+      method: 'POST',
+      body: { name, parentId: newCatParent.value?.id ?? null },
+    })
+    await refreshCategories()
+    // Auto-select the freshly created category for this product. Reset the
+    // picker so its grid rebuilds from the fresh tree (the old pickerPath nodes
+    // don't know about the new child).
+    form.value.categoryId = created.id
+    form.value.category = created.name
+    pickerPath.value = []
+    showNewCat.value = false
+    newCatName.value = ''
+    toast.success('Kategorie přidána', created.name)
+  } catch (e: any) {
+    toast.error('Chyba', e?.data?.statusMessage || e?.message || 'Kategorii se nepodařilo vytvořit.')
+  } finally {
+    creatingCat.value = false
+  }
+}
+
 const uploading = ref(false)
 const uploadError = ref('')
 const MAX_IMAGES = 5
@@ -93,6 +134,7 @@ function openCreate() {
   form.value = { title: '', description: '', price: 0, image: '', images: [], stock: 0, category: '', categoryId: null }
   uploadError.value = ''
   pickerPath.value = []
+  showNewCat.value = false
   showModal.value = true
 }
 function openEdit(product: any) {
@@ -110,6 +152,7 @@ function openEdit(product: any) {
   }
   uploadError.value = ''
   pickerPath.value = []
+  showNewCat.value = false
   showModal.value = true
 }
 
@@ -360,6 +403,34 @@ function getImageSrc(image: string) {
                     <Icon icon="lucide:check" height="14" />
                     Zvolit „{{ pickerPath[pickerPath.length - 1].name }}"
                   </button>
+
+                  <!-- Inline new-category creator -->
+                  <div class="new-cat">
+                    <button v-if="!showNewCat" type="button" class="new-cat-toggle" @click="openNewCat">
+                      <Icon icon="lucide:plus" height="14" />
+                      Přidat novou kategorii{{ newCatParent ? ` do „${newCatParent.name}"` : '' }}
+                    </button>
+                    <div v-else class="new-cat-form">
+                      <div class="new-cat-label">
+                        Nová kategorie {{ newCatParent ? `v „${newCatParent.name}"` : '(hlavní úroveň)' }}
+                      </div>
+                      <div class="new-cat-row">
+                        <input
+                          v-model="newCatName"
+                          type="text"
+                          class="form-input"
+                          placeholder="Např. Náhrdelníky"
+                          @keydown.enter.prevent="createCategory"
+                          @keydown.esc.prevent="showNewCat = false"
+                        />
+                        <button type="button" class="btn-primary new-cat-save" :disabled="creatingCat || !newCatName.trim()" @click="createCategory">
+                          <Icon :icon="creatingCat ? 'lucide:loader-2' : 'lucide:check'" height="14" :class="{ spin: creatingCat }" />
+                          Vytvořit
+                        </button>
+                        <button type="button" class="btn-ghost new-cat-cancel" @click="showNewCat = false">Zrušit</button>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -518,6 +589,45 @@ function getImageSrc(image: string) {
   font-weight: 600;
 }
 .picker-confirm:hover { background: #3a1f55; }
+
+/* Inline new-category creator */
+.new-cat {
+  border-top: 1px solid rgba(42, 19, 64, 0.08);
+  padding: 0.5rem;
+  background: rgba(255, 255, 255, 0.45);
+}
+.new-cat-toggle {
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.5rem 0.85rem;
+  background: transparent;
+  border: 1.5px dashed rgba(179, 50, 76, 0.35);
+  border-radius: 7px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #b3324c;
+  transition: all 0.15s ease;
+}
+.new-cat-toggle:hover { background: rgba(179, 50, 76, 0.06); border-color: #b3324c; }
+.new-cat-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: rgba(42, 19, 64, 0.6);
+  margin-bottom: 0.4rem;
+}
+.new-cat-row {
+  display: flex;
+  gap: 0.4rem;
+  align-items: center;
+}
+.new-cat-row .form-input { flex: 1; margin: 0; }
+.new-cat-save { white-space: nowrap; }
+.new-cat-cancel { white-space: nowrap; }
 
 /* Images grid */
 .images-grid {

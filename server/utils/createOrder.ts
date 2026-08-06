@@ -132,6 +132,11 @@ export async function persistOrder(
   body: any,
   opts: { userId?: string | null; paymentStatus?: 'unpaid' | 'paid' } = {},
 ): Promise<{ order: typeof orders.$inferSelect; items: OrderItemData[]; totalPrice: number }> {
+  // A missing/non-object body (empty POST) would otherwise throw a raw TypeError
+  // on destructuring and surface as a 500 instead of a clean validation error.
+  if (!body || typeof body !== 'object') {
+    throw createError({ statusCode: 400, statusMessage: 'Chybí data objednávky' });
+  }
   const {
     customerName, customerEmail, phone, street, city, zip,
     paymentMethod, shippingMethod, packetaBranchId, packetaBranchName, items,

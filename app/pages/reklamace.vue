@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Icon } from "@iconify/vue";
-import { BUSINESS, COD_FEE, PAYMENT_OPTIONS, SHIPPING_OPTIONS, formattedAddress, orPlaceholder } from "~~/shared/shop";
+import { BUSINESS, CARD_PAYMENT_ENABLED, COD_FEE, PAYMENT_OPTIONS, SHIPPING_OPTIONS, formattedAddress, orPlaceholder } from "~~/shared/shop";
 
 useSeoMeta({
   title: 'Doprava a reklamace | Tynky Bordel',
@@ -76,7 +76,7 @@ async function copyTemplate() {
           <Icon icon="mdi:cash-multiple" height="32" class="text-emerald-400" />
         </div>
         <h2 class="text-xl font-bold text-white mb-4">Platba</h2>
-        <p class="text-sm mb-6">Zaplatíš dobírkou, převodem na účet s QR kódem, nebo kartou přes PayPal.</p>
+        <p class="text-sm mb-6">{{ CARD_PAYMENT_ENABLED ? 'Zaplatíš dobírkou, převodem na účet s QR kódem, nebo kartou přes PayPal.' : 'Zaplatíš dobírkou nebo převodem na účet s QR kódem.' }}</p>
         <ul class="w-full space-y-3">
           <li v-for="option in PAYMENT_OPTIONS" :key="option.id" class="flex justify-between items-center text-sm p-3 bg-white/5 rounded-lg border border-white/5 gap-3">
             <div class="flex items-center gap-2 text-left min-w-0">

@@ -1,6 +1,6 @@
 import { db } from '../../../utils/db';
-import { reviews } from '../../../database/schema';
-import { and, eq } from 'drizzle-orm';
+import { reviews, orders, orderItems } from '../../../database/schema';
+import { and, eq, ne } from 'drizzle-orm';
 import { requireSession } from '../../../utils/session';
 
 export default defineEventHandler(async (event) => {
@@ -13,6 +13,23 @@ export default defineEventHandler(async (event) => {
 
   const productId = parseInt(event.context.params?.id || '0');
   if (!productId) throw createError({ statusCode: 400 });
+
+  // Verified-purchase gate: only customers who actually ordered this product
+  // (in a non-cancelled order) may review it. Stops anyone with an account from
+  // spamming ratings on products they never bought.
+  const [purchased] = await db
+    .select({ id: orderItems.id })
+    .from(orderItems)
+    .innerJoin(orders, eq(orderItems.orderId, orders.id))
+    .where(and(
+      eq(orderItems.productId, productId),
+      eq(orders.userId, userId),
+      ne(orders.status, 'cancelled'),
+    ))
+    .limit(1);
+  if (!purchased) {
+    throw createError({ statusCode: 403, statusMessage: 'Recenzi můžeš přidat až po zakoupení tohoto produktu.' });
+  }
 
   const body = await readBody(event);
   const rating = Number(body?.rating)

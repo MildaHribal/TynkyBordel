@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Icon } from "@iconify/vue";
-import { BUSINESS, formattedAddress, orPlaceholder } from "~~/shared/shop";
+import { BUSINESS, CARD_PAYMENT_ENABLED, formattedAddress, orPlaceholder } from "~~/shared/shop";
 
 useSeoMeta({
   title: 'Ochrana osobních údajů | Tynky Bordel',
@@ -22,11 +22,14 @@ const partners = [
     description: 'Zásilkovna, a.s. a Česká pošta, s.p. (Balíkovna) — jméno, adresa výdejního místa, e-mail a telefon pro doručení zásilky.',
     icon: 'mdi:truck-fast-outline',
   },
-  {
-    name: 'Platební služby',
-    description: 'PayPal (Europe) S.à r.l. et Cie, S.C.A. při platbě kartou. U dobírky a převodu platební údaje nezpracováváme — platba jde přímo přes dopravce či banku.',
-    icon: 'mdi:credit-card-outline',
-  },
+  // PayPal is only a data processor once card payments are actually enabled.
+  ...(CARD_PAYMENT_ENABLED
+    ? [{
+        name: 'Platební služby',
+        description: 'PayPal (Europe) S.à r.l. et Cie, S.C.A. při platbě kartou. U dobírky a převodu platební údaje nezpracováváme — platba jde přímo přes dopravce či banku.',
+        icon: 'mdi:credit-card-outline',
+      }]
+    : []),
   {
     name: 'Hosting a doručování',
     description: 'Provozovatel serveru, na kterém e-shop běží, a Cloudflare, Inc. jako CDN a ochrana proti útokům.',

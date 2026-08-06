@@ -48,11 +48,14 @@ export default defineEventHandler(async (event) => {
       if (!orderId) break
 
       const paid = session.payment_status === 'paid'
+      // paymentStatus and (fulfillment) status are independent axes — mirror the
+      // manual admin flow. 'paid' is NOT a fulfillment status, so payment success
+      // only flips paymentStatus; fulfillment stays 'pending' until shipped.
       await db
         .update(orders)
         .set({
-          paymentStatus: paid ? 'paid' : 'pending',
-          status: paid ? 'paid' : 'pending',
+          paymentStatus: paid ? 'paid' : 'unpaid',
+          status: 'pending',
           stripeSessionId: session.id,
           updatedAt: new Date(),
         })

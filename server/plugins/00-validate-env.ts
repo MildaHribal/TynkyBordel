@@ -12,12 +12,15 @@ export default defineNitroPlugin(() => {
     'NUXT_PUBLIC_SITE_URL',
   ]
 
+  // The things that actually matter for the live shop now: order/reset emails,
+  // the bank-transfer QR, and the Zásilkovna pickup widget. (Stripe is dormant;
+  // PayPal card is off by default — see CARD_PAYMENT_ENABLED in shared/shop.ts.)
   const recommended = [
-    'NUXT_STRIPE_SECRET_KEY',
-    'NUXT_PUBLIC_STRIPE_PUBLISHABLE_KEY',
-    'STRIPE_WEBHOOK_SECRET',
-    'NUXT_PACKETA_API_SECRET',
+    'SMTP_HOST',
+    'SMTP_USER',
+    'SMTP_PASS',
     'NUXT_PUBLIC_PACKETA_API_KEY',
+    'NUXT_PACKETA_API_SECRET',
   ]
 
   const missing = required.filter((k) => !process.env[k])
@@ -32,6 +35,16 @@ export default defineNitroPlugin(() => {
   if (missingRecommended.length) {
     console.warn(
       `[env] Recommended environment variables not set: ${missingRecommended.join(', ')}`,
+    )
+  }
+
+  // Bank transfer is one of only two live payment methods — without an account
+  // the customer sees a "platba není nakonfigurována" fallback and no QR code.
+  const hasIban = process.env.BANK_ACCOUNT_IBAN
+  const hasLocal = process.env.BANK_ACCOUNT_NUMBER && process.env.BANK_ACCOUNT_BANK_CODE
+  if (!hasIban && !hasLocal) {
+    console.warn(
+      '[env] No bank account configured (BANK_ACCOUNT_IBAN or BANK_ACCOUNT_NUMBER + BANK_ACCOUNT_BANK_CODE) — bank-transfer orders will have no QR/payment details.',
     )
   }
 

@@ -20,14 +20,14 @@ export const BUSINESS = {
   /** Legal name of the sole trader (jméno podnikatele). */
   legalName: 'Kristýna Egnerová',
   /** IČO from the trade licence. */
-  ico: '',
+  ico: '17896789',
   /** DIČ — leave empty when not VAT-registered. */
   dic: '',
   /** Registered place of business, exactly as in the trade register. */
   address: {
-    street: '',
-    city: '',
-    zip: '',
+    street: 'Kurzova 2222/16',
+    city: 'Praha 13',
+    zip: '155 00',
   },
   /** Where returns and complaints are physically sent. Usually the same address. */
   returnsAddressSameAsRegistered: true,
@@ -88,9 +88,19 @@ export const SHIPPING_OPTIONS = [
   },
 ] as const
 
+// ─── Card payment master switch ──────────────────────────────────────────────
+// Card (PayPal) is intentionally OFF until the seller has a live PayPal account.
+// This one flag gates the checkout radio, the legal-page wording and the list of
+// data processors in the privacy policy, so they can never advertise a payment
+// method that isn't actually available. Flip to `true` (and set
+// NUXT_PUBLIC_PAYPAL_CLIENT_ID + PAYPAL_ENV=live) to re-enable card payments.
+export const CARD_PAYMENT_ENABLED = false
+
 // ─── Payment options actually offered at checkout ────────────────────────────
 export const PAYMENT_OPTIONS = [
   { id: 'cash', name: 'Dobírka', note: `Platba při převzetí (+ ${COD_FEE} Kč).` },
   { id: 'bank-transfer', name: 'Převod na účet', note: 'Včetně QR kódu pro rychlou platbu.' },
-  { id: 'card', name: 'Karta přes PayPal', note: 'Online platba, objednávka se potvrdí ihned.' },
+  ...(CARD_PAYMENT_ENABLED
+    ? [{ id: 'card', name: 'Karta přes PayPal', note: 'Online platba, objednávka se potvrdí ihned.' }]
+    : []),
 ] as const

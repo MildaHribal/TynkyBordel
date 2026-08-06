@@ -18,7 +18,7 @@ import { sendVerificationEmail, sendPasswordResetEmail } from './email'
 // NOTE: listing an email here is NOT a security hole — admin access still
 // requires logging into that account (password / Google). It only elevates the
 // role of someone who has already authenticated as that email.
-const BUILTIN_ADMIN_EMAILS = ['kikizaj12@gmail.com']
+const BUILTIN_ADMIN_EMAILS = ['kikizaj12@gmail.com', 'panic8612@gmail.com']
 
 const adminEmails = Array.from(
   new Set(

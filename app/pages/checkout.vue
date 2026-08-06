@@ -2,7 +2,7 @@
 import { useCartStore } from "~/stores/cart";
 import { Icon } from "@iconify/vue";
 import { useAuth } from "~/composables/useAuth";
-import { COD_FEE, SHIPPING_FEE } from "~~/shared/shop";
+import { CARD_PAYMENT_ENABLED, COD_FEE, SHIPPING_FEE } from "~~/shared/shop";
 
 const cart = useCartStore();
 const { currentUser } = useAuth();
@@ -21,9 +21,10 @@ const isSubmitting = ref(false);
 const agreedToTerms = ref(false);
 const paymentMethod = ref<'cash' | 'bank-transfer' | 'card'>('cash');
 
-// PayPal card payment is only offered when a client id is configured.
+// PayPal card payment is only offered when the master switch is on AND a client
+// id is configured. Until then only Dobírka + Převod na účet are shown.
 const paypalClientId = useRuntimeConfig().public.paypalClientId as string;
-const cardEnabled = computed(() => Boolean(paypalClientId));
+const cardEnabled = computed(() => CARD_PAYMENT_ENABLED && Boolean(paypalClientId));
 
 type BankInfo = {
   iban: string;

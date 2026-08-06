@@ -21,11 +21,13 @@ const STATUS_LABEL: Record<string, string> = {
   pending: 'Čekající',
   shipped: 'Odesláno',
   delivered: 'Doručeno',
+  cancelled: 'Zrušeno',
 }
 const STATUS_CLASS: Record<string, string> = {
   pending: 'badge-pending',
   shipped: 'badge-shipped',
   delivered: 'badge-delivered',
+  cancelled: 'badge-cancelled',
 }
 </script>
 

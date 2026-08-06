@@ -31,7 +31,7 @@ export default defineEventHandler(async (event) => {
     .filter((o) => o.paymentStatus === 'paid')
     .reduce((sum, o) => sum + o.totalPrice, 0);
   const pendingOrders = allOrders.filter((o) => o.status === 'pending').length;
-  const paidOrders = allOrders.filter((o) => o.status === 'paid').length;
+  const paidOrders = allOrders.filter((o) => o.paymentStatus === 'paid').length;
   const shippedOrders = allOrders.filter((o) => o.status === 'shipped').length;
   const deliveredOrders = allOrders.filter((o) => o.status === 'delivered').length;
   const cancelledOrders = allOrders.filter((o) => o.status === 'cancelled').length;

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Icon } from "@iconify/vue";
-import { BUSINESS, COD_FEE, SHIPPING_FEE, SHIPPING_OPTIONS, formattedAddress, orPlaceholder } from "~~/shared/shop";
+import { BUSINESS, CARD_PAYMENT_ENABLED, COD_FEE, SHIPPING_FEE, SHIPPING_OPTIONS, formattedAddress, orPlaceholder } from "~~/shared/shop";
 
 useSeoMeta({
   title: 'Obchodní podmínky | Tynky Bordel',
@@ -76,7 +76,8 @@ const ico = orPlaceholder(BUSINESS.ico, 'IČO');
         <ul class="list-disc list-inside space-y-2 ml-4">
           <li>Všechny ceny uvedené u zboží jsou konečné<span v-if="!BUSINESS.isVatPayer"> (Prodávající není plátcem DPH)</span>.</li>
           <li>K ceně zboží se připočítává poštovné <strong>{{ SHIPPING_FEE }} Kč</strong>; u dobírky navíc doběrečné <strong>{{ COD_FEE }} Kč</strong>. Celková částka je vždy zobrazena před odesláním objednávky.</li>
-          <li>Platit lze <strong>dobírkou</strong>, <strong>převodem na účet</strong> (včetně QR platby) nebo <strong>kartou přes PayPal</strong>.</li>
+          <li v-if="CARD_PAYMENT_ENABLED">Platit lze <strong>dobírkou</strong>, <strong>převodem na účet</strong> (včetně QR platby) nebo <strong>kartou přes PayPal</strong>.</li>
+          <li v-else>Platit lze <strong>dobírkou</strong> nebo <strong>převodem na účet</strong> (včetně QR platby).</li>
           <li>U platby předem je zboží odesíláno až po připsání částky na účet Prodávajícího; u dobírky se platí při převzetí.</li>
           <li>Doklad o nákupu Prodávající zasílá elektronicky na e-mail Kupujícího.</li>
         </ul>
