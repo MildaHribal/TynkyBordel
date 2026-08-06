@@ -57,17 +57,26 @@ cf -X PATCH "$API/zones/$ZONE/argo/tiered_caching" --data '{"value":"on"}' | ok 
 echo "→ Cache rule for /_nuxt/* and /_ipx/* (immutable assets & images) ..."
 echo -n "  cache_settings ruleset "
 cf -X PUT "$API/zones/$ZONE/rulesets/phases/http_request_cache_settings/entrypoint" --data '{
-  "rules": [{
-    "action": "set_cache_settings",
-    "expression": "(starts_with(http.request.uri.path, \"/_nuxt/\")) or (starts_with(http.request.uri.path, \"/_ipx/\")) or (starts_with(http.request.uri.path, \"/pwa/\"))",
-    "description": "Cache Nuxt build assets and optimized images",
-    "enabled": true,
-    "action_parameters": {
-      "cache": true,
-      "edge_ttl": { "mode": "respect_origin" },
-      "browser_ttl": { "mode": "respect_origin" }
+  "rules": [
+    {
+      "action": "set_cache_settings",
+      "expression": "(starts_with(http.request.uri.path, \"/api/\"))",
+      "description": "NEVER cache API/auth — caching /api/auth/get-session breaks login",
+      "enabled": true,
+      "action_parameters": { "cache": false }
+    },
+    {
+      "action": "set_cache_settings",
+      "expression": "(starts_with(http.request.uri.path, \"/_nuxt/\")) or (starts_with(http.request.uri.path, \"/_ipx/\")) or (starts_with(http.request.uri.path, \"/pwa/\"))",
+      "description": "Cache Nuxt build assets and optimized images",
+      "enabled": true,
+      "action_parameters": {
+        "cache": true,
+        "edge_ttl": { "mode": "respect_origin" },
+        "browser_ttl": { "mode": "respect_origin" }
+      }
     }
-  }]
+  ]
 }' | ok || true
 
 echo "→ Rate limit on /api/auth/* (brute-force protection: 20 req / min / IP) ..."

@@ -143,6 +143,12 @@ export default defineNuxtConfig({
     },
 
     routeRules: {
+        // API responses must NEVER be cached at the CDN edge. Caching
+        // /api/auth/get-session in particular breaks login: Cloudflare would
+        // serve a stale "logged-out" session to an authenticated visitor
+        // (observed as cf-cache-status: HIT on get-session). no-store tells
+        // Cloudflare + browsers not to cache any API response.
+        '/api/**': { headers: { 'cache-control': 'no-store, no-cache, must-revalidate' } },
         '/': { swr: true },
         '/product/**': { swr: true },
         '/cart': { swr: false },

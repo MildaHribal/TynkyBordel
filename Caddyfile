@@ -48,5 +48,12 @@ tynkybordel.shop {
     @uploads path /uploads/*
     header @uploads Cache-Control "public, max-age=86400"
 
+    # Never cache API/auth at the edge. Caching /api/auth/get-session breaks
+    # login — Cloudflare would hand an authenticated visitor a stale, cached
+    # "logged-out" session. This forces no-store regardless of what the handler
+    # sets, so Cloudflare won't cache it.
+    @api path /api/*
+    header @api Cache-Control "no-store, no-cache, must-revalidate, private"
+
     reverse_proxy app:3000
 }
