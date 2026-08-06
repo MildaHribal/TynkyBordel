@@ -883,9 +883,9 @@ const submitReview = async () => {
   transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.2s ease;
 }
 .pdp-buy--go {
-  background: var(--pop-pink, #E7488B);
-  color: #fff;
-  box-shadow: 5px 5px 0 var(--pop-pink-ink, #b5185f);
+  background: var(--pop-pink, #E585AA);
+  color: var(--pop-ink, #201134);
+  box-shadow: 5px 5px 0 var(--pop-pink-ink, #b34a72);
 }
 .pdp-buy--go:hover { transform: translate(-1px, -1px); box-shadow: 6px 6px 0 var(--pop-pink-ink, #b5185f); }
 .pdp-buy--go:active { transform: translate(3px, 3px); box-shadow: 2px 2px 0 var(--pop-pink-ink, #b5185f); }

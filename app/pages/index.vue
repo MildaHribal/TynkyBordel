@@ -269,7 +269,7 @@ const ticker = ['Jeden kus od každého', 'Odesílám z Prahy do 2 dnů', '14 dn
   margin: 0 0 1.4rem;
 }
 .zhero-mark {
-  color: #fff;
+  color: var(--pop-ink);
   background: var(--pop-pink);
   padding: 0 0.18em;
   border: 3px solid var(--pop-ink);

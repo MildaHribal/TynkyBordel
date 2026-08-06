@@ -378,31 +378,32 @@ onUnmounted(() => {
   align-items: center;
   gap: 0.25rem;
   padding: 0.4rem 0.5rem 0.4rem 1rem;
-  background: #1a0f28;
+  background: var(--pop-plum, #1b1033);
+  border: 2px solid var(--pop-ink, #201134);
   border-radius: 9999px;
   color: #ffffff;
-  box-shadow: 0 4px 18px rgba(42, 19, 64, 0.15);
+  box-shadow: 3px 3px 0 rgba(32, 17, 52, 0.85);
   transition: box-shadow 0.25s ease;
   position: relative;
 }
-.navbar--scrolled { box-shadow: 0 6px 22px rgba(42, 19, 64, 0.22); }
+.navbar--scrolled { box-shadow: 4px 4px 0 rgba(32, 17, 52, 0.85); }
 
 .nav-link {
   display: inline-flex;
   align-items: center;
   padding: 0.4rem 0.85rem;
-  font-family: 'Bricolage Grotesque', system-ui;
-  font-weight: 600;
-  font-size: 0.72rem;
-  letter-spacing: 0.14em;
+  font-family: var(--font-mono, monospace);
+  font-weight: 700;
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   color: #ffffff;
   text-decoration: none;
   border-radius: 9999px;
-  transition: background 0.2s ease;
+  transition: background 0.2s ease, color 0.2s ease;
   white-space: nowrap;
 }
-.nav-link:hover { background: rgba(255, 255, 255, 0.1); }
+.nav-link:hover { background: var(--pop-pink, #E585AA); color: var(--pop-ink, #201134); }
 
 /* ── Inline search (desktop) ─────────────────────────── */
 .nav-search {
@@ -413,7 +414,7 @@ onUnmounted(() => {
   margin-left: 0.35rem;
   padding: 0.3rem 0.65rem 0.3rem 0.75rem;
   background: rgba(255, 255, 255, 0.09);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: 1.5px solid rgba(255, 255, 255, 0.18);
   border-radius: 9999px;
   transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, width 0.25s ease;
   width: 180px;
@@ -552,16 +553,18 @@ onUnmounted(() => {
   height: 42px;
   border-radius: 9999px;
   background: #ffffff;
-  border: 1px solid rgba(42, 19, 64, 0.15);
+  border: 2px solid var(--pop-ink, #201134);
   color: var(--pop-ink);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 2px 2px 0 rgba(32, 17, 52, 0.85);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.2s ease;
   text-decoration: none;
   position: relative;
 }
 @media (min-width: 768px) { .nav-avatar-btn { display: flex; width: 46px; height: 46px; } }
 .nav-avatar-btn:hover {
-  transform: scale(1.05);
-  box-shadow: 0 4px 12px rgba(42, 19, 64, 0.14);
+  transform: translate(-1px, -1px);
+  background: var(--pop-pink, #E585AA);
+  box-shadow: 3px 3px 0 rgba(32, 17, 52, 0.85);
 }
 
 .cart-badge-small {

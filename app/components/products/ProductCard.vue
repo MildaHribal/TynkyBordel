@@ -343,8 +343,8 @@ const toggleFavorite = async () => {
   font-weight: 700;
   font-size: 0.6rem;
   letter-spacing: 0.06em;
-  color: #fff;
-  background: var(--pop-pink, #E7488B);
+  color: var(--pop-ink, #201134);
+  background: var(--pop-pink, #E585AA);
   border: 2px solid var(--pop-ink, #201134);
   border-radius: 5px;
   padding: 0.12rem 0.4rem;

@@ -147,8 +147,12 @@ export default defineNuxtConfig({
         '/product/**': { swr: true },
         '/cart': { swr: false },
         '/checkout': { swr: false },
-        '/my-account': { swr: false },
-        '/user/**': { swr: false },
+        // Auth-guarded account pages are client-only: the auth middleware only
+        // has session state in the browser, so SSR would redirect a logged-in
+        // user back to /login on a full page load (same reason /admin is ssr:false).
+        '/my-account': { ssr: false },
+        '/user': { ssr: false },
+        '/user/**': { ssr: false },
         '/admin/**': { ssr: false },
         // Long-lived caching for immutable/content-stable assets (was ~1 min,
         // which Lighthouse flagged — costs repeat-view performance).

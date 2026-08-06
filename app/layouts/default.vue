@@ -106,8 +106,13 @@ import { BUSINESS } from "~~/shared/shop";
   position: absolute;
   top: 0;
   inset-inline: 0;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.12), transparent);
+  height: 4px;
+  background: repeating-linear-gradient(
+    90deg,
+    var(--pop-pink, #E585AA) 0, var(--pop-pink, #E585AA) 28px,
+    var(--pop-lime, #B9E14B) 28px, var(--pop-lime, #B9E14B) 56px
+  );
+  opacity: 0.85;
 }
 @media (min-width: 768px) {
   .site-footer { padding: 5.5rem 2rem 2rem; }
@@ -177,12 +182,12 @@ import { BUSINESS } from "~~/shared/shop";
 }
 
 .footer-heading {
-  font-family: 'Manrope', system-ui;
+  font-family: var(--font-mono, monospace);
   font-weight: 700;
-  font-size: 0.7rem;
-  letter-spacing: 0.22em;
+  font-size: 0.68rem;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: rgba(241, 235, 223, 0.55);
+  color: var(--pop-pink, #E585AA);
   margin: 0 0 1.25rem;
 }
 
@@ -204,7 +209,7 @@ import { BUSINESS } from "~~/shared/shop";
   display: inline-block;
 }
 .footer-link:hover {
-  color: #ffffff;
+  color: var(--pop-pink, #E585AA);
   transform: translateX(2px);
 }
 

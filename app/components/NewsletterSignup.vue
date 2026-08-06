@@ -192,8 +192,8 @@ const submit = async () => {
   border-radius: 10px;
   border: 2px solid var(--pop-cream, #F0E7D2);
   cursor: pointer;
-  background: var(--pop-pink, #E7488B);
-  color: #fff;
+  background: var(--pop-pink, #E585AA);
+  color: var(--pop-ink, #201134);
   font-family: var(--font-mono, monospace);
   font-weight: 700;
   font-size: 0.78rem;

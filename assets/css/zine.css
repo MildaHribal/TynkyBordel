@@ -61,7 +61,7 @@
   font-size: 0.66rem;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: #fff;
+  color: var(--pop-ink);
   background: var(--pop-pink);
   padding: 0.3rem 0.7rem;
   border: 2px solid var(--pop-ink);
@@ -90,7 +90,7 @@
   cursor: pointer;
   text-decoration: none;
   background: var(--pop-pink);
-  color: #fff;
+  color: var(--pop-ink);
   box-shadow: 4px 4px 0 var(--btn-shadow);
   transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.2s ease;
 }
@@ -236,7 +236,7 @@
 }
 .btn-cosmic {
   background: var(--pop-pink) !important;
-  color: #fff !important;
+  color: var(--pop-ink) !important;
   box-shadow: 4px 4px 0 var(--pop-ink) !important;
 }
 .btn-cosmic::before { display: none !important; }

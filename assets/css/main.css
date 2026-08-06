@@ -75,9 +75,9 @@
   --pop-plum-2:   #2a1745;   /* raised dark surface */
 
   /* Accents */
-  --pop-pink:     #E7488B;   /* hot magenta — primary shout */
-  --pop-pink-ink: #b5185f;   /* darker pink for text-on-cream legibility */
-  --pop-blush:    #F7C6DA;   /* soft sticker fill */
+  --pop-pink:     #E585AA;   /* soft pastel rose — primary accent (was a hot magenta, toned down) */
+  --pop-pink-ink: #b34a72;   /* deeper rose for text-on-cream legibility */
+  --pop-blush:    #F7D3E0;   /* soft sticker fill */
   --pop-lime:     #B9E14B;   /* acid lime — price / go */
   --pop-lime-ink: #4d6b0e;   /* lime-family text on cream */
   --pop-green:    #A8DF8E;
