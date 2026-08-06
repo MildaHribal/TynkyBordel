@@ -52,19 +52,38 @@ export default defineEventHandler(async (event) => {
       slug = `${slug}-${Date.now()}`;
     }
 
-    const [product] = await db
-      .insert(products)
-      .values({
-        name: body.title,
-        slug,
-        description: body.description || '',
-        price: Number(body.price),
-        image: body.image || '',
-        images: body.images || [],
-        stock: Number(body.stock) || 0,
-        categoryId,
-      })
-      .returning();
+    // Random, non-sequential public product number (retried on the rare collision).
+    const randomProductNumber = () => {
+      let out = String(1 + Math.floor(Math.random() * 9)); // no leading zero
+      for (let i = 1; i < 8; i++) out += Math.floor(Math.random() * 10);
+      return out;
+    };
+
+    let product;
+    for (let attempt = 0; attempt < 5; attempt++) {
+      try {
+        [product] = await db
+          .insert(products)
+          .values({
+            productNumber: randomProductNumber(),
+            name: body.title,
+            slug,
+            description: body.description || '',
+            price: Number(body.price),
+            image: body.image || '',
+            images: body.images || [],
+            stock: Number(body.stock) || 0,
+            categoryId,
+          })
+          .returning();
+        break;
+      } catch (err: any) {
+        // 23505 = unique violation; only retry when it's the product_number that clashed.
+        if (err?.code === '23505' && String(err?.constraint_name || '').includes('product_number') && attempt < 4) continue;
+        throw err;
+      }
+    }
+    if (!product) throw createError({ statusCode: 500, statusMessage: 'Produkt se nepodařilo vytvořit' });
 
     return {
       ...product,

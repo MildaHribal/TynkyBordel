@@ -8,6 +8,7 @@ export default defineEventHandler(async (event) => {
   const result = await db
     .select({
       id: products.id,
+      productNumber: products.productNumber,
       title: products.name,
       name: products.name,
       slug: products.slug,

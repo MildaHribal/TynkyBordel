@@ -73,6 +73,9 @@ export const categories = pgTable('categories', {
 // ── Products ────────────────────────────────────────────────────────────────────
 export const products = pgTable('products', {
   id: serial('id').primaryKey(),
+  // Random, non-sequential public reference number (see migration 0007). The
+  // serial id stays the internal PK; product_number is what humans see.
+  productNumber: text('product_number').unique(),
   name: text('name').notNull(),
   slug: text('slug').notNull().unique(),
   description: text('description'),

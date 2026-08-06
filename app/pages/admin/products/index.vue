@@ -294,7 +294,7 @@ function getImageSrc(image: string) {
                   </div>
                   <div>
                     <span class="product-name">{{ p.title }}</span>
-                    <span class="product-id">#{{ p.id }}</span>
+                    <span class="product-id">#{{ p.productNumber || p.id }}</span>
                   </div>
                 </div>
               </td>

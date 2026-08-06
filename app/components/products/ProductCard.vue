@@ -33,12 +33,7 @@ const productUrl = computed(() => {
 const TILTS = [-2.4, 1.6, -1.1, 2.2, -0.7, 1.2]
 const tilt = computed(() => {
   const n = Number(props.product.id)
-  const idx = Number.isFinite(n) ? Math.abs(n) % TILTS.length : props.product.id.toString().length % TILTS.length
-  return TILTS[idx]
-})
-const cardNo = computed(() => {
-  const n = Number(props.product.id)
-  return Number.isFinite(n) ? String(n).padStart(2, '0') : null
+  return TILTS[Number.isFinite(n) ? Math.abs(n) % TILTS.length : props.product.id.toString().length % TILTS.length]
 })
 
 // Second product photo, revealed with a crossfade on hover (if the product has
@@ -141,8 +136,6 @@ const toggleFavorite = async () => {
 
 <template>
   <NuxtLink :to="productUrl" class="product-card group relative flex w-full flex-col h-full" :style="{ '--tilt': tilt + 'deg' }" :aria-label="product.title">
-    <!-- Catalogue number sticker -->
-    <span v-if="cardNo" class="card-no">No.{{ cardNo }}</span>
     <!-- Image frame -->
     <div ref="imageWrapRef" class="card-image relative w-full aspect-[5/4] overflow-hidden rounded-xl">
       <NuxtImg
@@ -334,22 +327,6 @@ const toggleFavorite = async () => {
   font-weight: 600;
 }
 
-.card-no {
-  position: absolute;
-  top: -9px;
-  left: -9px;
-  z-index: 4;
-  font-family: var(--font-mono, monospace);
-  font-weight: 700;
-  font-size: 0.6rem;
-  letter-spacing: 0.06em;
-  color: var(--pop-ink, #201134);
-  background: var(--pop-pink, #E585AA);
-  border: 2px solid var(--pop-ink, #201134);
-  border-radius: 5px;
-  padding: 0.12rem 0.4rem;
-  transform: rotate(-6deg);
-}
 .card-title {
   font-family: var(--font-mono, monospace);
   font-weight: 700;

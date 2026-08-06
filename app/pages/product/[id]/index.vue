@@ -583,7 +583,6 @@ const submitReview = async () => {
                     <Icon v-else :icon="isFavorite ? 'mdi:heart' : 'mdi:heart-outline'" height="22" />
                   </button>
                 </div>
-                <span class="text-[10px] md:text-xs font-mono text-white/20 uppercase tracking-widest">ID: {{ product.id }}</span>
               </div>
 
               <!-- Quantity Selector -->
