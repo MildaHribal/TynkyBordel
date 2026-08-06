@@ -27,6 +27,20 @@ const productUrl = computed(() => {
   return slug ? `/product/${slug}` : `/product/${props.product.id}`
 })
 
+// Aligned-but-crooked grid: each card gets a small, STABLE tilt derived from its
+// id, so the wall of cards looks hand-pinned rather than machine-perfect. Hover
+// straightens it. (Deterministic → no hydration mismatch, no reshuffle on nav.)
+const TILTS = [-2.4, 1.6, -1.1, 2.2, -0.7, 1.2]
+const tilt = computed(() => {
+  const n = Number(props.product.id)
+  const idx = Number.isFinite(n) ? Math.abs(n) % TILTS.length : props.product.id.toString().length % TILTS.length
+  return TILTS[idx]
+})
+const cardNo = computed(() => {
+  const n = Number(props.product.id)
+  return Number.isFinite(n) ? String(n).padStart(2, '0') : null
+})
+
 // Second product photo, revealed with a crossfade on hover (if the product has
 // more than one image).
 const secondImageSrc = computed(() => {
@@ -126,7 +140,9 @@ const toggleFavorite = async () => {
 </script>
 
 <template>
-  <NuxtLink :to="productUrl" class="product-card group relative flex w-full flex-col h-full" :aria-label="product.title">
+  <NuxtLink :to="productUrl" class="product-card group relative flex w-full flex-col h-full" :style="{ '--tilt': tilt + 'deg' }" :aria-label="product.title">
+    <!-- Catalogue number sticker -->
+    <span v-if="cardNo" class="card-no">No.{{ cardNo }}</span>
     <!-- Image frame -->
     <div ref="imageWrapRef" class="card-image relative w-full aspect-[5/4] overflow-hidden rounded-xl">
       <NuxtImg
@@ -220,29 +236,26 @@ const toggleFavorite = async () => {
 .product-card {
   text-decoration: none;
   color: inherit;
-  background: #1a0f28;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 1rem;
-  padding: 0.55rem 0.55rem 0.6rem;
-  transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.4s ease, border-color 0.3s ease;
-  box-shadow: 0 6px 18px rgba(20, 8, 36, 0.28);
+  background: var(--pop-plum, #1b1033);
+  border: 2px solid var(--pop-ink, #201134);
+  border-radius: 0.85rem;
+  padding: 0.5rem 0.5rem 0.6rem;
+  transform: rotate(var(--tilt, 0deg));
+  transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.3s ease;
+  box-shadow: 4px 5px 0 rgba(32, 8, 40, 0.55);
 }
 .product-card:hover {
-  transform: translateY(-4px);
-  border-color: rgba(255, 107, 181, 0.35);
-  box-shadow: 0 18px 36px rgba(20, 8, 36, 0.4);
+  transform: rotate(0deg) translateY(-4px);
+  box-shadow: 7px 9px 0 var(--pop-pink, #E7488B);
+  z-index: 2;
 }
 
-/* ── Image frame ── black so the product photos (shot on black) blend in, like
-   the slider. ── */
+/* ── Image frame — black so the product photos (shot on black) blend in ── */
 .card-image {
   background: #000000;
-  border: 1px solid rgba(255, 255, 255, 0.07);
-  border-radius: 0.75rem;
+  border: 2px solid var(--pop-ink, #201134);
+  border-radius: 0.6rem;
   transition: border-color 0.3s ease;
-}
-.product-card:hover .card-image {
-  border-color: rgba(255, 255, 255, 0.16);
 }
 
 .card-img {
@@ -321,21 +334,36 @@ const toggleFavorite = async () => {
   font-weight: 600;
 }
 
+.card-no {
+  position: absolute;
+  top: -9px;
+  left: -9px;
+  z-index: 4;
+  font-family: var(--font-mono, monospace);
+  font-weight: 700;
+  font-size: 0.6rem;
+  letter-spacing: 0.06em;
+  color: #fff;
+  background: var(--pop-pink, #E7488B);
+  border: 2px solid var(--pop-ink, #201134);
+  border-radius: 5px;
+  padding: 0.12rem 0.4rem;
+  transform: rotate(-6deg);
+}
 .card-title {
-  font-family: 'Petrona', Georgia, serif;
-  font-style: italic;
-  font-weight: 500;
-  font-size: 1.15rem;
+  font-family: var(--font-mono, monospace);
+  font-weight: 700;
+  font-size: 0.92rem;
   line-height: 1.2;
-  letter-spacing: -0.005em;
-  color: #ffffff;
+  letter-spacing: 0.01em;
+  color: #F0E7D2;
   display: -webkit-box;
-  -webkit-line-clamp: 1;
+  -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
 @media (min-width: 768px) {
-  .card-title { font-size: 1.22rem; }
+  .card-title { font-size: 0.98rem; -webkit-line-clamp: 1; }
 }
 
 /* Short description in the space freed up by the shorter landscape image. */
@@ -387,8 +415,8 @@ const toggleFavorite = async () => {
     -webkit-line-clamp: 2;
   }
   .card-info-bottom { padding-top: 0.45rem; }
-  .price-num { font-size: 1.9rem; }
-  .fav-btn { width: 38px; height: 38px; }
+  .price-num { font-size: 1.35rem; }
+  .fav-btn { width: 36px; height: 36px; }
 }
 
 .card-info-bottom {
@@ -409,23 +437,24 @@ const toggleFavorite = async () => {
 }
 
 .price-num {
-  font-family: 'Gloock', Georgia, serif;
-  font-weight: 400;
-  font-size: 1.75rem;
-  letter-spacing: -0.02em;
-  color: #ffffff;
+  font-family: var(--font-mono, monospace);
+  font-weight: 700;
+  font-size: 1.4rem;
+  letter-spacing: -0.01em;
+  color: var(--pop-lime, #B9E14B);
   line-height: 1;
 }
 @media (min-width: 768px) {
-  .price-num { font-size: 1.85rem; }
+  .price-num { font-size: 1.5rem; }
 }
 
 .price-currency {
-  font-size: 0.75rem;
-  letter-spacing: 0.18em;
+  font-family: var(--font-mono, monospace);
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.5);
-  font-weight: 600;
+  color: var(--pop-lime, #B9E14B);
+  font-weight: 700;
 }
 
 .mobile-cta {

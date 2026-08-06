@@ -85,58 +85,57 @@ const submit = async () => {
 .nl-card {
   position: relative;
   overflow: hidden;
-  border-radius: 1.75rem;
+  border-radius: 16px;
   padding: 2rem 1.5rem;
-  background: #1c0d2e;
-  background-image: radial-gradient(120% 140% at 0% 0%, #35174f 0%, #1c0d2e 55%);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 18px 44px rgba(28, 13, 46, 0.28);
+  background: var(--pop-plum, #1b1033);
+  border: 2px solid var(--pop-ink, #201134);
+  box-shadow: 6px 6px 0 rgba(32, 17, 52, 0.85);
 }
 @media (min-width: 768px) {
-  .nl-card { padding: 3.25rem 3rem; border-radius: 2.5rem; }
+  .nl-card { padding: 3rem 3rem; }
 }
 
-/* Decorative gradient blobs */
+/* Flat zine accent bars instead of blurred blobs */
 .nl-ring {
   position: absolute;
-  border-radius: 9999px;
-  filter: blur(48px);
-  opacity: 0.5;
   pointer-events: none;
 }
 .nl-ring--a {
-  width: 260px; height: 260px;
-  top: -120px; right: -60px;
-  background: radial-gradient(circle, #ff5c8a, transparent 70%);
+  width: 120px; height: 120px; border-radius: 50%;
+  top: -60px; right: -30px;
+  background: var(--pop-pink, #E7488B);
+  opacity: 0.9;
 }
 .nl-ring--b {
-  width: 240px; height: 240px;
-  bottom: -140px; left: -40px;
-  background: radial-gradient(circle, #a878ff, transparent 70%);
+  width: 90px; height: 90px; border-radius: 50%;
+  bottom: -46px; left: -24px;
+  background: var(--pop-lime, #B9E14B);
+  opacity: 0.85;
 }
 
 .nl-content { position: relative; max-width: 620px; }
 
 .nl-eyebrow {
-  font-family: 'Manrope', system-ui;
-  font-size: 0.72rem;
-  letter-spacing: 0.22em;
+  font-family: var(--font-mono, monospace);
+  font-size: 0.7rem;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: #ffb3d0;
+  color: var(--pop-pink, #E7488B);
   font-weight: 700;
   margin-bottom: 0.75rem;
 }
 .nl-title {
-  font-family: 'Fraunces', Georgia, serif;
-  font-weight: 700;
-  font-size: 1.7rem;
-  line-height: 1.1;
+  font-family: var(--font-zine, system-ui);
+  font-weight: 800;
+  font-size: 1.9rem;
+  line-height: 0.95;
   letter-spacing: -0.02em;
-  color: #fbf4ea;
+  text-transform: uppercase;
+  color: #F0E7D2;
   margin: 0 0 0.75rem;
 }
 @media (min-width: 768px) {
-  .nl-title { font-size: 2.5rem; }
+  .nl-title { font-size: 2.6rem; }
 }
 .nl-desc {
   font-family: 'Manrope', system-ui;
@@ -168,45 +167,47 @@ const submit = async () => {
 }
 .nl-input {
   width: 100%;
-  padding: 0.95rem 1rem 0.95rem 2.85rem;
-  border-radius: 9999px;
-  background: rgba(255, 255, 255, 0.07);
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  color: #fbf4ea;
-  font-family: 'Manrope', system-ui;
+  padding: 0.9rem 1rem 0.9rem 2.85rem;
+  border-radius: 10px;
+  background: #fbf7ee;
+  border: 2px solid var(--pop-ink, #201134);
+  color: var(--pop-ink, #201134);
+  font-family: var(--font-mono, monospace);
   font-size: 1rem;
-  transition: border-color 0.2s ease, background 0.2s ease;
+  transition: box-shadow 0.2s ease;
 }
-.nl-input::placeholder { color: rgba(251, 244, 234, 0.4); }
+.nl-input::placeholder { color: rgba(32, 17, 52, 0.4); }
 .nl-input:focus {
   outline: none;
-  border-color: #ff5c8a;
-  background: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 0 0 3px var(--pop-pink, #E7488B);
 }
+.nl-input-icon { color: rgba(32, 17, 52, 0.4); }
 
 .nl-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  padding: 0.95rem 1.6rem;
-  border-radius: 9999px;
-  border: none;
+  padding: 0.9rem 1.6rem;
+  border-radius: 10px;
+  border: 2px solid var(--pop-cream, #F0E7D2);
   cursor: pointer;
-  background: #fbf4ea;
-  color: #1c0d2e;
-  font-family: 'Manrope', system-ui;
+  background: var(--pop-pink, #E7488B);
+  color: #fff;
+  font-family: var(--font-mono, monospace);
   font-weight: 700;
-  font-size: 0.85rem;
-  letter-spacing: 0.06em;
+  font-size: 0.78rem;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   white-space: nowrap;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 4px 4px 0 rgba(240, 231, 210, 0.35);
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
 }
 .nl-btn:hover:not(:disabled) {
-  transform: translateY(-1px);
-  box-shadow: 0 10px 24px rgba(255, 92, 138, 0.3);
+  transform: translate(-1px, -1px);
+  box-shadow: 5px 5px 0 rgba(240, 231, 210, 0.5);
 }
+.nl-btn:active:not(:disabled) { transform: translate(3px, 3px); box-shadow: 1px 1px 0 rgba(240, 231, 210, 0.5); }
 .nl-btn:disabled { opacity: 0.7; cursor: default; }
 
 .nl-done {

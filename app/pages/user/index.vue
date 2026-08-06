@@ -101,7 +101,12 @@ const statusClass = (status: string) => {
 </script>
 
 <template>
-  <div class="max-w-6xl mx-auto px-4 py-8 md:py-16">
+  <div class="max-w-6xl mx-auto px-4 py-8 md:py-14">
+    <header class="profile-head">
+      <span class="zine-eyebrow">✶ Uživatelský profil</span>
+      <h1 class="zine-section-title">Můj bordel</h1>
+      <p class="profile-sub">Tvoje objednávky, adresa a oblíbené kousky na jednom místě.</p>
+    </header>
     <div class="flex flex-col md:flex-row gap-8">
 
       <!-- Sidebar -->
@@ -364,5 +369,12 @@ const statusClass = (status: string) => {
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
+}
+.profile-head { margin-bottom: 2rem; }
+.profile-sub {
+  font-family: var(--font-mono, monospace);
+  font-size: 0.86rem;
+  color: rgba(32, 17, 52, 0.6);
+  margin-top: 0.6rem;
 }
 </style>

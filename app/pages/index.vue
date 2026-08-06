@@ -1,8 +1,5 @@
 <script setup lang="ts">
 import ProductCard from "~/components/products/ProductCard.vue";
-import ProductCarousel from "~/components/ProductCarousel.vue";
-import BigProductSlider from "~/components/BigProductSlider.vue";
-import RingOrnament from "~/components/RingOrnament.vue";
 import { Icon } from "@iconify/vue";
 import type { Product } from '~~/types';
 
@@ -19,33 +16,46 @@ useSeoMeta({
   ogUrl: `${siteUrl}/`,
   ogImage: `${siteUrl}/hero/frog-forest-hero.png`,
   twitterCard: 'summary_large_image',
-  twitterTitle: 'Tynky Bordel — Ruční tvorba',
-  twitterDescription: 'Malý autorský eshop s originály. Obrazy, sochy, klíčenky.',
-  twitterImage: `${siteUrl}/hero/frog-forest-hero.png`,
 })
 
 const { data: allProducts, pending, error } = await useFetch<Product[]>('/api/products?limit=40')
 
-const featured = computed(() => {
-  if (!allProducts.value) return [];
-  return allProducts.value
-    .slice(0, 10)
-    .map((p, index) => ({ ...p, id: p.id || `feat-${index}` }));
-});
+const collection = computed(() =>
+  (allProducts.value ?? []).map((p, i) => ({ ...p, id: p.id || `col-${i}` }))
+)
 
-const fullCollection = computed(() => {
-  if (!allProducts.value) return [];
-  return allProducts.value.map((p, index) => ({
-    ...p,
-    id: p.id || `col-${index}`,
-  }));
-});
+const inStockCount = computed(() =>
+  collection.value.filter((p: any) => (p.stock ?? 0) > 0).length
+)
+
+// Polaroid collage in the hero: the three freshest pieces with an image.
+const heroPics = computed(() =>
+  collection.value.filter((p: any) => p.image).slice(0, 3)
+)
+
+// ── Category filter pills ("Čerstvé z ateliéru") ────────────────────────────
+const activeFilter = ref<string>('all')
+const categories = computed(() => {
+  const seen = new Map<string, number>()
+  for (const p of collection.value as any[]) {
+    if (p.category) seen.set(p.category, (seen.get(p.category) ?? 0) + 1)
+  }
+  return Array.from(seen, ([name, count]) => ({ name, count }))
+})
+const filtered = computed(() =>
+  activeFilter.value === 'all'
+    ? collection.value
+    : collection.value.filter((p: any) => p.category === activeFilter.value)
+)
+
+function heroSrc(image: string) {
+  if (!image) return ''
+  return image.startsWith('http') || image.startsWith('/') ? image : `/${image}`
+}
 
 const jsonLd = computed(() => {
-  if (!allProducts.value) return [];
-  // Organization + WebSite are injected globally in app.vue. Here we only add the
-  // catalog ItemList — the products actually shown on the homepage.
-  const itemListSchema = {
+  if (!allProducts.value) return []
+  return [{
     '@context': 'https://schema.org',
     '@type': 'ItemList',
     name: 'Katalog — Tynky Bordel',
@@ -59,513 +69,379 @@ const jsonLd = computed(() => {
         name: p.title || p.name,
         image: p.image?.startsWith('http') ? p.image : `${siteUrl}${p.image?.startsWith('/') ? '' : '/'}${p.image || ''}`,
         offers: {
-          '@type': 'Offer',
-          price: p.price,
-          priceCurrency: 'CZK',
-          availability: (p.stock ?? 0) > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock'
-        }
-      }
-    }))
-  };
-  return [itemListSchema];
-});
+          '@type': 'Offer', price: p.price, priceCurrency: 'CZK',
+          availability: (p.stock ?? 0) > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
+        },
+      },
+    })),
+  }]
+})
 
 useHead(() => ({
   htmlAttrs: { class: 'psy-grain' },
   link: [{ rel: 'canonical', href: `${siteUrl}/` }],
-  script: jsonLd.value.map(schema => ({
-    type: 'application/ld+json',
-    innerHTML: JSON.stringify(schema)
-  }))
+  script: jsonLd.value.map(schema => ({ type: 'application/ld+json', innerHTML: JSON.stringify(schema) })),
 }))
 
-const carouselBest = ref<InstanceType<typeof ProductCarousel> | null>(null);
+const ticker = ['Jeden kus od každého', 'Odesílám z Prahy do 2 dnů', '14 dní na vrácení', 'Ručně v Praze', 'Platba převodem i dobírkou']
 </script>
 
 <template>
   <div class="w-full">
     <div v-if="pending" class="flex items-center justify-center min-h-[60vh]">
       <div class="text-center">
-        <div class="loading-eyebrow mb-4">Načítám</div>
-        <div class="w-12 h-12 mx-auto rounded-full border border-[var(--pop-ink)]/15 border-t-[var(--pop-ink)] animate-spin"></div>
+        <div class="loading-eyebrow mb-4 zine-mono">Načítám…</div>
+        <div class="w-12 h-12 mx-auto rounded-full border-2 border-[var(--pop-ink)]/15 border-t-[var(--pop-pink)] animate-spin"></div>
       </div>
     </div>
 
-    <div v-else-if="error" class="mx-5 md:mx-12 mt-12 p-6 border border-[var(--pop-ink)]/20 rounded-3xl">
+    <div v-else-if="error" class="mx-5 md:mx-12 mt-12 zine-card-cream p-6">
       <p class="text-lg">{{ error.message }}</p>
     </div>
 
     <template v-else>
-      <!-- Hero: frog forest artwork -->
-      <PageHero />
-
-      <!-- Big product slider -->
-      <section class="section big-slider-section" v-fly="{ direction: 'up', distance: 32 }">
-        <BigProductSlider :products="featured" />
-      </section>
-
-      <!-- Best Pieces carousel -->
-      <section class="section" v-fly="{ direction: 'up', distance: 32 }">
-        <div class="section-head">
-          <div>
-            <div class="section-eyebrow">— Výběr</div>
-            <h2 class="section-title">Best Pieces</h2>
-          </div>
-          <div class="section-arrows">
-            <button @click="carouselBest?.prev()" class="section-arrow-btn" aria-label="Předchozí">
-              <Icon icon="lucide:arrow-left" height="18" />
-            </button>
-            <button @click="carouselBest?.next()" class="section-arrow-btn" aria-label="Další">
-              <Icon icon="lucide:arrow-right" height="18" />
-            </button>
-          </div>
-        </div>
-
-        <ProductCarousel
-          v-if="featured.length > 0"
-          :products="featured"
-          ref="carouselBest"
-        />
-      </section>
-
-      <!-- About Me — moved from old hero -->
-      <section id="about" class="section about-section" v-fly="{ direction: 'up', distance: 40 }">
-        <div class="about-grid">
-          <div class="about-copy">
-            <div class="section-eyebrow">— O mně</div>
-            <h2 class="section-title about-title">Akustická <span class="about-accent">Děvka</span>,<br />která musí furt něco tvořit</h2>
-            <p class="about-desc">
-              Jsem obsessed smažkama. Vytvářím jak hovna, tak absolutní bangery
-              — obrazy, sochy z papírmašé, klíčenky. Každý kousek je originál,
-              vyrobený rukama.
+      <!-- ═══ HERO ═══ -->
+      <section class="zhero">
+        <div class="zhero-inner">
+          <div class="zhero-copy">
+            <span class="zine-eyebrow zhero-eyebrow">✶ Autor · Jeden kus · Žádná série</span>
+            <h1 class="zhero-title">
+              Vytvářím <span class="zhero-mark">absolutní</span> bangery.
+            </h1>
+            <p class="zhero-sub">
+              Obrazy, sochy z papírmašé, klíčenky. Všechno originál, všechno z ruky.
+              Platba převodem nebo dobírkou.
             </p>
-            <p class="about-note">
-              Platba zatím pouze převodem, nebo na dobírku — krámek ještě není legal, takže pssst.
-            </p>
-            <div class="about-actions">
-              <NuxtLink to="#kolekce" class="btn-primary">
-                <span>Chci vidět vše</span>
-                <Icon icon="lucide:arrow-down" height="18" />
+            <div class="zhero-actions">
+              <NuxtLink to="#kolekce" class="zine-btn">
+                Zobrazit všechno <Icon icon="lucide:arrow-down" height="16" />
               </NuxtLink>
-              <NuxtLink to="/reklamace" class="btn-ghost">
-                <span>Doprava &amp; reklamace</span>
-              </NuxtLink>
+              <span v-if="inStockCount" class="zhero-stock">
+                <span class="zhero-dot"></span>{{ inStockCount }} kousků skladem
+              </span>
             </div>
           </div>
-          <div class="about-visual">
-            <NuxtImg
-              src="/hero/mushroom-eye.png"
-              alt="Autorská ilustrace muchomůrky s okem"
-              width="600"
-              height="600"
-              sizes="sm:100vw md:50vw lg:400px"
-              format="webp"
-              class="about-img"
-            />
+
+          <div class="zhero-collage" aria-hidden="true">
+            <div v-for="(pic, i) in heroPics" :key="pic.id" :class="['zpolaroid', `zpolaroid--${i}`]">
+              <span class="zine-tape zpolaroid-tape"></span>
+              <NuxtImg
+                :src="heroSrc(pic.image)" :alt="pic.title || ''"
+                width="360" height="360" format="webp" quality="78"
+                :loading="i === 0 ? 'eager' : 'lazy'" class="zpolaroid-img"
+              />
+            </div>
+            <svg class="zhero-heart" viewBox="0 0 100 90" fill="none" aria-hidden="true">
+              <path d="M50 82C18 60 6 44 6 28 6 15 16 6 28 6c9 0 17 5 22 14C55 11 63 6 72 6c12 0 22 9 22 22 0 16-12 32-44 54Z"
+                stroke="var(--pop-lime)" stroke-width="6" stroke-linejoin="round" fill="none"/>
+            </svg>
           </div>
         </div>
       </section>
 
-      <!-- Editorial banner (mushroom-eye artwork) -->
-      <section class="section banner-section" v-fly="{ direction: 'up', distance: 32 }">
-        <div class="banner">
-          <NuxtImg
-            src="/hero/mushroom-eye.png"
-            alt=""
-            class="banner-bg"
-            width="1200"
-            height="800"
-            sizes="sm:100vw md:100vw lg:1200px"
-            format="webp"
-            quality="80"
-            loading="lazy"
-          />
-          <div class="banner-scrim"></div>
-          <RingOrnament class="banner-ring banner-ring--tl" />
-          <RingOrnament class="banner-ring banner-ring--br" />
+      <!-- ═══ MARQUEE ═══ -->
+      <div class="zine-marquee zine-marquee--pink" role="presentation">
+        <div class="zine-marquee-track">
+          <template v-for="n in 2" :key="n">
+            <template v-for="(t, i) in ticker" :key="`${n}-${i}`">
+              <span class="zine-marquee-star">✦</span>
+              <span class="zine-marquee-item">{{ t }}</span>
+            </template>
+          </template>
+        </div>
+      </div>
 
-          <div class="banner-content">
-            <div class="banner-eyebrow">— Jaro 2026</div>
-            <h3 class="banner-title">Drobnosti, které <em>změní</em> sestavu.</h3>
-            <NuxtLink to="/#kolekce" class="banner-cta">
-              <span>Otevřít</span>
-              <Icon icon="lucide:arrow-up-right" height="18" />
+      <!-- ═══ CATALOG ═══ -->
+      <section id="kolekce" class="zsection">
+        <div class="zine-section-head">
+          <div>
+            <span class="zine-eyebrow">Čerstvé z ateliéru</span>
+            <h2 class="zine-section-title">Všechny kousky</h2>
+          </div>
+          <div class="zfilters">
+            <button
+              class="zfilter" :class="{ 'is-active': activeFilter === 'all' }"
+              @click="activeFilter = 'all'"
+            >Vše ({{ collection.length }})</button>
+            <button
+              v-for="cat in categories" :key="cat.name"
+              class="zfilter" :class="{ 'is-active': activeFilter === cat.name }"
+              @click="activeFilter = cat.name"
+            >{{ cat.name }}</button>
+          </div>
+        </div>
+
+        <div class="max-w-[1340px] mx-auto">
+          <div class="zgrid">
+            <ProductCard
+              v-for="(prod, idx) in filtered"
+              :key="prod.id"
+              :product="prod"
+              :is-priority="idx < 4"
+            />
+          </div>
+          <p v-if="filtered.length === 0" class="zempty">V téhle kategorii zatím nic není.</p>
+        </div>
+      </section>
+
+      <!-- ═══ ABOUT ═══ -->
+      <section id="about" class="zsection">
+        <div class="zabout zine-panel">
+          <div class="zabout-art">
+            <NuxtImg
+              src="/hero/mushroom-eye.png" alt="Autorská ilustrace"
+              width="440" height="440" format="webp" quality="80" loading="lazy" class="zabout-img"
+            />
+          </div>
+          <div class="zabout-copy">
+            <span class="zine-eyebrow zine-eyebrow--ondark">✶ O mně</span>
+            <h2 class="zabout-title">Akustická děvka,<br />která musí furt něco tvořit</h2>
+            <p class="zabout-desc">
+              Jsem obsessed smažkama. Vytvářím jak hovna, tak absolutní bangery —
+              obrazy, sochy z papírmašé, klíčenky. Každý kousek je originál, vyrobený rukama.
+            </p>
+            <NuxtLink to="#kolekce" class="zine-btn zine-btn--lime zine-btn--ondark">
+              Celý příběh <Icon icon="lucide:arrow-right" height="16" />
             </NuxtLink>
           </div>
         </div>
       </section>
 
-      <!-- Full collection grid -->
-      <section id="kolekce" class="section" v-fly="{ direction: 'up', distance: 32 }">
-        <div class="section-head">
-          <div>
-            <div class="section-eyebrow">— Katalog</div>
-            <h2 class="section-title">Všechny kousky</h2>
+      <!-- ═══ INFO TILES ═══ -->
+      <section class="zsection">
+        <div class="ztiles">
+          <div class="ztile">
+            <span class="ztile-num">01</span>
+            <h3 class="ztile-title">Z Prahy do 2 dnů</h3>
+            <p class="ztile-desc">Zásilkovna Z-BOX i Balíkovna, 79 Kč.</p>
           </div>
-          <div class="section-count">
-            {{ fullCollection.length }} kousků
+          <div class="ztile">
+            <span class="ztile-num">02</span>
+            <h3 class="ztile-title">Platba jak chceš</h3>
+            <p class="ztile-desc">QR převod nebo dobírka +60 Kč.</p>
           </div>
-        </div>
-
-        <div class="max-w-[1340px] mx-auto">
-          <div class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-5 md:gap-6">
-            <ProductCard
-              v-for="(prod, idx) in fullCollection"
-              :key="prod.id"
-              :product="prod"
-              :is-priority="false"
-            />
+          <div class="ztile">
+            <span class="ztile-num">03</span>
+            <h3 class="ztile-title">14 dní na vrácení</h3>
+            <p class="ztile-desc">Nesedí? Vyměníme nebo vrátíme peníze.</p>
           </div>
         </div>
       </section>
 
-      <!-- Values tiles -->
-      <section class="section" v-fly="{ direction: 'up', distance: 32 }">
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
-          <div class="value-tile" v-fly="{ direction: 'up', delay: 0, distance: 24 }">
-            <span class="value-num">01</span>
-            <Icon icon="lucide:sprout" class="value-icon" />
-            <h3 class="value-title">Pečlivý výběr</h3>
-            <p class="value-desc">Každý kousek schválně vybíráme. Žádné náhody, žádný balast.</p>
-          </div>
-          <div class="value-tile" v-fly="{ direction: 'up', delay: 100, distance: 24 }">
-            <span class="value-num">02</span>
-            <Icon icon="lucide:package" class="value-icon" />
-            <h3 class="value-title">Z Prahy do dvou dnů</h3>
-            <p class="value-desc">Balíme stejný den, posíláme přes Zásilkovnu nebo Českou poštu.</p>
-          </div>
-          <div class="value-tile" v-fly="{ direction: 'up', delay: 200, distance: 24 }">
-            <span class="value-num">03</span>
-            <Icon icon="lucide:hand-heart" class="value-icon" />
-            <h3 class="value-title">Bez šidítek</h3>
-            <p class="value-desc">Pokud něco nesedí, vyměníme nebo vrátíme. Bez otázek.</p>
-          </div>
-        </div>
-      </section>
-
-      <!-- Newsletter signup -->
+      <!-- ═══ NEWSLETTER ═══ -->
       <NewsletterSignup />
     </template>
   </div>
 </template>
 
 <style scoped>
-.section {
-  padding: 2.25rem 1rem;
+.zsection {
+  padding: 2.5rem 1rem;
   max-width: 1400px;
   margin: 0 auto;
 }
-@media (min-width: 768px) {
-  .section { padding: 4rem 2rem; }
-}
-.big-slider-section {
-  padding-top: 1.25rem;
-  padding-bottom: 1.5rem;
-}
-@media (min-width: 768px) {
-  .big-slider-section { padding-top: 2rem; padding-bottom: 2rem; }
-}
+@media (min-width: 768px) { .zsection { padding: 4.5rem 2rem; } }
 
-.section-head {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 0.75rem;
-  margin-bottom: 1.5rem;
-  flex-wrap: wrap;
+/* ── Hero ── */
+.zhero {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 2rem 1rem 2.75rem;
 }
-@media (min-width: 768px) {
-  .section-head { margin-bottom: 3rem; gap: 1rem; }
-}
-
-.section-eyebrow {
-  font-family: 'Manrope', system-ui;
-  font-size: 0.72rem;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  color: rgba(42, 19, 64, 0.55);
-  font-weight: 700;
-  margin-bottom: 0.5rem;
-}
-
-.section-title {
-  font-family: 'Fraunces', Georgia, serif;
-  font-weight: 700;
-  font-size: 1.85rem;
-  line-height: 1;
-  letter-spacing: -0.03em;
-  color: var(--pop-ink);
-  margin: 0;
-}
-@media (min-width: 768px) {
-  .section-title { font-size: 3.5rem; }
-}
-
-.section-count {
-  font-family: 'Fraunces', Georgia, serif;
-  font-style: italic;
-  font-size: 1rem;
-  color: rgba(42, 19, 64, 0.55);
-}
-
-.section-arrows {
-  display: flex;
-  gap: 0.5rem;
-}
-.section-arrow-btn {
-  width: 40px;
-  height: 40px;
-  border-radius: 9999px;
-  border: 1px solid rgba(42, 19, 64, 0.18);
-  background: transparent;
-  color: var(--pop-ink);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: background 0.22s ease, transform 0.22s ease, border-color 0.22s ease, color 0.22s ease;
-}
-@media (min-width: 768px) {
-  .section-arrow-btn { width: 44px; height: 44px; }
-}
-.section-arrow-btn:hover {
-  background: var(--pop-ink);
-  color: #ffffff;
-  border-color: var(--pop-ink);
-  transform: translateY(-2px);
-}
-.section-arrow-btn:active { transform: translateY(0); }
-
-/* ── About Me section ── */
-.about-section { padding-top: 3rem; padding-bottom: 3rem; }
-@media (min-width: 768px) {
-  .about-section { padding-top: 5rem; padding-bottom: 5rem; }
-}
-.about-grid {
+@media (min-width: 768px) { .zhero { padding: 3.5rem 2rem 4rem; } }
+.zhero-inner {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 3rem;
+  gap: 2.5rem;
   align-items: center;
 }
-@media (min-width: 900px) {
-  .about-grid { grid-template-columns: 1.2fr 1fr; gap: 4rem; }
-}
+@media (min-width: 900px) { .zhero-inner { grid-template-columns: 1.05fr 0.95fr; gap: 3rem; } }
 
-.about-title {
-  font-size: 1.85rem;
-  margin: 0.5rem 0 1.5rem;
-  line-height: 1.05;
-}
-@media (min-width: 768px) {
-  .about-title { font-size: 3.25rem; }
-}
-.about-accent {
-  color: #b3324c;
-  font-style: italic;
-  font-weight: 500;
-}
-.about-desc {
-  font-family: 'Fraunces', Georgia, serif;
-  font-style: italic;
-  font-weight: 500;
-  font-size: 1.2rem;
-  line-height: 1.55;
-  color: #1a0a30;
-  margin: 0 0 1rem;
-  max-width: 46ch;
-}
-.about-note {
-  font-family: 'Manrope', system-ui;
-  font-weight: 700;
-  font-size: 0.78rem;
-  letter-spacing: 0.16em;
+.zhero-eyebrow { margin-bottom: 1.1rem; }
+.zhero-title {
+  font-family: var(--font-zine);
+  font-weight: 800;
+  font-size: clamp(2.9rem, 11vw, 5.6rem);
+  line-height: 0.88;
+  letter-spacing: -0.03em;
   text-transform: uppercase;
-  color: rgba(42, 19, 64, 0.85);
-  padding-top: 1rem;
-  border-top: 1px solid rgba(42, 19, 64, 0.18);
-  margin: 1.5rem 0 2rem;
-  max-width: 40ch;
+  color: var(--pop-ink);
+  margin: 0 0 1.4rem;
 }
-.about-actions { display: flex; flex-wrap: wrap; gap: 0.75rem; }
-
-.btn-primary,
-.btn-ghost {
+.zhero-mark {
+  color: #fff;
+  background: var(--pop-pink);
+  padding: 0 0.18em;
+  border: 3px solid var(--pop-ink);
+  border-radius: 6px;
+  box-shadow: 4px 4px 0 rgba(32, 17, 52, 0.9);
+  display: inline-block;
+  transform: rotate(-1.5deg);
+}
+.zhero-sub {
+  font-family: 'Manrope', system-ui;
+  font-weight: 500;
+  font-size: 1.05rem;
+  line-height: 1.55;
+  color: rgba(32, 17, 52, 0.78);
+  max-width: 44ch;
+  margin: 0 0 1.9rem;
+}
+.zhero-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 1rem 1.25rem; }
+.zhero-stock {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 0.74rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--pop-ink);
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.85rem 1.5rem;
-  border-radius: 9999px;
-  font-family: 'Manrope', system-ui;
-  font-weight: 700;
-  font-size: 0.78rem;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  text-decoration: none;
-  transition: background 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
-  cursor: pointer;
-  border: 1px solid transparent;
 }
-.btn-primary {
-  background: var(--pop-ink);
-  color: #ffffff;
+.zhero-dot {
+  width: 9px; height: 9px; border-radius: 50%;
+  background: var(--pop-lime); border: 1.5px solid var(--pop-ink);
+  box-shadow: 0 0 0 3px rgba(185, 225, 75, 0.35);
 }
-.btn-primary:hover { background: #3a1f55; transform: translateY(-1px); }
-.btn-ghost {
-  background: transparent;
-  color: var(--pop-ink);
-  border-color: rgba(42, 19, 64, 0.25);
-}
-.btn-ghost:hover { background: rgba(42, 19, 64, 0.06); border-color: var(--pop-ink); }
 
-.about-visual {
+/* Collage */
+.zhero-collage {
   position: relative;
+  min-height: 340px;
   display: flex;
+  align-items: center;
   justify-content: center;
 }
-/* Phones: hide the artwork, keep just the copy. */
-@media (max-width: 767px) {
-  .about-visual { display: none; }
+@media (min-width: 900px) { .zhero-collage { min-height: 440px; } }
+.zpolaroid {
+  position: absolute;
+  width: clamp(140px, 40vw, 220px);
+  background: #fbf7ee;
+  padding: 8px 8px 26px;
+  border: 2px solid var(--pop-ink);
+  box-shadow: 5px 6px 0 rgba(32, 17, 52, 0.85);
 }
-.about-img {
-  width: 100%;
-  max-width: 380px;
-  height: auto;
-  border-radius: 1.25rem;
-  border: 1px solid rgba(42, 19, 64, 0.1);
-  box-shadow: 0 12px 32px rgba(42, 19, 64, 0.14);
-  background: #1a0f28;
+.zpolaroid-img { width: 100%; aspect-ratio: 1; object-fit: cover; display: block; background: var(--pop-plum); }
+.zpolaroid-tape { top: -12px; left: 50%; margin-left: -42px; transform: rotate(-4deg); }
+.zpolaroid--0 { transform: rotate(-7deg); left: 4%; top: 8%; z-index: 2; }
+.zpolaroid--1 { transform: rotate(5deg); right: 6%; top: 2%; z-index: 3; }
+.zpolaroid--2 { transform: rotate(-3deg); left: 26%; bottom: 2%; z-index: 4; }
+.zpolaroid:hover { z-index: 6; }
+.zhero-heart { position: absolute; right: 2%; bottom: 8%; width: clamp(56px, 12vw, 90px); z-index: 5; transform: rotate(8deg); }
+@media (prefers-reduced-motion: no-preference) {
+  .zpolaroid { transition: transform 0.3s cubic-bezier(0.22,1,0.36,1); }
+  .zpolaroid:hover { transform: rotate(0deg) scale(1.04); }
 }
 
-/* ── Banner ── */
-.banner {
-  position: relative;
-  border-radius: 2rem;
-  overflow: hidden;
-  min-height: 320px;
-  background: #1a0f28;
-  border: 1px solid rgba(42, 19, 64, 0.1);
-}
-@media (min-width: 768px) {
-  .banner { min-height: 420px; border-radius: 3rem; }
-}
-.banner-bg {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: right center;
-  opacity: 0.9;
-}
-.banner-scrim {
-  position: absolute;
-  inset: 0;
-  background:
-    linear-gradient(90deg, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.55) 40%, rgba(0,0,0,0.1) 75%, transparent 100%),
-    linear-gradient(180deg, transparent 60%, rgba(0,0,0,0.4) 100%);
-}
-.banner-ring { position: absolute; opacity: 0.22; mix-blend-mode: screen; }
-.banner-ring--tl { top: -80px; left: -80px; }
-.banner-ring--br { bottom: -80px; right: -80px; }
-
-.banner-content {
-  position: relative;
-  padding: 2.5rem 2rem;
-  max-width: 60%;
-  color: #ffffff;
-}
-@media (min-width: 768px) {
-  .banner-content { padding: 4rem 3rem; }
-}
-@media (max-width: 640px) {
-  .banner-content { max-width: 100%; }
-}
-.banner-eyebrow {
-  font-family: 'Manrope', system-ui;
-  font-size: 0.72rem;
-  letter-spacing: 0.22em;
+/* ── Filters ── */
+.zfilters { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.zfilter {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--pop-pink);
-  font-weight: 700;
-  margin-bottom: 1rem;
-}
-.banner-title {
-  font-family: 'Fraunces', Georgia, serif;
-  font-weight: 700;
-  font-size: 1.85rem;
-  line-height: 1.05;
-  letter-spacing: -0.02em;
-  color: #ffffff;
-  margin: 0 0 1.5rem;
-}
-@media (min-width: 768px) {
-  .banner-title { font-size: 3rem; }
-}
-.banner-title em { font-style: italic; font-weight: 500; color: #ffcbe0; }
-.banner-cta {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.85rem 1.5rem;
-  border-radius: 9999px;
-  border: 1px solid rgba(255, 255, 255, 0.55);
-  color: #ffffff;
-  font-family: 'Manrope', system-ui;
-  font-weight: 700;
-  font-size: 0.78rem;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  text-decoration: none;
-  transition: background 0.2s ease, color 0.2s ease;
-}
-.banner-cta:hover { background: #ffffff; color: var(--pop-ink); }
-
-/* ── Value tiles ── */
-.value-tile {
-  position: relative;
-  padding: 1.75rem;
-  border-radius: 1.25rem;
-  background: #ffffff;
-  border: 1px solid rgba(42, 19, 64, 0.08);
-  transition: border-color 0.3s ease, transform 0.3s ease;
-}
-.value-tile:hover {
-  border-color: rgba(42, 19, 64, 0.25);
-  transform: translateY(-3px);
-}
-.value-num {
-  position: absolute;
-  top: 1rem;
-  right: 1.25rem;
-  font-family: 'Fraunces', Georgia, serif;
-  font-style: italic;
-  font-size: 1rem;
-  color: rgba(42, 19, 64, 0.35);
-}
-.value-icon { color: #b3324c; width: 28px; height: 28px; margin-bottom: 1.25rem; }
-.value-title {
-  font-family: 'Fraunces', Georgia, serif;
-  font-weight: 700;
-  font-size: 1.25rem;
   color: var(--pop-ink);
-  margin: 0 0 0.5rem;
+  background: transparent;
+  border: 2px solid var(--pop-ink);
+  border-radius: 999px;
+  padding: 0.42rem 0.85rem;
+  cursor: pointer;
+  transition: background 0.16s ease, color 0.16s ease, transform 0.12s ease;
+}
+.zfilter:hover { transform: translateY(-1px); background: rgba(32, 17, 52, 0.06); }
+.zfilter.is-active { background: var(--pop-ink); color: var(--pop-cream); }
+
+/* ── Product grid ── */
+.zgrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.85rem;
+}
+@media (min-width: 640px) { .zgrid { grid-template-columns: repeat(3, 1fr); gap: 1.25rem; } }
+@media (min-width: 1024px) { .zgrid { grid-template-columns: repeat(4, 1fr); gap: 1.5rem; } }
+.zempty {
+  font-family: var(--font-mono);
+  text-align: center;
+  color: rgba(32, 17, 52, 0.55);
+  padding: 3rem 0;
+}
+
+/* ── About panel ── */
+.zabout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+  padding: 1.75rem;
+  align-items: center;
+}
+@media (min-width: 820px) { .zabout { grid-template-columns: 0.8fr 1.2fr; gap: 2.5rem; padding: 2.75rem; } }
+.zabout-art { display: flex; justify-content: center; }
+.zabout-img {
+  width: 100%; max-width: 300px; border-radius: 12px;
+  border: 2px solid rgba(240, 231, 210, 0.25);
+}
+.zabout-title {
+  font-family: var(--font-zine);
+  font-weight: 800;
+  font-size: clamp(1.5rem, 5vw, 2.5rem);
+  line-height: 0.95;
+  text-transform: uppercase;
+  color: #fff;
+  margin: 0.7rem 0 1rem;
+}
+.zabout-desc {
+  font-family: 'Manrope', system-ui;
+  font-size: 1rem;
+  line-height: 1.6;
+  color: rgba(240, 231, 210, 0.82);
+  margin: 0 0 1.6rem;
+  max-width: 52ch;
+}
+
+/* ── Info tiles ── */
+.ztiles { display: grid; grid-template-columns: 1fr; gap: 1rem; }
+@media (min-width: 720px) { .ztiles { grid-template-columns: repeat(3, 1fr); } }
+.ztile {
+  position: relative;
+  background: #fbf7ee;
+  border: 2px solid var(--pop-ink);
+  border-radius: 12px;
+  padding: 1.5rem 1.5rem 1.4rem;
+  box-shadow: 4px 4px 0 rgba(32, 17, 52, 0.85);
+  transition: transform 0.16s ease, box-shadow 0.16s ease;
+}
+.ztile:hover { transform: translate(-1px, -1px); box-shadow: 6px 6px 0 rgba(32, 17, 52, 0.85); }
+.ztile-num {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 0.8rem;
+  color: var(--pop-pink-ink);
+  letter-spacing: 0.1em;
+}
+.ztile-title {
+  font-family: var(--font-zine);
+  font-weight: 700;
+  font-size: 1.3rem;
+  text-transform: uppercase;
+  color: var(--pop-ink);
+  margin: 0.5rem 0 0.4rem;
   letter-spacing: -0.01em;
 }
-.value-desc {
+.ztile-desc {
   font-family: 'Manrope', system-ui;
-  font-weight: 500;
   font-size: 0.9rem;
-  line-height: 1.55;
-  color: rgba(42, 19, 64, 0.7);
+  line-height: 1.5;
+  color: rgba(32, 17, 52, 0.7);
   margin: 0;
 }
 
 .loading-eyebrow {
-  font-family: 'Manrope', system-ui;
   font-weight: 700;
   font-size: 0.72rem;
   letter-spacing: 0.22em;
   text-transform: uppercase;
-  color: rgba(42, 19, 64, 0.55);
+  color: rgba(32, 17, 52, 0.55);
 }
 </style>

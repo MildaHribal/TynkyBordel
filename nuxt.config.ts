@@ -76,7 +76,7 @@ export default defineNuxtConfig({
         disallow: ['/admin', '/user'],
     },
 
-    css: ['~~/assets/css/main.css'],
+    css: ['~~/assets/css/main.css', '~~/assets/css/zine.css'],
 
     // Self-host + optimize webfonts (replaces the removed render-blocking Google
     // Fonts @import). Only the weights actually used are fetched, with latin-ext
@@ -99,7 +99,8 @@ export default defineNuxtConfig({
             { name: 'Petrona', provider: 'google', weights: [400], styles: ['normal', 'italic'] },       // italic card titles
             { name: 'Gloock', provider: 'google', weights: [400] },                          // display headings
             { name: 'Maname', provider: 'google', weights: [400] },
-            { name: 'Bricolage Grotesque', provider: 'google', weights: [700] },             // footer brand
+            { name: 'Bricolage Grotesque', provider: 'google', weights: [600, 700, 800] },   // zine display headings
+            { name: 'Space Mono', provider: 'google', weights: [400, 700], styles: ['normal', 'italic'] }, // labels / prices / meta
             { name: 'Berkshire Swash', provider: 'google', weights: [400] },
             { name: 'Caprasimo', provider: 'google', weights: [400] },                       // navbar brand
         ],

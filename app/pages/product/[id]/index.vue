@@ -618,13 +618,11 @@ const submitReview = async () => {
                 ref="addToCartButtonRef"
                 type="button"
                 @click="addToCart"
-                class="w-full min-h-[3.75rem] md:min-h-[4.25rem] px-6 flex items-center justify-center gap-2 md:gap-3 py-4 md:py-5 text-base md:text-lg font-bold rounded-xl md:rounded-2xl transition-all duration-300 focus:outline-none micro-lift"
+                class="pdp-buy w-full min-h-[3.5rem] md:min-h-[4rem] px-6 flex items-center justify-center gap-2 md:gap-3 py-4 text-base md:text-lg focus:outline-none"
                 :disabled="product.stock <= 0"
                 :class="product.stock > 0
-                  ? (isAddedToCart
-                    ? 'bg-emerald-500 text-white ring-2 ring-emerald-300/60 shadow-[0_12px_30px_rgba(16,185,129,0.35)]'
-                    : 'text-white bg-gradient-to-br from-primary-500 via-primary-500 to-secondary-500 shadow-[0_10px_26px_rgba(139,92,246,0.35)] hover:brightness-105')
-                  : 'bg-white/5 text-white/30 cursor-not-allowed border border-white/10'"
+                  ? (isAddedToCart ? 'pdp-buy--added' : 'pdp-buy--go')
+                  : 'pdp-buy--off'"
               >
                 <Icon :icon="isAddedToCart ? 'mdi:check-bold' : 'mdi:cart-plus'" height="22" />
                 {{ product.stock > 0 ? (isAddedToCart ? 'Přidáno do košíku' : 'Přidat do košíku') : 'Nedostupné' }}
@@ -745,14 +743,21 @@ const submitReview = async () => {
   color: rgba(42, 19, 64, 0.78) !important;
 }
 
-/* "Glass" cards become bright matte cards on the pastel page. */
-.product-detail :deep(.glass-card-strong),
+/* "Glass" cards become solid cream zine cards (hard border + offset shadow). */
+.product-detail :deep(.glass-card-strong) {
+  background: #fbf7ee !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border: 2px solid var(--pop-ink, #201134) !important;
+  border-radius: 16px !important;
+  box-shadow: 6px 6px 0 rgba(32, 17, 52, 0.85) !important;
+}
 .product-detail :deep(.glass-card) {
-  background: rgba(255, 255, 255, 0.7) !important;
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(42, 19, 64, 0.1) !important;
-  box-shadow: 0 14px 32px rgba(42, 19, 64, 0.08) !important;
+  background: #fbf7ee !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border: 2px solid rgba(32, 17, 52, 0.35) !important;
+  box-shadow: none !important;
 }
 
 /* Cosmic gradient title + neon text are unreadable on light — fall back to ink. */
@@ -865,5 +870,34 @@ const submitReview = async () => {
   .gallery-slide-prev-leave-active {
     transition: none !important;
   }
+}
+
+/* Zine "Přidat do košíku" button */
+.pdp-buy {
+  font-family: var(--font-mono, monospace);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  border: 2px solid var(--pop-cream, #F0E7D2);
+  border-radius: 12px;
+  transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.2s ease;
+}
+.pdp-buy--go {
+  background: var(--pop-pink, #E7488B);
+  color: #fff;
+  box-shadow: 5px 5px 0 var(--pop-pink-ink, #b5185f);
+}
+.pdp-buy--go:hover { transform: translate(-1px, -1px); box-shadow: 6px 6px 0 var(--pop-pink-ink, #b5185f); }
+.pdp-buy--go:active { transform: translate(3px, 3px); box-shadow: 2px 2px 0 var(--pop-pink-ink, #b5185f); }
+.pdp-buy--added {
+  background: var(--pop-lime, #B9E14B);
+  color: var(--pop-ink, #201134);
+  box-shadow: 5px 5px 0 var(--pop-lime-ink, #4d6b0e);
+}
+.pdp-buy--off {
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.35);
+  border-color: rgba(255, 255, 255, 0.15);
+  cursor: not-allowed;
 }
 </style>

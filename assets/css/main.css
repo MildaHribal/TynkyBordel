@@ -65,19 +65,34 @@
 /* ══════════════════════════════════════════════════════════════
    BASE BODY — Deep cosmic gradient with hippie undertones
    ══════════════════════════════════════════════════════════════ */
-/* ── Shopik palette (pastel pop) ───────────────────────────── */
+/* ── Tynky Bordel palette (retro-zine: cream · plum · hot pink · acid lime) ──
+   Handmade art-shop energy: warm paper, near-black plum panels, a hot magenta
+   that shouts, and an acid lime for the "yes / money / go" beats. */
 :root {
+  /* Surfaces */
+  --pop-cream:    #F0E7D2;   /* page paper */
+  --pop-plum:     #1b1033;   /* dark panels: navbar, footer, cards */
+  --pop-plum-2:   #2a1745;   /* raised dark surface */
+
+  /* Accents */
+  --pop-pink:     #E7488B;   /* hot magenta — primary shout */
+  --pop-pink-ink: #b5185f;   /* darker pink for text-on-cream legibility */
+  --pop-blush:    #F7C6DA;   /* soft sticker fill */
+  --pop-lime:     #B9E14B;   /* acid lime — price / go */
+  --pop-lime-ink: #4d6b0e;   /* lime-family text on cream */
   --pop-green:    #A8DF8E;
-  --pop-blush:    #FFD8DF;
-  --pop-pink:     #FFAAB8;
+
+  /* Legacy pastels kept so old references don't break while pages migrate */
   --pop-lavender: #BDA6CE;
   --pop-blue:     #B4D3D9;
 
-  /* Page text on pastel bg */
-  --pop-ink:      #2a1340;
+  /* Page text on paper */
+  --pop-ink:      #201134;
   --pop-ink-soft: #4a2b66;
 
-  /* Decorative display fonts */
+  /* Type system */
+  --font-zine:    'Bricolage Grotesque', 'Arial Black', system-ui;  /* heavy display */
+  --font-mono:    'Space Mono', 'Courier New', monospace;           /* labels / prices / meta */
   --font-nouveau: 'Berkshire Swash', cursive;
   --font-lombard: 'Pirata One', 'UnifrakturMaguntia', system-ui;
   --font-gloock:  'Gloock', Georgia, serif;
@@ -86,13 +101,13 @@
 }
 
 body {
-  /* Off-white paper with visible dotted grid pattern. */
-  background-color: #F1EBDF;
+  /* Warm paper with a subtle dotted grid — the zine "print" texture. */
+  background-color: var(--pop-cream);
   background-image:
-    radial-gradient(rgba(42, 19, 64, 0.18) 1.4px, transparent 1.6px),
-    radial-gradient(rgba(42, 19, 64, 0.10) 1px, transparent 1.2px);
-  background-size: 28px 28px, 56px 56px;
-  background-position: 0 0, 14px 14px;
+    radial-gradient(rgba(32, 17, 52, 0.14) 1.3px, transparent 1.5px),
+    radial-gradient(rgba(32, 17, 52, 0.07) 1px, transparent 1.2px);
+  background-size: 26px 26px, 52px 52px;
+  background-position: 0 0, 13px 13px;
   background-attachment: fixed;
   min-height: 100vh;
   font-family: 'Manrope', 'Inter', system-ui, sans-serif;
