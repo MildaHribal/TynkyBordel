@@ -14,6 +14,17 @@ import { invalidateCatalogCache } from '~~/server/utils/cache'
  * nothing, so throwing away a warm cache for it would be pure loss.
  */
 export default defineNitroPlugin((nitroApp) => {
+  // The `/_ipx/**` route rule attaches `s-maxage=2592000, stale-while-revalidate`
+  // so successfully resized images cache hard at the edge. That header is applied
+  // by the rule regardless of status, so a 404 — IPX failing to find the source
+  // file — was being cached for thirty days, turning a temporarily missing image
+  // into a month-long outage for every visitor. Errors must never inherit it.
+  nitroApp.hooks.hook('beforeResponse', (event) => {
+    if (!event.path?.startsWith('/_ipx/')) return
+    if (getResponseStatus(event) < 400) return
+    setResponseHeader(event, 'cache-control', 'no-store, no-cache, must-revalidate')
+  })
+
   nitroApp.hooks.hook('afterResponse', async (event) => {
     const method = (event.method || '').toUpperCase()
     if (method === 'GET' || method === 'HEAD' || method === 'OPTIONS') return
