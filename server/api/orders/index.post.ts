@@ -58,6 +58,8 @@ export default defineEventHandler(async (event) => {
       customerEmail: newOrder.customerEmail,
       totalPrice: newOrder.totalPrice,
       shippingAddress: newOrder.shippingAddress,
+      paymentMethod: newOrder.paymentMethod,
+      variableSymbol: newOrder.variableSymbol,
       items: orderItemsData.map((i) => ({ title: i.title, quantity: i.quantity, price: i.price })),
     },
     'created',

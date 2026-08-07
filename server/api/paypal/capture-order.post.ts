@@ -114,6 +114,8 @@ export default defineEventHandler(async (event) => {
       customerEmail: order.customerEmail,
       totalPrice: order.totalPrice,
       shippingAddress: order.shippingAddress,
+      paymentMethod: order.paymentMethod || 'card',
+      variableSymbol: order.variableSymbol,
       items: items.map((i) => ({ title: i.title, quantity: i.quantity, price: i.price })),
     },
     'paid',

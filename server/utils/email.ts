@@ -272,6 +272,9 @@ type OrderForEmail = {
   totalPrice: number;
   shippingAddress: string;
   items?: Array<{ title: string; quantity: number; price: number }>;
+  // Used to attach the invoice (faktura) to the order-confirmation email.
+  paymentMethod?: string | null;
+  variableSymbol?: string | number | null;
 };
 
 // Hardcoded defaults — used as fallback when a template row is missing in DB.
@@ -426,9 +429,31 @@ export async function sendOrderStatusEmail(
   if (!copy) return false;
 
   // Send the QR as a CID inline attachment (data: URIs are blocked in email).
-  const attachments = extra?.qrBuffer
-    ? [{ filename: 'platba-qr.png', content: extra.qrBuffer, cid: QR_CID, contentType: 'image/png' }]
-    : undefined;
+  const attachments: Array<{ filename: string; content: Buffer; cid?: string; contentType?: string }> =
+    extra?.qrBuffer
+      ? [{ filename: 'platba-qr.png', content: extra.qrBuffer, cid: QR_CID, contentType: 'image/png' }]
+      : [];
+
+  // Attach the invoice (faktura) to the order-confirmation email. Never let a PDF
+  // failure block the email itself.
+  if ((status === 'created' || status === 'paid') && order.items?.length) {
+    try {
+      const { generateInvoicePdf } = await import('./invoice');
+      const pdf = await generateInvoicePdf({
+        number: order.id,
+        issuedAt: new Date(),
+        customerName: order.customerName,
+        customerAddress: order.shippingAddress,
+        paymentMethod: order.paymentMethod,
+        variableSymbol: order.variableSymbol,
+        items: order.items,
+        total: order.totalPrice,
+      });
+      attachments.push({ filename: `faktura-${order.id}.pdf`, content: pdf, contentType: 'application/pdf' });
+    } catch (err) {
+      console.error('[email] invoice PDF generation failed (email still sent):', err);
+    }
+  }
 
   return sendMail({
     to: order.customerEmail,
