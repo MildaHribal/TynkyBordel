@@ -202,19 +202,6 @@ onUnmounted(() => {
 
     <!-- Right: User + Cart (desktop) / Hamburger (mobile) -->
     <div class="navbar-right">
-      <!-- Linktree (desktop) — stejné „samolepkové" tlačítko jako profil a
-           košík, jen odkazuje ven; sedí hned vlevo od přepínače tématu. -->
-      <a
-        href="https://linktr.ee/tynky_bordel"
-        target="_blank"
-        rel="noopener noreferrer"
-        class="nav-avatar-btn hidden md:flex"
-        title="Linktree"
-        aria-label="Linktree"
-      >
-        <Icon name="simple-icons:linktree" height="18" />
-      </a>
-
       <!-- Přepínač tématu (desktop) — hned vedle tlačítka profilu.
            Ikona se řídí CSS proměnnou --tb-dark, ne Vue stavem, takže je
            správná už v prvním snímku a nepřehraje si animaci při načtení. -->
@@ -385,17 +372,6 @@ onUnmounted(() => {
               <Icon name="lucide:user-round" height="20" />
               <span>About</span>
             </NuxtLink>
-            <a
-              href="https://linktr.ee/tynky_bordel"
-              target="_blank"
-              rel="noopener noreferrer"
-              class="mobile-link"
-              aria-label="Linktree"
-              @click="isMobileMenuOpen = false"
-            >
-              <Icon name="simple-icons:linktree" height="20" />
-              <span>Linktree</span>
-            </a>
             <NuxtLink to="/cart" class="mobile-link" @click="isMobileMenuOpen = false">
               <Icon name="lucide:shopping-cart" height="20" />
               <span>Košík</span>
