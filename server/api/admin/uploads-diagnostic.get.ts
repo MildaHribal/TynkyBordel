@@ -1,22 +1,22 @@
 import { readdir, stat } from 'node:fs/promises'
 import { resolve } from 'node:path'
 import { db } from '~~/server/utils/db'
-import { products } from '~~/server/database/schema'
+import { products, productImages } from '~~/server/database/schema'
 import { requireAdmin } from '~~/server/utils/session'
 import { UPLOADS_ROOT } from '~~/server/utils/uploads'
 
 /**
- * Answers "is the file actually on disk?" for product images, from inside the
- * running container.
+ * Answers "where does this product image actually live?" from inside the
+ * running container: on disk (the IPX cache), in Postgres (the durable copy),
+ * both, or neither.
  *
- * Uploaded images went missing in production while working fine locally, and
- * there was no way to tell WHICH link in the chain was broken — the write, the
- * volume mount, or the read path. Guessing from the outside is how you burn an
- * afternoon; this reports the resolved directory, what is in it, and which rows
- * in `products` point at files that do not exist.
+ * This endpoint is how the original loss was diagnosed — it proved the repo's
+ * files were on disk while the admin's upload was gone, i.e. the persistence
+ * volume was not mounted. Now that Postgres is the source of truth, `inDb` is
+ * the column that matters: a product whose image is in the DB will heal onto
+ * disk by itself; one that is nowhere needs a re-upload.
  *
- * Admin-only, read-only, and it deliberately reports the resolved absolute path
- * so a wrong working directory or an unmounted volume is visible immediately.
+ * Admin-only, read-only.
  */
 export default defineEventHandler(async (event) => {
   await requireAdmin(event)
@@ -31,25 +31,38 @@ export default defineEventHandler(async (event) => {
     dirError = `${err.code ?? 'ERR'}: ${err.message}`
   }
 
+  const dbRows = await db.select({ fileName: productImages.fileName, size: productImages.size }).from(productImages)
+  const inDbSet = new Set(dbRows.map(r => r.fileName))
+
   const rows = await db.select({ id: products.id, name: products.name, image: products.image }).from(products)
 
   const referenced = await Promise.all(rows.map(async (row) => {
     const url = row.image ?? ''
     const file = url.split('/').pop() ?? ''
-    let exists = false
+    let onDiskFile = false
     let size: number | null = null
     if (file) {
       try {
         const s = await stat(resolve(productsDir, file))
-        exists = s.isFile()
+        onDiskFile = s.isFile()
         size = s.size
-      } catch { /* missing — that is the finding */ }
+      } catch { /* missing from cache */ }
     }
-    return { id: row.id, name: row.name, url, exists, size }
+    return {
+      id: row.id,
+      name: row.name,
+      url,
+      onDisk: onDiskFile,
+      inDb: inDbSet.has(file),
+      // Healthy = at least the durable copy exists. Disk-only survives until
+      // the next deploy; DB-only self-heals onto disk.
+      ok: inDbSet.has(file) || onDiskFile,
+      size,
+    }
   }))
 
-  const missing = referenced.filter(r => r.url && !r.exists)
-  // Files on disk nothing points at — these are what a delete leaves behind.
+  const broken = referenced.filter(r => r.url && !r.inDb && !r.onDisk)
+  const diskOnly = referenced.filter(r => r.url && !r.inDb && r.onDisk)
   const orphans = onDisk.filter(f => !rows.some(r => (r.image ?? '').endsWith(f)))
 
   return {
@@ -59,9 +72,15 @@ export default defineEventHandler(async (event) => {
     productsDir,
     dirError,
     filesOnDisk: onDisk.length,
+    imagesInDb: dbRows.length,
     productsInDb: rows.length,
-    missingCount: missing.length,
-    missing,
+    products: referenced,
+    // Nowhere at all — these need a re-upload, nothing can recover them.
+    brokenCount: broken.length,
+    broken,
+    // On disk but not yet in the DB — the boot reconciler will import these.
+    diskOnlyCount: diskOnly.length,
+    diskOnly,
     orphanCount: orphans.length,
     orphans,
   }

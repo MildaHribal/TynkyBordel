@@ -54,7 +54,11 @@ services:
       postgres:
         condition: service_healthy
     volumes:
-      # Persist user-uploaded product images across rebuilds.
+      # Disk cache for product images. The durable copy lives in Postgres
+      # (product_images, migration 0010) and is written back out on every boot,
+      # so this volume is a nice-to-have, not a requirement — production ran
+      # with it silently unmounted, which is exactly why the DB became the
+      # source of truth.
       - uploads:/app/.output/public/uploads
       # Archived invoice PDFs. Separate from `uploads` on purpose — that volume
       # is served publicly at /uploads/**, and invoices carry customer names

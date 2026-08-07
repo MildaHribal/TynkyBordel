@@ -146,7 +146,6 @@ onUnmounted(() => {
     <nav class="navbar-main hidden md:flex" :class="{ 'navbar--scrolled': isScrolled }">
       <NuxtLink to="/#kolekce" class="nav-link">Shop</NuxtLink>
       <NuxtLink to="/#about" class="nav-link">About</NuxtLink>
-      <NuxtLink to="/reklamace" class="nav-link">Doprava</NuxtLink>
 
       <div class="nav-search" ref="searchWrapRef">
         <Icon name="iconamoon:search-fill" height="16" class="nav-search-icon" />
@@ -192,7 +191,6 @@ onUnmounted(() => {
                 </div>
                 <div class="search-item-body">
                   <span class="search-item-title">{{ prod.title }}</span>
-                  <span v-if="prod.category" class="search-item-cat">{{ prod.category }}</span>
                 </div>
                 <span class="search-item-price">{{ prod.price }} Kč</span>
               </button>
@@ -355,8 +353,7 @@ onUnmounted(() => {
                     </div>
                     <div class="search-item-body">
                       <span class="search-item-title">{{ prod.title }}</span>
-                      <span v-if="prod.category" class="search-item-cat">{{ prod.category }}</span>
-                    </div>
+                        </div>
                     <span class="search-item-price">{{ prod.price }} Kč</span>
                   </button>
                 </li>
@@ -373,10 +370,6 @@ onUnmounted(() => {
             <NuxtLink to="/#about" class="mobile-link" @click="isMobileMenuOpen = false">
               <Icon name="lucide:user-round" height="20" />
               <span>About</span>
-            </NuxtLink>
-            <NuxtLink to="/reklamace" class="mobile-link" @click="isMobileMenuOpen = false">
-              <Icon name="lucide:truck" height="20" />
-              <span>Doprava &amp; reklamace</span>
             </NuxtLink>
             <NuxtLink to="/cart" class="mobile-link" @click="isMobileMenuOpen = false">
               <Icon name="lucide:shopping-cart" height="20" />

@@ -36,3 +36,9 @@ docker/postgres
 docker/.env
 # Backups produced by scripts/backup.sh
 backups/
+
+# Runtime-written uploads and invoice archive (docker volumes in prod)
+/data/
+
+# Raw product photo dumps — never commit originals (109MB went into a public repo once)
+/public/products/

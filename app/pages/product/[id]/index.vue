@@ -529,13 +529,6 @@ const submitReview = async () => {
 
           <!-- Content Section -->
           <div class="flex flex-col justify-center p-5 md:p-8 lg:p-12 text-white">
-            <!-- Category -->
-            <div class="mb-3 md:mb-5">
-              <span class="cosmic-badge">
-                {{ product.category }}
-              </span>
-            </div>
-
             <!-- Title -->
             <h1 class="text-2xl md:text-3xl lg:text-5xl font-extrabold tracking-tight text-white mb-3 md:mb-5 neon-text leading-tight">
               {{ product.title }}

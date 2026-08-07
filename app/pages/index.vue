@@ -47,20 +47,6 @@ const heroPics = computed(() =>
   collection.value.filter((p: any) => p.image).slice(0, 3)
 )
 
-// ── Category filter pills ("Čerstvé z ateliéru") ────────────────────────────
-const activeFilter = ref<string>('all')
-const categories = computed(() => {
-  const seen = new Map<string, number>()
-  for (const p of collection.value as any[]) {
-    if (p.category) seen.set(p.category, (seen.get(p.category) ?? 0) + 1)
-  }
-  return Array.from(seen, ([name, count]) => ({ name, count }))
-})
-const filtered = computed(() =>
-  activeFilter.value === 'all'
-    ? collection.value
-    : collection.value.filter((p: any) => p.category === activeFilter.value)
-)
 
 function heroSrc(image: string) {
   if (!image) return ''
@@ -210,29 +196,18 @@ function scrollToKolekce(e: MouseEvent) {
             <span class="zine-eyebrow">Čerstvé z ateliéru</span>
             <h2 class="zine-section-title">Všechny kousky</h2>
           </div>
-          <div class="zfilters">
-            <button
-              class="zfilter" :class="{ 'is-active': activeFilter === 'all' }"
-              @click="activeFilter = 'all'"
-            >Vše ({{ collection.length }})</button>
-            <button
-              v-for="cat in categories" :key="cat.name"
-              class="zfilter" :class="{ 'is-active': activeFilter === cat.name }"
-              @click="activeFilter = cat.name"
-            >{{ cat.name }}</button>
-          </div>
         </div>
 
         <div class="max-w-[1340px] mx-auto">
           <div class="zgrid">
             <ProductCard
-              v-for="(prod, idx) in filtered"
+              v-for="(prod, idx) in collection"
               :key="prod.id"
               :product="prod"
               :is-priority="idx < 2"
             />
           </div>
-          <p v-if="filtered.length === 0" class="zempty">V téhle kategorii zatím nic není.</p>
+          <p v-if="collection.length === 0" class="zempty">Zatím tu nic není.</p>
         </div>
       </section>
 
@@ -257,9 +232,6 @@ function scrollToKolekce(e: MouseEvent) {
               Jsem obsessed smažkama. Vytvářím jak hovna, tak absolutní bangery —
               obrazy, sochy z papírmašé, klíčenky. Každý kousek je originál, vyrobený rukama.
             </p>
-            <NuxtLink to="#kolekce" class="zine-btn zine-btn--lime">
-              Celý příběh <Icon name="lucide:arrow-right" height="16" />
-            </NuxtLink>
           </div>
         </div>
       </section>
@@ -388,24 +360,6 @@ function scrollToKolekce(e: MouseEvent) {
   .zpolaroid:hover { transform: rotate(0deg) scale(1.04); }
 }
 
-/* ── Filters ── */
-.zfilters { display: flex; flex-wrap: wrap; gap: 0.5rem; }
-.zfilter {
-  font-family: var(--font-mono);
-  font-weight: 700;
-  font-size: 0.68rem;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--pop-ink);
-  background: transparent;
-  border: 2px solid var(--pop-ink);
-  border-radius: 999px;
-  padding: 0.42rem 0.85rem;
-  cursor: pointer;
-  transition: background 0.16s ease, color 0.16s ease, transform 0.12s ease;
-}
-.zfilter:hover { transform: translateY(-1px); background: rgba(20, 35, 26, 0.06); }
-.zfilter.is-active { background: var(--pop-ink); color: var(--pop-cream); }
 
 /* ── Product grid ── */
 .zgrid {

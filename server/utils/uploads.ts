@@ -1,16 +1,22 @@
 import { resolve, sep } from 'node:path'
 
 /**
- * Where uploaded product images live on disk.
+ * Where uploaded product images are CACHED on disk.
  *
- * The path differs by mode because different things serve static files:
- *   dev  — Nuxt/Vite serves the project's `public/` straight off disk
- *   prod — Nitro serves `.output/public/`, and docker-compose mounts the
- *          persistent `uploads` volume at `/app/.output/public/uploads`
+ * The word "cached" is load-bearing. The source of truth for uploaded images
+ * is the `product_images` table in Postgres (see server/utils/image-store.ts)
+ * — the one store on this deployment that demonstrably survives redeploys.
+ * Files landed here used to be the only copy, and they kept vanishing in
+ * production: the volume that was supposed to persist this directory was not
+ * actually mounted in the running container (diagnostics showed freshly built
+ * repo files visible — impossible under a volume mask — while the admin's
+ * upload was gone). With no VPS access to fix the mount, the design was
+ * changed so the disk no longer needs to survive anything.
  *
- * Both the write path (server/api/admin/upload.post.ts) and the read path
- * (server/routes/uploads/[...path].get.ts) resolve through here so they can
- * never disagree about where a file went.
+ * The path deliberately stays inside the public dir: IPX resolves `/_ipx/...`
+ * sources against it directly on the filesystem, bypassing our routes, so the
+ * resize pipeline only works for files that physically exist here. A boot
+ * plugin re-materialises them from Postgres after every deploy.
  */
 export const UPLOADS_ROOT = resolve(
   process.cwd(),

@@ -1,5 +1,21 @@
-import { pgTable, serial, text, doublePrecision, integer, timestamp, jsonb, boolean, uniqueIndex, check } from 'drizzle-orm/pg-core';
+import { pgTable, serial, text, doublePrecision, integer, timestamp, jsonb, boolean, uniqueIndex, check, customType } from 'drizzle-orm/pg-core';
 import { relations, sql } from 'drizzle-orm';
+
+// Drizzle has no built-in bytea column; postgres.js maps it to/from Buffer.
+const bytea = customType<{ data: Buffer }>({ dataType: () => 'bytea' });
+
+// ── Product images ──────────────────────────────────────────────────────────
+// The encoded WebP bytes live in Postgres — the only store on this deployment
+// that provably survives redeploys. The filesystem copy under
+// .output/public/uploads is just an IPX cache, rebuilt from this table on
+// every boot (see server/plugins/03-image-store.ts and migration 0010).
+export const productImages = pgTable('product_images', {
+  fileName: text('file_name').primaryKey(),
+  data: bytea('data').notNull(),
+  contentType: text('content_type').notNull().default('image/webp'),
+  size: integer('size').notNull(),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+});
 
 // ── Better-auth: user ────────────────────────────────────────────────────────
 // Better-auth expects: id (text), name, email, emailVerified (bool), image, createdAt, updatedAt

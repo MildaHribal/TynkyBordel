@@ -1,23 +1,8 @@
 import { randomBytes } from 'node:crypto'
-import { writeFile, mkdir } from 'node:fs/promises'
-import { existsSync } from 'node:fs'
-import { resolve } from 'node:path'
 import sharp from 'sharp'
 import { requireAdmin } from '~~/server/utils/session'
+import { saveProductImage } from '~~/server/utils/image-store'
 
-// Where the running server actually serves static files from differs by mode:
-//   dev  — Nuxt serves the project's `public/` directly
-//   prod — Nitro serves `.output/public/`, and docker-compose mounts the
-//          persistent `uploads` volume at `/app/.output/public/uploads`
-// Writing to `public/` in production put files somewhere nothing serves and
-// nothing persists, so every uploaded product image 404'd and vanished on the
-// next rebuild.
-const UPLOAD_DIR = resolve(
-  process.cwd(),
-  process.env.NODE_ENV === 'production'
-    ? '.output/public/uploads/products'
-    : 'public/uploads/products',
-)
 const PUBLIC_URL_BASE = '/uploads/products'
 
 const ALLOWED_MIME = new Set(['image/png', 'image/jpeg', 'image/webp', 'image/gif', 'image/avif'])
@@ -25,10 +10,14 @@ const MAX_SIZE = 12 * 1024 * 1024 // 12 MB in (we re-encode down hard anyway)
 
 // Every product photo is re-encoded to WebP and capped in size on upload, so the
 // storefront only ever serves small, modern images no matter what the admin drops
-// in (a 4 MB phone JPEG becomes a ~100–200 KB WebP). @nuxt/image/IPX still resizes
+// in (a 4 MB phone JPEG becomes a ~100–300 KB WebP). @nuxt/image/IPX still resizes
 // per-breakpoint on top of this from the already-small source.
 const MAX_EDGE = 1600   // px — longest side; plenty for a full-bleed product view
 const WEBP_QUALITY = 80
+// Encode cost is paid once per upload on the admin's click; the bytes are paid
+// by every visitor forever. 6 is the highest effort that stays comfortably
+// interactive (~1-2s for a phone photo on the VPS).
+const WEBP_EFFORT = 6
 
 export default defineEventHandler(async (event) => {
   await requireAdmin(event)
@@ -59,16 +48,22 @@ export default defineEventHandler(async (event) => {
     out = await sharp(file.data, isGif ? { animated: true } : {})
       .rotate() // respect EXIF orientation before we strip metadata
       .resize({ width: MAX_EDGE, height: MAX_EDGE, fit: 'inside', withoutEnlargement: true })
-      .webp({ quality: WEBP_QUALITY, effort: 4 })
+      .webp({ quality: WEBP_QUALITY, effort: WEBP_EFFORT })
       .toBuffer()
-  } catch (err: any) {
+  } catch {
     throw createError({ statusCode: 422, statusMessage: 'Obrázek se nepodařilo zpracovat.' })
   }
 
   const fileName = `${Date.now()}-${randomBytes(4).toString('hex')}.webp`
 
-  if (!existsSync(UPLOAD_DIR)) await mkdir(UPLOAD_DIR, { recursive: true })
-  await writeFile(resolve(UPLOAD_DIR, fileName), out)
+  // Postgres first (the durable copy — production kept losing files written
+  // only to disk), then the disk cache for IPX; both handled in the store.
+  try {
+    await saveProductImage(fileName, out, 'image/webp')
+  } catch (err) {
+    console.error('[upload] DB write failed:', err)
+    throw createError({ statusCode: 500, statusMessage: 'Obrázek se nepodařilo uložit. Zkus to prosím znovu.' })
+  }
 
   const url = `${PUBLIC_URL_BASE}/${fileName}`
   return { url, path: url }

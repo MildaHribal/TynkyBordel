@@ -57,7 +57,6 @@ import { BUSINESS } from "~~/shared/shop";
             <div class="footer-col">
               <h2 class="footer-heading">Podpora</h2>
               <ul class="footer-links">
-                <li><NuxtLink to="/reklamace" class="footer-link">Doprava &amp; reklamace</NuxtLink></li>
                 <li><NuxtLink to="/obchodni-podminky" class="footer-link">Obchodní podmínky</NuxtLink></li>
                 <li><NuxtLink to="/ochrana-osobnich-udaju" class="footer-link">Ochrana soukromí</NuxtLink></li>
               </ul>
