@@ -59,6 +59,25 @@ export function minCoverScale(g: CropGeometry): number {
   return Math.max(spanX / (g.imageW / 2), spanY / (g.imageH / 2))
 }
 
+/**
+ * Largest scale at which the whole rotated image still fits INSIDE the crop
+ * rect — the "contain" counterpart of minCoverScale.
+ *
+ * The editor deliberately allows zooming out this far, past the point where the
+ * photo stops covering the frame. Product shots are taken on black and the card
+ * frame is black too, so the letterboxed area blends in and the owner can keep
+ * a whole piece in shot instead of being forced to crop into it.
+ */
+export function maxContainScale(g: CropGeometry): number {
+  if (!(g.imageW > 0) || !(g.imageH > 0)) return 1
+  const c = Math.abs(Math.cos(g.angle))
+  const s = Math.abs(Math.sin(g.angle))
+  // Bounding box of the rotated image must fit within the crop rect.
+  const rotW = g.imageW * c + g.imageH * s
+  const rotH = g.imageW * s + g.imageH * c
+  return Math.min(g.cropW / rotW, g.cropH / rotH)
+}
+
 /** How far the image may travel along its own axes before a gap opens up. */
 export function offsetLimits(g: CropGeometry, scale: number): { x: number; y: number } {
   const { spanX, spanY } = axisSpans(g)
@@ -153,7 +172,6 @@ const emit = defineEmits<{
   close: []
 }>()
 
-const MIN_ZOOM = 1
 const MAX_ZOOM = 6
 const FINE_ANGLE_LIMIT = 45 // degrees each way
 // Re-exposed as a setup binding so the template can render it (module-scope
@@ -207,6 +225,12 @@ const geometry = computed<CropGeometry>(() => ({
   angle: angle.value,
 }))
 const coverScale = computed(() => minCoverScale(geometry.value))
+const containScale = computed(() => maxContainScale(geometry.value))
+// `zoom` is a multiplier over "just covers". 1 means the frame is exactly
+// filled; anything below that letterboxes, down to the whole photo fitting.
+const MIN_ZOOM = computed(() =>
+  coverScale.value > 0 ? Math.min(1, containScale.value / coverScale.value) : 1,
+)
 const scale = computed(() => coverScale.value * zoom.value)
 
 const isReady = computed(() => !!source.value && cropW.value > 0)
@@ -230,7 +254,7 @@ function panBy(dx: number, dy: number) {
  *  coordinates) stationary. */
 function zoomAt(anchor: { x: number; y: number }, ratio: number) {
   if (!isReady.value) return
-  const target = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, zoom.value * ratio))
+  const target = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM.value, zoom.value * ratio))
   const applied = target / zoom.value
   if (applied === 1) return
   zoom.value = target
@@ -242,7 +266,10 @@ function zoomAt(anchor: { x: number; y: number }, ratio: number) {
 }
 
 function resetTransform() {
-  zoom.value = 1
+  // Start at "whole image visible" rather than "frame filled": the owner asked
+  // to be able to fit a complete piece into the card, and starting zoomed in
+  // means every upload begins by hiding part of the photo.
+  zoom.value = MIN_ZOOM.value
   quarterTurns.value = 0
   fineAngle.value = 0
   tx.value = 0
@@ -256,6 +283,13 @@ function rotateQuarter(dir: 1 | -1) {
 
 // Any change to zoom or rotation can open a gap — always re-clamp.
 watch([scale, angle], reclamp)
+// The zoom floor depends on the crop window, which is only known once the stage
+// has been measured, and on the rotation. Without this, an image reset before
+// the first measure would keep a stale floor of 1 and could not be zoomed out.
+watch(MIN_ZOOM, (min) => {
+  if (zoom.value < min) zoom.value = min
+  else if (zoom.value > MAX_ZOOM) zoom.value = MAX_ZOOM
+})
 // The offsets live in stage pixels, so a resize (or a tablet being rotated)
 // would otherwise shift the framing. Rescale them with the crop window.
 watch(cropW, (next, prev) => {
@@ -362,6 +396,12 @@ function paint() {
   ctx.clearRect(0, 0, w, h)
   const img = source.value
   if (!img || !natW.value || !natH.value) return
+  // Paint the crop window black BEFORE the photo. Zooming out past "covers" is
+  // allowed, so the frame can legitimately contain empty space — and the export
+  // fills that with black. Showing the same black here means the preview is an
+  // honest picture of the result rather than the stage backdrop showing through.
+  ctx.fillStyle = '#000000'
+  ctx.fillRect((w - cropW.value) / 2, (h - cropH.value) / 2, cropW.value, cropH.value)
   ctx.save()
   // Stage centre == crop-window centre, which is the origin of the transform.
   ctx.translate(w / 2 + tx.value, h / 2 + ty.value)

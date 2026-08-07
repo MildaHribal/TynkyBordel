@@ -2,6 +2,7 @@ import { getOptionalSession } from '../../utils/session';
 import { sendOrderStatusEmail, sendNewOrderNotification, type BankTransferBlock } from '../../utils/email';
 import { buildSpayd, getBankAccount, spaydToDataUrl, spaydToBuffer } from '../../utils/spayd';
 import { persistOrder } from '../../utils/createOrder';
+import { isValidEmail, normaliseEmail, normalisePhone, phoneErrorMessage } from '../../../shared/validation';
 
 export default defineEventHandler(async (event) => {
   const body = await readBody(event);
@@ -17,6 +18,28 @@ export default defineEventHandler(async (event) => {
       statusMessage: 'Platbu kartou dokonči prosím přes platební tlačítko.',
     });
   }
+
+  // Contact details are validated here as well as on the checkout page: the
+  // page's version is a UX affordance, this one is the actual guarantee —
+  // anyone can POST straight at this endpoint. Both sides run the exact same
+  // rules (shared/validation.ts), so a number the form accepts is never
+  // refused here.
+  if (!isValidEmail(body?.customerEmail)) {
+    throw createError({
+      statusCode: 400,
+      statusMessage: 'E-mail nemá správný tvar — zkus to jako jan@email.cz.',
+    });
+  }
+
+  const phone = normalisePhone(body?.phone);
+  if (!phone) {
+    throw createError({ statusCode: 400, statusMessage: phoneErrorMessage(body?.phone) });
+  }
+
+  // Store the canonical +420777123456 form (and a tidied e-mail) so the orders
+  // table doesn't accumulate five spellings of the same number.
+  body.phone = phone;
+  body.customerEmail = normaliseEmail(body.customerEmail);
 
   // Validate, re-price and persist (shared with the PayPal flow).
   const { order: newOrder, items: orderItemsData, totalPrice } = await persistOrder(body, {

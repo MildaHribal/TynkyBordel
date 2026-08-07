@@ -3,6 +3,13 @@ import { useCartStore } from "~/stores/cart";
 
 import { useAuth } from "~/composables/useAuth";
 import { CARD_PAYMENT_ENABLED, COD_FEE, SHIPPING_FEE } from "~~/shared/shop";
+import {
+  emailErrorMessage,
+  isValidCzechPhone,
+  isValidEmail,
+  normalisePhone,
+  phoneErrorMessage,
+} from "~~/shared/validation";
 
 const cart = useCartStore();
 const { currentUser } = useAuth();
@@ -136,29 +143,65 @@ watch(
 );
 
 // ── Validation & totals ─────────────────────────────────────────────
-const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const phoneRegex = /^\+?[\d\s()\-]{9,20}$/;
+// The rules themselves live in shared/validation.ts so this page and
+// /api/orders can never drift apart on what counts as a valid phone/e-mail.
 const codFee = computed(() => (paymentMethod.value === 'cash' ? COD_FEE : 0));
 const totalWithShipping = computed(() => cart.totalPrice + SHIPPING_PRICE + codFee.value);
+
+// Errors only appear once a field has been left (or a submit was attempted), so
+// the form isn't already shouting at someone who hasn't typed a character yet.
+const touched = ref({ customerName: false, customerEmail: false, phone: false });
+const nameInput = ref<HTMLInputElement | null>(null);
+const emailInput = ref<HTMLInputElement | null>(null);
+const phoneInput = ref<HTMLInputElement | null>(null);
+
+const nameProblem = computed(() =>
+  form.value.customerName.trim().length > 1 ? '' : 'Napiš prosím jméno a příjmení.',
+);
+const emailProblem = computed(() => emailErrorMessage(form.value.customerEmail));
+const phoneProblem = computed(() => phoneErrorMessage(form.value.phone));
+
+// What the template renders — the problem, but only for a field worth nagging about.
+const nameError = computed(() => (touched.value.customerName ? nameProblem.value : ''));
+const emailError = computed(() => (touched.value.customerEmail ? emailProblem.value : ''));
+const phoneError = computed(() => (touched.value.phone ? phoneProblem.value : ''));
 
 const formValid = computed(() => {
   return (
     cart.items.length > 0 &&
-    form.value.customerName.trim().length > 1 &&
-    emailRegex.test(form.value.customerEmail) &&
-    phoneRegex.test(form.value.phone.trim()) &&
+    !nameProblem.value &&
+    isValidEmail(form.value.customerEmail) &&
+    isValidCzechPhone(form.value.phone) &&
     !!pickupPoint.value &&
     agreedToTerms.value
   );
 });
+
+/**
+ * Mark every contact field as touched and put the cursor in the first broken
+ * one. Returns false when something is wrong, so callers can bail out.
+ */
+function validateContactFields(): boolean {
+  touched.value = { customerName: true, customerEmail: true, phone: true };
+  const first = ([
+    [nameProblem.value, nameInput],
+    [emailProblem.value, emailInput],
+    [phoneProblem.value, phoneInput],
+  ] as const).find(([problem]) => problem);
+  if (!first) return true;
+  first[1].value?.focus();
+  return false;
+}
 
 // Shared order payload (used by the bank/COD flow and the PayPal capture).
 function orderBody() {
   const shippingAddressText = pickupPoint.value ? `${pickupPoint.value.name} — ${pickupPoint.value.address}` : '';
   return {
     customerName: form.value.customerName,
-    customerEmail: form.value.customerEmail,
-    phone: form.value.phone,
+    customerEmail: form.value.customerEmail.trim(),
+    // Send the canonical +420… form; the server re-normalises anyway, but this
+    // keeps the payload and the stored order identical.
+    phone: normalisePhone(form.value.phone) ?? form.value.phone.trim(),
     street: shippingAddressText,
     city: shippingMethod.value === 'balikovna' ? 'Balíkovna' : 'Z-BOX',
     zip: '',
@@ -174,7 +217,27 @@ function orderBody() {
 
 // ── Submit (cash / bank transfer) ───────────────────────────────────
 async function placeOrder() {
-  if (!formValid.value || cart.items.length === 0 || !pickupPoint.value) return;
+  if (isSubmitting.value) return;
+
+  // Contact fields first: they can be pointed at, so show the error under the
+  // offending input and focus it instead of firing a vague toast.
+  if (!validateContactFields()) return;
+
+  // The rest has no field to underline — a toast is the only place to say it.
+  if (cart.items.length === 0) {
+    toast.error('Košík je prázdný', 'Přidej si nejdřív něco na hraní.');
+    return;
+  }
+  if (!pickupPoint.value) {
+    toast.error('Chybí výdejní místo', 'Vyber prosím Z-BOX nebo Balíkovnu.');
+    return;
+  }
+  if (!agreedToTerms.value) {
+    toast.error('Chybí souhlas', 'Odsouhlas prosím obchodní podmínky a zpracování údajů.');
+    return;
+  }
+  if (!formValid.value) return;
+
   isSubmitting.value = true;
   try {
     const response: any = await $fetch('/api/orders', { method: 'POST', body: orderBody() });
@@ -223,6 +286,8 @@ async function renderPaypalButtons() {
     // Block payment until the form is valid.
     onClick: (_data: any, actions: any) => {
       if (!formValid.value) {
+        // Underline the broken contact field too, not just a toast.
+        validateContactFields();
         toast.error('Nejdřív vyplň objednávku', 'Zkontroluj jméno, e-mail, telefon, výdejní místo a souhlas.');
         return actions.reject();
       }
@@ -285,16 +350,69 @@ watch(paymentMethod, async (m) => {
           </h2>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label class="checkout-label">Jméno a příjmení *</label>
-              <input v-model="form.customerName" type="text" required placeholder="Jan Novák" class="checkout-input" />
+              <label for="checkout-name" class="checkout-label">Jméno a příjmení *</label>
+              <input
+                id="checkout-name"
+                ref="nameInput"
+                v-model="form.customerName"
+                type="text"
+                required
+                placeholder="Jan Novák"
+                class="checkout-input"
+                :class="{ 'is-invalid': nameError }"
+                :aria-invalid="Boolean(nameError)"
+                :aria-describedby="nameError ? 'checkout-name-error' : undefined"
+                @blur="touched.customerName = true"
+              />
+              <p v-if="nameError" id="checkout-name-error" class="field-error" role="alert">
+                <Icon name="mdi:alert-circle-outline" height="14" />
+                {{ nameError }}
+              </p>
             </div>
             <div>
-              <label class="checkout-label">Email *</label>
-              <input v-model="form.customerEmail" type="email" required placeholder="jan@email.cz" class="checkout-input" />
+              <label for="checkout-email" class="checkout-label">Email *</label>
+              <input
+                id="checkout-email"
+                ref="emailInput"
+                v-model="form.customerEmail"
+                type="email"
+                required
+                inputmode="email"
+                autocomplete="email"
+                placeholder="jan@email.cz"
+                class="checkout-input"
+                :class="{ 'is-invalid': emailError }"
+                :aria-invalid="Boolean(emailError)"
+                :aria-describedby="emailError ? 'checkout-email-error' : undefined"
+                @blur="touched.customerEmail = true"
+              />
+              <p v-if="emailError" id="checkout-email-error" class="field-error" role="alert">
+                <Icon name="mdi:alert-circle-outline" height="14" />
+                {{ emailError }}
+              </p>
             </div>
             <div class="md:col-span-2">
-              <label class="checkout-label">Telefon *</label>
-              <input v-model="form.phone" type="tel" required placeholder="+420 123 456 789" class="checkout-input" />
+              <label for="checkout-phone" class="checkout-label">Telefon *</label>
+              <input
+                id="checkout-phone"
+                ref="phoneInput"
+                v-model="form.phone"
+                type="tel"
+                required
+                inputmode="tel"
+                autocomplete="tel"
+                placeholder="777 123 456"
+                class="checkout-input"
+                :class="{ 'is-invalid': phoneError }"
+                :aria-invalid="Boolean(phoneError)"
+                :aria-describedby="phoneError ? 'checkout-phone-error' : undefined"
+                @blur="touched.phone = true"
+              />
+              <p v-if="phoneError" id="checkout-phone-error" class="field-error" role="alert">
+                <Icon name="mdi:alert-circle-outline" height="14" />
+                {{ phoneError }}
+              </p>
+              <p v-else class="field-hint">Česká nebo slovenská čísla, klidně i s předvolbou: 777 123 456 nebo +420 777 123 456.</p>
             </div>
           </div>
         </section>
@@ -438,7 +556,8 @@ watch(paymentMethod, async (m) => {
         <button
           v-else
           @click="placeOrder"
-          :disabled="!formValid || isSubmitting"
+          :disabled="isSubmitting"
+          :class="{ 'is-incomplete': !formValid }"
           class="btn-primary-pop w-full justify-center py-4 text-lg"
         >
           <Icon v-if="isSubmitting" name="lucide:loader-2" height="22" class="animate-spin" />
@@ -633,6 +752,38 @@ watch(paymentMethod, async (m) => {
   border-color: rgba(179, 50, 76, 0.55);
   background: #fff;
   box-shadow: 0 0 0 3px rgba(179, 50, 76, 0.12);
+}
+
+/* ── Field validation ── */
+.checkout-input.is-invalid {
+  border-color: #b3324c;
+  background: rgba(179, 50, 76, 0.05);
+}
+.checkout-input.is-invalid:focus {
+  border-color: #b3324c;
+  box-shadow: 0 0 0 3px rgba(179, 50, 76, 0.18);
+}
+.field-error {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin-top: 0.35rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #b3324c;
+  line-height: 1.35;
+}
+.field-hint {
+  margin-top: 0.35rem;
+  font-size: 0.75rem;
+  color: rgba(20, 35, 26, 0.5);
+  line-height: 1.35;
+}
+/* Everything required isn't filled in yet — the button still works, clicking it
+   just points at what's missing instead of being an unexplained dead grey box. */
+.btn-primary-pop.is-incomplete {
+  opacity: 0.55;
+  box-shadow: none;
 }
 
 .checkout-note {
