@@ -124,7 +124,10 @@ export const orders = pgTable('orders', {
 export const orderItems = pgTable('order_items', {
   id: serial('id').primaryKey(),
   orderId: integer('order_id').notNull().references(() => orders.id, { onDelete: 'cascade' }),
-  productId: integer('product_id').references(() => products.id),
+  // SET NULL, not the default NO ACTION: these rows already snapshot `title`,
+  // `price` and `image`, so a deleted product leaves the order intact and only
+  // loses its link to a product page that no longer exists. See migration 0009.
+  productId: integer('product_id').references(() => products.id, { onDelete: 'set null' }),
   title: text('title').notNull(),
   price: doublePrecision('price').notNull(),
   quantity: integer('quantity').notNull().default(1),
