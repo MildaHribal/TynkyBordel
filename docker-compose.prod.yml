@@ -56,6 +56,10 @@ services:
     volumes:
       # Persist user-uploaded product images across rebuilds.
       - uploads:/app/.output/public/uploads
+      # Archived invoice PDFs. Separate from `uploads` on purpose — that volume
+      # is served publicly at /uploads/**, and invoices carry customer names
+      # and addresses, so they must not be reachable by guessing a URL.
+      - invoices:/app/.data/invoices
     healthcheck:
       # node is the only runtime in the image — no curl/wget to rely on.
       test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/robots.txt').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
@@ -87,6 +91,7 @@ services:
 volumes:
   pgdata:
   uploads:
+  invoices:
   caddy_data:
   caddy_config:
 

@@ -188,6 +188,18 @@ export default defineNuxtConfig({
     sourcemap: { client: true, server: true },
 
     nitro: {
+        // Archived invoice PDFs. Without an explicit mount `useStorage()` falls
+        // back to Nitro's in-memory driver, and the archive would evaporate on
+        // every container restart — which defeats the whole point of archiving
+        // rather than re-rendering. Deliberately NOT the `uploads` volume: that
+        // one is served publicly at /uploads/**, and accounting documents carry
+        // customer names and addresses.
+        storage: {
+            invoices: { driver: 'fs', base: '/app/.data/invoices' },
+        },
+        devStorage: {
+            invoices: { driver: 'fs', base: './.data/invoices' },
+        },
         compressPublicAssets: { gzip: true, brotli: true },
         minify: true,
         /*alias: {
