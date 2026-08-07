@@ -138,32 +138,32 @@ const selectedOrder = ref<any>(null)
           </thead>
           <tbody>
             <tr v-for="o in filteredOrders" :key="o.id">
-              <td class="mono">#{{ o.orderNumber || o.id }}</td>
-              <td>
+              <td class="mono cell-primary">#{{ o.orderNumber || o.id }}</td>
+              <td data-label="Zákazník">
                 <div class="customer-cell">
                   <span class="customer-name">{{ o.customerName }}</span>
                   <span class="customer-email">{{ o.customerEmail }}</span>
                 </div>
               </td>
-              <td>
+              <td data-label="Položky">
                 <span v-for="(item, i) in (o.items || []).slice(0, 2)" :key="i" class="item-tag">
                   {{ item.title }} × {{ item.quantity }}
                 </span>
                 <span v-if="(o.items?.length || 0) > 2" class="item-more">+{{ o.items.length - 2 }}</span>
               </td>
-              <td class="price">{{ o.totalPrice.toLocaleString('cs-CZ') }} Kč</td>
-              <td>
+              <td class="price" data-label="Celkem">{{ o.totalPrice.toLocaleString('cs-CZ') }} Kč</td>
+              <td data-label="Platba">
                 <span :class="['badge', PAYMENT_CLASS[o.paymentStatus] || 'badge-unpaid']">
                   {{ PAYMENT_LABELS[o.paymentStatus] || o.paymentStatus }}
                 </span>
               </td>
-              <td>
+              <td data-label="Stav">
                 <span :class="['badge', statusMeta(o.status).cls]">
                   {{ statusMeta(o.status).label }}
                 </span>
               </td>
-              <td class="mono">{{ new Date(o.createdAt).toLocaleDateString('cs-CZ') }}</td>
-              <td>
+              <td class="mono" data-label="Datum">{{ new Date(o.createdAt).toLocaleDateString('cs-CZ') }}</td>
+              <td class="cell-actions">
                 <div class="actions-cell">
                   <button class="action-btn" @click="selectedOrder = o" title="Detail">
                     <Icon icon="lucide:eye" height="14" />

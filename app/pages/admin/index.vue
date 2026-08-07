@@ -78,21 +78,21 @@ const STATUS_CLASS: Record<string, string> = {
             </thead>
             <tbody>
               <tr v-for="o in stats.recentOrders" :key="o.id">
-                <td class="mono">#{{ o.orderNumber || o.id }}</td>
-                <td>
+                <td class="mono cell-primary">#{{ o.orderNumber || o.id }}</td>
+                <td data-label="Zákazník">
                   <div class="customer-cell">
                     <span class="customer-name">{{ o.customerName }}</span>
                     <span class="customer-email">{{ o.customerEmail }}</span>
                   </div>
                 </td>
-                <td>{{ o.items?.length ?? 0 }}</td>
-                <td class="price">{{ o.totalPrice.toLocaleString('cs-CZ') }} Kč</td>
-                <td>
+                <td data-label="Položek">{{ o.items?.length ?? 0 }}</td>
+                <td class="price" data-label="Celkem">{{ o.totalPrice.toLocaleString('cs-CZ') }} Kč</td>
+                <td data-label="Stav">
                   <span :class="['badge', STATUS_CLASS[o.status] || 'badge-pending']">
                     {{ STATUS_LABEL[o.status] || o.status }}
                   </span>
                 </td>
-                <td class="mono">{{ o.createdAt ? new Date(o.createdAt).toLocaleDateString('cs-CZ') : '—' }}</td>
+                <td class="mono" data-label="Datum">{{ o.createdAt ? new Date(o.createdAt).toLocaleDateString('cs-CZ') : '—' }}</td>
               </tr>
             </tbody>
           </table>

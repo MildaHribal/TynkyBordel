@@ -71,15 +71,15 @@ const totalRevenue = computed(() =>
           </thead>
           <tbody>
             <tr v-for="c in filteredCustomers" :key="c.email">
-              <td>
+              <td class="cell-primary">
                 <div class="customer-cell" style="flex-direction: row; align-items: center; gap: 0.6rem;">
                   <div class="customer-avatar">{{ c.name.charAt(0).toUpperCase() }}</div>
                   <span class="customer-name">{{ c.name }}</span>
                 </div>
               </td>
-              <td class="mono">{{ c.email }}</td>
-              <td>{{ c.orders }}</td>
-              <td class="price">{{ c.totalSpent.toLocaleString('cs-CZ') }} Kč</td>
+              <td class="mono" data-label="Email">{{ c.email }}</td>
+              <td data-label="Objednávky">{{ c.orders }}</td>
+              <td class="price" data-label="Útrata">{{ c.totalSpent.toLocaleString('cs-CZ') }} Kč</td>
             </tr>
           </tbody>
         </table>

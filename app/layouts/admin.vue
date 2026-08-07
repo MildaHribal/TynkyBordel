@@ -113,6 +113,20 @@ onUnmounted(() => {
       </NuxtLink>
     </aside>
 
+    <!-- Mobile bottom tab bar — thumb-reachable primary navigation. Hidden on
+         desktop, where the sidebar takes over. -->
+    <nav class="admin-tabbar">
+      <NuxtLink
+        v-for="item in navItems"
+        :key="item.to"
+        :to="item.to"
+        :class="['tabbar-link', { active: isActive(item.to) }]"
+      >
+        <Icon :icon="item.icon" height="21" />
+        <span>{{ item.label }}</span>
+      </NuxtLink>
+    </nav>
+
     <main class="admin-main">
       <slot />
     </main>
@@ -236,16 +250,27 @@ onUnmounted(() => {
   max-width: 100%;
 }
 
+/* Bottom tab bar — mobile only. Hidden on desktop. */
+.admin-tabbar { display: none; }
+
 @media (max-width: 768px) {
+  /* Stack vertically: top bar, then content (tab bar is fixed, out of flow). */
+  .admin-layout { flex-direction: column; }
+
+  /* Sidebar becomes a slim sticky top bar: just brand + back-to-shop. The
+     section links move to the bottom tab bar so they're reachable by thumb. */
   .admin-sidebar {
     width: 100%;
     height: auto;
-    position: static;
+    position: sticky;
+    top: 0;
     flex-direction: row;
-    padding: 0.75rem 1rem;
+    padding: 0.7rem 1rem;
     align-items: center;
     gap: 0.5rem;
-    overflow-x: auto;
+    overflow: visible;
+    border-right: 0;
+    border-bottom: 1px solid rgba(42, 19, 64, 0.08);
   }
   .sidebar-logo {
     padding: 0;
@@ -254,10 +279,65 @@ onUnmounted(() => {
     margin-right: auto;
     white-space: nowrap;
   }
-  .sidebar-nav { flex: none; flex-direction: row; gap: 0.25rem; }
-  .sidebar-link span { display: none; }
-  .sidebar-back { border-top: 0; padding: 0.5rem; margin-top: 0; }
+  /* Section nav + install prompt live in the bottom bar on mobile. */
+  .sidebar-nav,
+  .install-btn { display: none; }
+  .sidebar-back {
+    border-top: 0;
+    padding: 0.4rem 0.5rem;
+    margin-top: 0;
+    white-space: nowrap;
+  }
   .sidebar-back span { display: none; }
-  .admin-main { margin-left: 0; padding: 1.25rem; }
+
+  .admin-main {
+    margin-left: 0;
+    /* Leave room for the fixed bottom tab bar (+ iOS home indicator). */
+    padding: 1.15rem 1rem calc(5.25rem + env(safe-area-inset-bottom));
+  }
+
+  .admin-tabbar {
+    display: flex;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 50;
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(16px);
+    border-top: 1px solid rgba(42, 19, 64, 0.1);
+    padding: 0.4rem 0.35rem calc(0.4rem + env(safe-area-inset-bottom));
+    box-shadow: 0 -4px 20px rgba(42, 19, 64, 0.06);
+  }
+  .tabbar-link {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.15rem;
+    padding: 0.35rem 0.15rem;
+    min-height: 52px;
+    border-radius: 12px;
+    text-decoration: none;
+    color: rgba(42, 19, 64, 0.5);
+    font-size: 0.62rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    transition: color 0.15s ease, background 0.15s ease;
+  }
+  .tabbar-link span {
+    text-align: center;
+    line-height: 1.1;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .tabbar-link.active {
+    color: var(--ad-accent, #b3324c);
+    background: rgba(179, 50, 76, 0.09);
+  }
+  .tabbar-link:active { background: rgba(42, 19, 64, 0.06); }
 }
 </style>

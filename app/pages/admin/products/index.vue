@@ -286,7 +286,7 @@ function getImageSrc(image: string) {
           </thead>
           <tbody>
             <tr v-for="p in filteredProducts" :key="p.id">
-              <td>
+              <td class="cell-primary">
                 <div class="product-cell">
                   <div class="product-thumb">
                     <img v-if="p.image" :src="getImageSrc(p.image)" :alt="p.title" />
@@ -298,15 +298,15 @@ function getImageSrc(image: string) {
                   </div>
                 </div>
               </td>
-              <td>
+              <td data-label="Kategorie">
                 <span class="item-tag" v-if="p.category">{{ p.category }}</span>
               </td>
-              <td class="price">{{ p.price.toLocaleString('cs-CZ') }} Kč</td>
-              <td>
+              <td class="price" data-label="Cena">{{ p.price.toLocaleString('cs-CZ') }} Kč</td>
+              <td data-label="Sklad">
                 <span :class="['stock-badge', p.stock <= 5 ? 'stock-low' : 'stock-ok']">{{ p.stock }}</span>
               </td>
-              <td class="mono">{{ new Date(p.createdAt).toLocaleDateString('cs-CZ') }}</td>
-              <td>
+              <td class="mono" data-label="Vytvořeno">{{ new Date(p.createdAt).toLocaleDateString('cs-CZ') }}</td>
+              <td class="cell-actions">
                 <div class="actions-cell">
                   <button class="action-btn" @click="openEdit(p)" title="Upravit">
                     <Icon icon="lucide:pencil" height="14" />
