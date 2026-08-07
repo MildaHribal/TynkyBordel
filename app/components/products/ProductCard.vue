@@ -48,6 +48,16 @@ const secondImageSrc = computed(() => {
   return second || null
 })
 
+// Only mount the hover image on devices that actually hover (desktop). On touch
+// phones the crossfade never fires, so downloading a second photo per card is
+// pure wasted payload — this keeps it out of the DOM entirely on mobile.
+const canHover = ref(false)
+onMounted(() => {
+  if (typeof window !== 'undefined' && window.matchMedia) {
+    canHover.value = window.matchMedia('(hover: hover)').matches
+  }
+})
+
 const isImageLoading = ref(true)
 const isImageError = ref(false)
 const isAddedToCart = ref(false)
@@ -156,9 +166,9 @@ const toggleFavorite = async () => {
         @error="onImageError"
       />
 
-      <!-- Second photo, cross-faded in on hover -->
+      <!-- Second photo, cross-faded in on hover (desktop pointers only) -->
       <NuxtImg
-        v-if="secondImageSrc && !isImageError"
+        v-if="secondImageSrc && !isImageError && canHover"
         :src="secondImageSrc"
         :alt="product.title"
         class="card-img card-img--hover w-full h-full object-contain"
