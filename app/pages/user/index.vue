@@ -374,7 +374,7 @@ const statusClass = (status: string) => {
 .profile-sub {
   font-family: var(--font-mono, monospace);
   font-size: 0.86rem;
-  color: rgba(32, 17, 52, 0.6);
+  color: rgba(34, 29, 25, 0.6);
   margin-top: 0.6rem;
 }
 </style>

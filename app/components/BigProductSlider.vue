@@ -317,7 +317,7 @@ defineExpose({ next, prev });
   transition: background 0.2s ease, transform 0.2s ease;
 }
 .slide-cta:hover {
-  background: #2a1340;
+  background: #221d19;
   transform: translateY(-1px);
 }
 

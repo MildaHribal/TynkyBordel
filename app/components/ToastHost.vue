@@ -10,7 +10,7 @@ const variantClasses = (variant: string) => {
     case 'error':
       return 'border-red-400/40 bg-red-600 text-white'
     default:
-      return 'border-white/15 bg-[#2a1340] text-white'
+      return 'border-white/15 bg-[#221d19] text-white'
   }
 }
 </script>

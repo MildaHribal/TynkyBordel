@@ -264,7 +264,7 @@ const handleSubmit = async () => {
   margin-top: 0.5rem;
 }
 .form-submit:hover:not(:disabled) {
-  background: #3a1f55;
+  background: #33291f;
   transform: translateY(-2px);
 }
 .form-submit:disabled { opacity: 0.7; cursor: wait; }

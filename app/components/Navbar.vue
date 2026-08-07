@@ -369,7 +369,7 @@ onUnmounted(() => {
   text-transform: none;
   line-height: 1;
   white-space: nowrap;
-  color: #2a1340;
+  color: #221d19;
 }
 @media (min-width: 768px) { .brand-text { font-size: 1.5rem; } }
 
@@ -378,15 +378,15 @@ onUnmounted(() => {
   align-items: center;
   gap: 0.25rem;
   padding: 0.4rem 0.5rem 0.4rem 1rem;
-  background: var(--pop-plum, #1b1033);
-  border: 2px solid var(--pop-ink, #201134);
+  background: var(--pop-plum, #241f1b);
+  border: 2px solid var(--pop-ink, #221d19);
   border-radius: 9999px;
   color: #ffffff;
-  box-shadow: 3px 3px 0 rgba(32, 17, 52, 0.85);
+  box-shadow: 3px 3px 0 rgba(34, 29, 25, 0.85);
   transition: box-shadow 0.25s ease;
   position: relative;
 }
-.navbar--scrolled { box-shadow: 4px 4px 0 rgba(32, 17, 52, 0.85); }
+.navbar--scrolled { box-shadow: 4px 4px 0 rgba(34, 29, 25, 0.85); }
 
 .nav-link {
   display: inline-flex;
@@ -403,7 +403,7 @@ onUnmounted(() => {
   transition: background 0.2s ease, color 0.2s ease;
   white-space: nowrap;
 }
-.nav-link:hover { background: var(--pop-pink, #E585AA); color: var(--pop-ink, #201134); }
+.nav-link:hover { background: var(--pop-pink, #E585AA); color: var(--pop-ink, #221d19); }
 
 /* ── Inline search (desktop) ─────────────────────────── */
 .nav-search {
@@ -553,9 +553,9 @@ onUnmounted(() => {
   height: 42px;
   border-radius: 9999px;
   background: #ffffff;
-  border: 2px solid var(--pop-ink, #201134);
+  border: 2px solid var(--pop-ink, #221d19);
   color: var(--pop-ink);
-  box-shadow: 2px 2px 0 rgba(32, 17, 52, 0.85);
+  box-shadow: 2px 2px 0 rgba(34, 29, 25, 0.85);
   transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.2s ease;
   text-decoration: none;
   position: relative;
@@ -564,7 +564,7 @@ onUnmounted(() => {
 .nav-avatar-btn:hover {
   transform: translate(-1px, -1px);
   background: var(--pop-pink, #E585AA);
-  box-shadow: 3px 3px 0 rgba(32, 17, 52, 0.85);
+  box-shadow: 3px 3px 0 rgba(34, 29, 25, 0.85);
 }
 
 .cart-badge-small {
@@ -601,7 +601,7 @@ onUnmounted(() => {
   box-shadow: 0 4px 14px rgba(42, 19, 64, 0.2);
   transition: background 0.2s ease, transform 0.15s ease;
 }
-.mobile-icon-btn:hover { background: #2a1340; }
+.mobile-icon-btn:hover { background: #221d19; }
 .mobile-icon-btn:active { transform: scale(0.93); }
 /* Scoped display above outranks Tailwind's `md:hidden`, so enforce hide on
    desktop explicitly — otherwise the mobile cart shows next to the desktop one. */
@@ -623,7 +623,7 @@ onUnmounted(() => {
   transition: background 0.2s ease;
   padding: 0;
 }
-.hamburger-btn:hover { background: #2a1340; }
+.hamburger-btn:hover { background: #221d19; }
 /* Phones only — hidden from tablet/desktop up (scoped rule outranks `md:hidden`). */
 @media (min-width: 768px) { .hamburger-btn { display: none; } }
 
@@ -670,7 +670,7 @@ onUnmounted(() => {
 .mobile-menu-brand {
   font-family: 'Berkshire Swash', cursive;
   font-size: 1.5rem;
-  color: #2a1340;
+  color: #221d19;
   text-decoration: none;
   letter-spacing: -0.01em;
 }
@@ -682,7 +682,7 @@ onUnmounted(() => {
   height: 44px;
   border-radius: 999px;
   background: rgba(42, 19, 64, 0.06);
-  color: #2a1340;
+  color: #221d19;
   border: none;
   cursor: pointer;
   transition: background 0.2s ease, transform 0.2s ease;
@@ -805,7 +805,7 @@ onUnmounted(() => {
   transition: transform 0.25s ease, background 0.25s ease;
 }
 .scroll-top-btn:hover {
-  background: #2a1340;
+  background: #221d19;
   transform: translateY(-2px) scale(1.05);
 }
 @media (min-width: 768px) {

@@ -559,7 +559,7 @@ watch(paymentMethod, async (m) => {
 <style scoped>
 /* ── Palette overrides (checkout uses dark text on pastel body) ── */
 .checkout-page {
-  color: var(--pop-ink, #2a1340);
+  color: var(--pop-ink, #221d19);
 }
 
 .checkout-back {
@@ -567,14 +567,14 @@ watch(paymentMethod, async (m) => {
   transition: color 0.2s;
 }
 .checkout-back:hover {
-  color: var(--pop-ink, #2a1340);
+  color: var(--pop-ink, #221d19);
 }
 
 .checkout-title {
   font-family: 'Berkshire Swash', 'Petrona', cursive;
   font-size: clamp(1.6rem, 4vw, 2.2rem);
   line-height: 1;
-  color: var(--pop-ink, #2a1340);
+  color: var(--pop-ink, #221d19);
   letter-spacing: -0.02em;
 }
 
@@ -597,13 +597,13 @@ watch(paymentMethod, async (m) => {
   gap: 0.5rem;
   font-size: 0.95rem;
   font-weight: 700;
-  color: var(--pop-ink, #2a1340);
+  color: var(--pop-ink, #221d19);
   margin-bottom: 1rem;
   padding-bottom: 0.75rem;
   border-bottom: 1px solid rgba(42, 19, 64, 0.08);
 }
 .checkout-section-icon {
-  color: var(--pop-lavender, #6b4ea7);
+  color: var(--pop-lavender, #b34a72);
 }
 
 .checkout-label {
@@ -621,7 +621,7 @@ watch(paymentMethod, async (m) => {
   border: 1px solid rgba(42, 19, 64, 0.15);
   background: rgba(255, 255, 255, 0.85);
   border-radius: 0.65rem;
-  color: var(--pop-ink, #2a1340);
+  color: var(--pop-ink, #221d19);
   font-size: 0.95rem;
   transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
 }
@@ -677,7 +677,7 @@ watch(paymentMethod, async (m) => {
   justify-content: space-between;
   padding: 0.75rem 1rem;
   font-weight: 700;
-  color: #2a1340;
+  color: #221d19;
   border-bottom: 1px solid rgba(42, 19, 64, 0.1);
 }
 .balikovna-close {
@@ -728,7 +728,7 @@ watch(paymentMethod, async (m) => {
 }
 .zbox-name {
   font-weight: 700;
-  color: var(--pop-ink, #2a1340);
+  color: var(--pop-ink, #221d19);
   display: flex;
   align-items: center;
   gap: 0.35rem;
@@ -787,7 +787,7 @@ watch(paymentMethod, async (m) => {
 }
 .payment-icon--bank {
   background: rgba(107, 78, 167, 0.15);
-  color: #6b4ea7;
+  color: #b34a72;
 }
 .payment-icon--card {
   background: rgba(0, 112, 186, 0.15);
@@ -813,7 +813,7 @@ watch(paymentMethod, async (m) => {
 }
 .payment-title {
   font-weight: 700;
-  color: var(--pop-ink, #2a1340);
+  color: var(--pop-ink, #221d19);
   font-size: 0.98rem;
   display: inline-flex;
   align-items: center;
@@ -917,7 +917,7 @@ watch(paymentMethod, async (m) => {
   width: 20px;
   height: 20px;
   margin-top: 2px;
-  accent-color: #6b4ea7;
+  accent-color: #b34a72;
   cursor: pointer;
   flex-shrink: 0;
 }
@@ -927,13 +927,13 @@ watch(paymentMethod, async (m) => {
   line-height: 1.5;
 }
 .terms-link {
-  color: #6b4ea7;
+  color: #b34a72;
   font-weight: 600;
   text-decoration: underline;
   text-decoration-thickness: 1px;
   text-underline-offset: 2px;
 }
-.terms-link:hover { color: #4c1d95; }
+.terms-link:hover { color: #97325c; }
 
 /* ── Primary button (pastel-safe) ── */
 .btn-primary-pop {
@@ -942,7 +942,7 @@ watch(paymentMethod, async (m) => {
   gap: 0.55rem;
   padding: 0.65rem 1.2rem;
   border-radius: 9999px;
-  background: linear-gradient(135deg, #6b4ea7, #b3324c);
+  background: linear-gradient(135deg, #b34a72, #b3324c);
   color: #fff;
   font-weight: 700;
   border: none;
@@ -972,7 +972,7 @@ watch(paymentMethod, async (m) => {
 .summary-title {
   font-size: 1rem;
   font-weight: 700;
-  color: var(--pop-ink, #2a1340);
+  color: var(--pop-ink, #221d19);
   margin-bottom: 1rem;
 }
 .summary-items {
@@ -1008,7 +1008,7 @@ watch(paymentMethod, async (m) => {
 .summary-item-title {
   font-size: 0.85rem;
   font-weight: 600;
-  color: var(--pop-ink, #2a1340);
+  color: var(--pop-ink, #221d19);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1035,7 +1035,7 @@ watch(paymentMethod, async (m) => {
   border-top: 1px solid rgba(42, 19, 64, 0.1);
   font-size: 1.05rem;
   font-weight: 800;
-  color: var(--pop-ink, #2a1340);
+  color: var(--pop-ink, #221d19);
   margin-top: 0.2rem;
 }
 
@@ -1046,7 +1046,7 @@ watch(paymentMethod, async (m) => {
   width: 96px;
   height: 96px;
   border-radius: 9999px;
-  background: linear-gradient(135deg, #6b4ea7, #b3324c);
+  background: linear-gradient(135deg, #b34a72, #b3324c);
   color: #fff;
   align-items: center;
   justify-content: center;
@@ -1056,7 +1056,7 @@ watch(paymentMethod, async (m) => {
 .success-title {
   font-family: 'Berkshire Swash', 'Petrona', cursive;
   font-size: clamp(2rem, 6vw, 3rem);
-  color: var(--pop-ink, #2a1340);
+  color: var(--pop-ink, #221d19);
   margin-bottom: 0.5rem;
   letter-spacing: -0.02em;
 }
@@ -1068,7 +1068,7 @@ watch(paymentMethod, async (m) => {
 .success-code {
   font-family: 'Menlo', monospace;
   font-weight: 700;
-  color: #6b4ea7;
+  color: #b34a72;
 }
 .success-panel {
   background: rgba(255, 255, 255, 0.75);

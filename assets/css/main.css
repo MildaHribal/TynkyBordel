@@ -5,18 +5,18 @@
    ~700 KiB on the critical path) was removed — it was the #1 perf killer. */
 
 @theme {
-  /* ── Cosmic Purple (Primary) ──────────────────────────────── */
-  --color-primary-50: #f5f0ff;
-  --color-primary-100: #ede5ff;
-  --color-primary-200: #daccff;
-  --color-primary-300: #c4a8ff;
-  --color-primary-400: #a87dff;
-  --color-primary-500: #8b5cf6;
-  --color-primary-600: #7c3aed;
-  --color-primary-700: #6d28d9;
-  --color-primary-800: #5b21b6;
-  --color-primary-900: #4c1d95;
-  --color-primary-DEFAULT: #8b5cf6;
+  /* ── Zine Rose (Primary) — was Cosmic Purple ──────────────── */
+  --color-primary-50: #fdf1f6;
+  --color-primary-100: #fbe9f0;
+  --color-primary-200: #f7d3e0;
+  --color-primary-300: #f0b6cd;
+  --color-primary-400: #e585aa;
+  --color-primary-500: #d95c86;
+  --color-primary-600: #b34a72;
+  --color-primary-700: #97325c;
+  --color-primary-800: #7a2549;
+  --color-primary-900: #5e1a37;
+  --color-primary-DEFAULT: #d95c86;
 
   /* ── Nebula Magenta (Secondary) ───────────────────────────── */
   --color-secondary-50: #fff0f7;
@@ -71,8 +71,8 @@
 :root {
   /* Surfaces */
   --pop-cream:    #F0E7D2;   /* page paper */
-  --pop-plum:     #1b1033;   /* dark panels: navbar, footer, cards */
-  --pop-plum-2:   #2a1745;   /* raised dark surface */
+  --pop-plum:     #241f1b;   /* dark panels: navbar, footer, cards — warm espresso (was purple) */
+  --pop-plum-2:   #33291f;   /* raised dark surface */
 
   /* Accents */
   --pop-pink:     #E585AA;   /* soft pastel rose — primary accent (was a hot magenta, toned down) */
@@ -82,13 +82,13 @@
   --pop-lime-ink: #4d6b0e;   /* lime-family text on cream */
   --pop-green:    #A8DF8E;
 
-  /* Legacy pastels kept so old references don't break while pages migrate */
-  --pop-lavender: #BDA6CE;
+  /* Sage — soft secondary that pairs with cream/pink/lime (replaced purple lavender) */
+  --pop-lavender: #A9CBBF;
   --pop-blue:     #B4D3D9;
 
-  /* Page text on paper */
-  --pop-ink:      #201134;
-  --pop-ink-soft: #4a2b66;
+  /* Page text on paper — warm near-black (was purple) */
+  --pop-ink:      #221d19;
+  --pop-ink-soft: #5c4d40;
 
   /* Type system */
   --font-zine:    'Bricolage Grotesque', 'Arial Black', system-ui;  /* heavy display */
@@ -382,7 +382,7 @@ body {
 }
 
 .neon-text-rainbow {
-  background: linear-gradient(90deg, #8b5cf6, #ec4899, #06b6d4, #fbbf24, #8b5cf6);
+  background: linear-gradient(90deg, #d95c86, #ec4899, #06b6d4, #fbbf24, #d95c86);
   background-size: 200% auto;
   -webkit-background-clip: text;
   background-clip: text;
@@ -463,7 +463,7 @@ body {
    COSMIC BUTTONS
    ══════════════════════════════════════════════════════════════ */
 .btn-cosmic {
-  background: linear-gradient(135deg, #8b5cf6, #ec4899);
+  background: linear-gradient(135deg, #d95c86, #ec4899);
   color: white;
   font-weight: 700;
   padding: 0.75rem 2rem;
@@ -480,7 +480,7 @@ body {
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(135deg, #a78bfa, #f472b6);
+  background: linear-gradient(135deg, #e585aa, #f472b6);
   opacity: 0;
   transition: opacity 0.3s ease;
 }
@@ -524,7 +524,7 @@ body {
 }
 
 .btn-cosmic-cyan {
-  background: linear-gradient(135deg, #06b6d4, #8b5cf6);
+  background: linear-gradient(135deg, #06b6d4, #d95c86);
   color: white;
   font-weight: 700;
   padding: 0.75rem 2rem;
@@ -626,7 +626,7 @@ body {
   border-radius: 9999px;
   background: linear-gradient(135deg, rgba(139, 92, 246, 0.3), rgba(236, 72, 153, 0.3));
   border: 1px solid rgba(139, 92, 246, 0.3);
-  color: #c4b5fd;
+  color: #f0b6cd;
   backdrop-filter: blur(var(--cosmic-blur));
 }
 
@@ -680,12 +680,12 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, #8b5cf6, #ec4899);
+  background: linear-gradient(180deg, #d95c86, #ec4899);
   border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(180deg, #a78bfa, #f472b6);
+  background: linear-gradient(180deg, #e585aa, #f472b6);
 }
 
 /* ══════════════════════════════════════════════════════════════
@@ -1070,7 +1070,7 @@ html:active-view-transition-type(shop-category-shift)::view-transition-new(root)
   /* Repurposed for pastel page bg — dark text reads on pastel */
   --psy-ink: var(--pop-ink);
   --psy-violet-deep: var(--pop-lavender);
-  --psy-acid: #6b4ea7;           /* deep purple accent for headings */
+  --psy-acid: #b3324c;           /* rose accent for headings (was deep purple) */
   --psy-rust: #b3324c;            /* darker pink/rose accent */
   --psy-cream: var(--pop-ink);    /* default dark text on pastel bg */
   --psy-mag: #b3324c;
@@ -1643,7 +1643,7 @@ body :where(h1, h2, h3, h4, h5, h6) {
   background: var(--ad-ink);
   color: #fff;
 }
-.admin-shell .btn-primary:hover { background: #3a1f55; }
+.admin-shell .btn-primary:hover { background: #33291f; }
 .admin-shell .btn-primary:disabled { opacity: 0.55; cursor: wait; }
 .admin-shell .btn-ghost {
   background: transparent;
@@ -1814,7 +1814,7 @@ body :where(h1, h2, h3, h4, h5, h6) {
   border: 1px solid transparent;
 }
 .admin-modal .btn-primary { background: #2a1340; color: #fff; }
-.admin-modal .btn-primary:hover { background: #3a1f55; }
+.admin-modal .btn-primary:hover { background: #33291f; }
 .admin-modal .btn-primary:disabled { opacity: 0.55; cursor: wait; }
 .admin-modal .btn-ghost { background: transparent; color: #2a1340; border-color: rgba(42, 19, 64, 0.18); }
 .admin-modal .btn-ghost:hover { background: #FAF1F4; }

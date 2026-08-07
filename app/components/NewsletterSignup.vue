@@ -87,9 +87,9 @@ const submit = async () => {
   overflow: hidden;
   border-radius: 16px;
   padding: 2rem 1.5rem;
-  background: var(--pop-plum, #1b1033);
-  border: 2px solid var(--pop-ink, #201134);
-  box-shadow: 6px 6px 0 rgba(32, 17, 52, 0.85);
+  background: var(--pop-plum, #241f1b);
+  border: 2px solid var(--pop-ink, #221d19);
+  box-shadow: 6px 6px 0 rgba(34, 29, 25, 0.85);
 }
 @media (min-width: 768px) {
   .nl-card { padding: 3rem 3rem; }
@@ -170,18 +170,18 @@ const submit = async () => {
   padding: 0.9rem 1rem 0.9rem 2.85rem;
   border-radius: 10px;
   background: #fbf7ee;
-  border: 2px solid var(--pop-ink, #201134);
-  color: var(--pop-ink, #201134);
+  border: 2px solid var(--pop-ink, #221d19);
+  color: var(--pop-ink, #221d19);
   font-family: var(--font-mono, monospace);
   font-size: 1rem;
   transition: box-shadow 0.2s ease;
 }
-.nl-input::placeholder { color: rgba(32, 17, 52, 0.4); }
+.nl-input::placeholder { color: rgba(34, 29, 25, 0.4); }
 .nl-input:focus {
   outline: none;
   box-shadow: 0 0 0 3px var(--pop-pink, #E7488B);
 }
-.nl-input-icon { color: rgba(32, 17, 52, 0.4); }
+.nl-input-icon { color: rgba(34, 29, 25, 0.4); }
 
 .nl-btn {
   display: inline-flex;
@@ -193,7 +193,7 @@ const submit = async () => {
   border: 2px solid var(--pop-cream, #F0E7D2);
   cursor: pointer;
   background: var(--pop-pink, #E585AA);
-  color: var(--pop-ink, #201134);
+  color: var(--pop-ink, #221d19);
   font-family: var(--font-mono, monospace);
   font-weight: 700;
   font-size: 0.78rem;

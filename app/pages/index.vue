@@ -274,7 +274,7 @@ const ticker = ['Jeden kus od každého', 'Odesílám z Prahy do 2 dnů', '14 dn
   padding: 0 0.18em;
   border: 3px solid var(--pop-ink);
   border-radius: 6px;
-  box-shadow: 4px 4px 0 rgba(32, 17, 52, 0.9);
+  box-shadow: 4px 4px 0 rgba(34, 29, 25, 0.9);
   display: inline-block;
   transform: rotate(-1.5deg);
 }
@@ -283,7 +283,7 @@ const ticker = ['Jeden kus od každého', 'Odesílám z Prahy do 2 dnů', '14 dn
   font-weight: 500;
   font-size: 1.05rem;
   line-height: 1.55;
-  color: rgba(32, 17, 52, 0.78);
+  color: rgba(34, 29, 25, 0.78);
   max-width: 44ch;
   margin: 0 0 1.9rem;
 }
@@ -320,7 +320,7 @@ const ticker = ['Jeden kus od každého', 'Odesílám z Prahy do 2 dnů', '14 dn
   background: #fbf7ee;
   padding: 8px 8px 26px;
   border: 2px solid var(--pop-ink);
-  box-shadow: 5px 6px 0 rgba(32, 17, 52, 0.85);
+  box-shadow: 5px 6px 0 rgba(34, 29, 25, 0.85);
 }
 .zpolaroid-img { width: 100%; aspect-ratio: 1; object-fit: cover; display: block; background: var(--pop-plum); }
 .zpolaroid-tape { top: -12px; left: 50%; margin-left: -42px; transform: rotate(-4deg); }
@@ -350,7 +350,7 @@ const ticker = ['Jeden kus od každého', 'Odesílám z Prahy do 2 dnů', '14 dn
   cursor: pointer;
   transition: background 0.16s ease, color 0.16s ease, transform 0.12s ease;
 }
-.zfilter:hover { transform: translateY(-1px); background: rgba(32, 17, 52, 0.06); }
+.zfilter:hover { transform: translateY(-1px); background: rgba(34, 29, 25, 0.06); }
 .zfilter.is-active { background: var(--pop-ink); color: var(--pop-cream); }
 
 /* ── Product grid ── */
@@ -364,7 +364,7 @@ const ticker = ['Jeden kus od každého', 'Odesílám z Prahy do 2 dnů', '14 dn
 .zempty {
   font-family: var(--font-mono);
   text-align: center;
-  color: rgba(32, 17, 52, 0.55);
+  color: rgba(34, 29, 25, 0.55);
   padding: 3rem 0;
 }
 
@@ -409,10 +409,10 @@ const ticker = ['Jeden kus od každého', 'Odesílám z Prahy do 2 dnů', '14 dn
   border: 2px solid var(--pop-ink);
   border-radius: 12px;
   padding: 1.5rem 1.5rem 1.4rem;
-  box-shadow: 4px 4px 0 rgba(32, 17, 52, 0.85);
+  box-shadow: 4px 4px 0 rgba(34, 29, 25, 0.85);
   transition: transform 0.16s ease, box-shadow 0.16s ease;
 }
-.ztile:hover { transform: translate(-1px, -1px); box-shadow: 6px 6px 0 rgba(32, 17, 52, 0.85); }
+.ztile:hover { transform: translate(-1px, -1px); box-shadow: 6px 6px 0 rgba(34, 29, 25, 0.85); }
 .ztile-num {
   font-family: var(--font-mono);
   font-weight: 700;
@@ -433,7 +433,7 @@ const ticker = ['Jeden kus od každého', 'Odesílám z Prahy do 2 dnů', '14 dn
   font-family: 'Manrope', system-ui;
   font-size: 0.9rem;
   line-height: 1.5;
-  color: rgba(32, 17, 52, 0.7);
+  color: rgba(34, 29, 25, 0.7);
   margin: 0;
 }
 
@@ -442,6 +442,6 @@ const ticker = ['Jeden kus od každého', 'Odesílám z Prahy do 2 dnů', '14 dn
   font-size: 0.72rem;
   letter-spacing: 0.22em;
   text-transform: uppercase;
-  color: rgba(32, 17, 52, 0.55);
+  color: rgba(34, 29, 25, 0.55);
 }
 </style>
