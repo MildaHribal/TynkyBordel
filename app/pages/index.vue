@@ -84,6 +84,37 @@ useHead(() => ({
 }))
 
 const ticker = ['Jeden kus od každého', 'Odesílám z Prahy do 2 dnů', '14 dní na vrácení', 'Ručně v Praze', 'Platba převodem i dobírkou']
+
+// Fast, controlled smooth scroll (~500ms regardless of distance) that overrides
+// the browser's distance-dependent native smooth scroll for in-hero anchors.
+function scrollToKolekce(e: MouseEvent) {
+  if (!import.meta.client) return
+  const el = document.getElementById('kolekce')
+  if (!el) return
+  e.preventDefault()
+
+  const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+  const targetY = el.getBoundingClientRect().top + window.scrollY
+
+  if (reduced) {
+    window.scrollTo(0, targetY)
+    return
+  }
+
+  const startY = window.scrollY
+  const distance = targetY - startY
+  const duration = 500
+  const startTime = performance.now()
+  // ease-in-out cubic
+  const ease = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2)
+
+  const step = (now: number) => {
+    const t = Math.min(1, (now - startTime) / duration)
+    window.scrollTo(0, startY + distance * ease(t))
+    if (t < 1) requestAnimationFrame(step)
+  }
+  requestAnimationFrame(step)
+}
 </script>
 
 <template>
@@ -113,7 +144,7 @@ const ticker = ['Jeden kus od každého', 'Odesílám z Prahy do 2 dnů', '14 dn
               Platba převodem nebo dobírkou.
             </p>
             <div class="zhero-actions">
-              <NuxtLink to="#kolekce" class="zine-btn">
+              <NuxtLink to="#kolekce" class="zine-btn" @click="scrollToKolekce">
                 Zobrazit všechno <Icon icon="lucide:arrow-down" height="16" />
               </NuxtLink>
               <span v-if="inStockCount" class="zhero-stock">

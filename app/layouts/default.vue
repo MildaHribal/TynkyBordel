@@ -73,7 +73,7 @@ import { BUSINESS } from "~~/shared/shop";
           <!-- Bottom bar -->
           <div class="footer-bottom">
             <div class="footer-copyright">
-              © {{ new Date().getFullYear() }} {{ BUSINESS.legalName }}{{ BUSINESS.ico ? ` · IČO ${BUSINESS.ico}` : '' }} · Ručně dělané originály
+              © {{ new Date().getFullYear() }} {{ BUSINESS.legalName }} · Ručně dělané originály
             </div>
             <div class="footer-payments">
               <span class="footer-payments-label">Platby</span>
@@ -96,7 +96,7 @@ import { BUSINESS } from "~~/shared/shop";
 /* ── Footer ──────────────────────────────────────────── */
 .site-footer {
   margin-top: 6rem;
-  background: #1a0f28;
+  background: var(--pop-plum, #2a5238);
   color: #F1EBDF;
   padding: 4rem 1.25rem 2rem;
   position: relative;

@@ -797,9 +797,12 @@ const submitReview = async () => {
 .product-detail :deep(.text-green-300) { color: #1f7a3a !important; }
 .product-detail :deep(.text-red-300)   { color: #8a2a2a !important; }
 
-/* Main heading: bigger + display font on top of dark color. */
+/* Main heading: bigger + display font on top of dark color. Bricolage Grotesque
+   (the zine display face) has proper Czech latin-ext glyphs — Caprasimo mangled
+   the diacritics (ě/č/ř/ů sat detached and oversized). */
 .product-detail :deep(h1) {
-  font-family: 'Caprasimo', Georgia, serif !important;
+  font-family: var(--font-zine), 'Bricolage Grotesque', system-ui, sans-serif !important;
+  font-weight: 800 !important;
   letter-spacing: -0.02em;
 }
 .product-detail :deep(h2) {

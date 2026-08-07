@@ -71,8 +71,8 @@
 :root {
   /* Surfaces */
   --pop-cream:    #F0E7D2;   /* page paper */
-  --pop-plum:     #182a1c;   /* dark panels: navbar, footer, cards — deep forest green */
-  --pop-plum-2:   #21382a;   /* raised dark surface */
+  --pop-plum:     #2a5238;   /* dark panels: navbar, footer, cards — lively forest green (more pastel) */
+  --pop-plum-2:   #356449;   /* raised dark surface */
 
   /* Accents */
   --pop-pink:     #E585AA;   /* soft pastel rose — primary accent (was a hot magenta, toned down) */
