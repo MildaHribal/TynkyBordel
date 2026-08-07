@@ -44,7 +44,7 @@ onMounted(() => {
   <div class="max-w-xl mx-auto px-4 md:px-8 py-16 md:py-24 text-white/80">
     <div class="glass-card-strong p-8 md:p-10 text-center">
       <div class="w-16 h-16 rounded-full bg-white/5 border border-white/10 flex items-center justify-center mx-auto mb-6">
-        <Icon :icon="done ? 'mdi:email-off-outline' : 'mdi:email-outline'" height="30" class="text-primary-300" />
+        <Icon :name="done ? 'mdi:email-off-outline' : 'mdi:email-outline'" height="30" class="text-primary-300" />
       </div>
 
       <template v-if="done">
@@ -54,7 +54,7 @@ onMounted(() => {
           Už ti nic posílat nebudeme.
         </p>
         <NuxtLink to="/" class="btn-cosmic px-8 py-3 inline-flex items-center gap-2">
-          <Icon icon="mdi:arrow-left" />
+          <Icon name="mdi:arrow-left" />
           Zpět do obchodu
         </NuxtLink>
       </template>
@@ -79,7 +79,7 @@ onMounted(() => {
             :disabled="isSubmitting || !email.trim()"
             class="btn-cosmic px-8 py-3 inline-flex items-center justify-center gap-2 disabled:opacity-60"
           >
-            <Icon v-if="isSubmitting" icon="lucide:loader-2" height="18" class="animate-spin" />
+            <Icon v-if="isSubmitting" name="lucide:loader-2" height="18" class="animate-spin" />
             {{ isSubmitting ? 'Odhlašuji…' : 'Odhlásit se' }}
           </button>
         </form>

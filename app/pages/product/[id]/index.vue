@@ -382,7 +382,7 @@ const submitReview = async () => {
     <!-- Loading Skeleton -->
     <div v-if="pending" class="relative">
       <div class="inline-flex items-center gap-2 text-white/40 mb-4 md:mb-8">
-        <Icon icon="ep:arrow-left-bold" height="16" />
+        <Icon name="ep:arrow-left-bold" height="16" />
         <span class="text-sm">Zpět</span>
       </div>
 
@@ -440,7 +440,7 @@ const submitReview = async () => {
         v-fly="{ direction: 'left', distance: 20, duration: 640 }" 
         class="relative z-[100] inline-flex items-center gap-2 text-white/50 hover:text-white transition-all mb-6 md:mb-10 group cursor-pointer px-4 py-2 -ml-4"
       >
-        <Icon icon="ep:arrow-left-bold" height="16" class="transition-transform group-hover:-translate-x-1" />
+        <Icon name="ep:arrow-left-bold" height="16" class="transition-transform group-hover:-translate-x-1" />
         <span class="text-xs md:text-sm font-semibold tracking-wide uppercase">Zpět</span>
       </NuxtLink>
 
@@ -471,7 +471,7 @@ const submitReview = async () => {
                   />
 
                   <div v-if="!selectedImage || isMainImageError" class="flex h-full w-full items-center justify-center text-white/20">
-                    <Icon icon="mdi:image-off-outline" height="48" />
+                    <Icon name="mdi:image-off-outline" height="48" />
                   </div>
                 </div>
               </Transition>
@@ -480,7 +480,7 @@ const submitReview = async () => {
                 v-if="selectedImage && isMainImageLoading && !isMainImageError"
                 class="absolute inset-0 flex items-center justify-center bg-black/25 backdrop-blur-[1px]"
               >
-                <Icon icon="lucide:loader-2" class="animate-spin text-primary-300/80" height="34" />
+                <Icon name="lucide:loader-2" class="animate-spin text-primary-300/80" height="34" />
               </div>
 
               <!-- Image counter -->
@@ -516,14 +516,14 @@ const submitReview = async () => {
                   v-if="thumbnailLoading[idx] && !thumbnailError[idx]"
                   class="absolute inset-0 flex items-center justify-center bg-black/30"
                 >
-                  <Icon icon="lucide:loader-2" class="animate-spin text-primary-300/80" height="16" />
+                  <Icon name="lucide:loader-2" class="animate-spin text-primary-300/80" height="16" />
                 </div>
 
                 <div
                   v-if="thumbnailError[idx]"
                   class="absolute inset-0 flex items-center justify-center bg-black/30 text-white/30"
                 >
-                  <Icon icon="mdi:image-off-outline" height="16" />
+                  <Icon name="mdi:image-off-outline" height="16" />
                 </div>
               </button>
             </div>
@@ -579,8 +579,8 @@ const submitReview = async () => {
                       : 'border-white/10 hover:border-secondary-500/30 text-white/50 hover:text-secondary-400'"
                     :title="isFavorite ? 'Odebrat z oblíbených' : 'Přidat do oblíbených'"
                   >
-                    <Icon v-if="isTogglingFavorite" icon="lucide:loader-2" class="animate-spin" height="20" />
-                    <Icon v-else :icon="isFavorite ? 'mdi:heart' : 'mdi:heart-outline'" height="22" />
+                    <Icon v-if="isTogglingFavorite" name="lucide:loader-2" class="animate-spin" height="20" />
+                    <Icon v-else :name="isFavorite ? 'mdi:heart' : 'mdi:heart-outline'" height="22" />
                   </button>
                 </div>
               </div>
@@ -594,7 +594,7 @@ const submitReview = async () => {
                     type="button"
                     class="w-10 h-10 flex items-center justify-center text-white/50 hover:text-white transition-colors"
                   >
-                    <Icon icon="mdi:minus" height="20" />
+                    <Icon name="mdi:minus" height="20" />
                   </button>
                   <input 
                     v-model.number="selectedQuantity"
@@ -608,7 +608,7 @@ const submitReview = async () => {
                     type="button"
                     class="w-10 h-10 flex items-center justify-center text-white/50 hover:text-white transition-colors"
                   >
-                    <Icon icon="mdi:plus" height="20" />
+                    <Icon name="mdi:plus" height="20" />
                   </button>
                 </div>
               </div>
@@ -623,7 +623,7 @@ const submitReview = async () => {
                   ? (isAddedToCart ? 'pdp-buy--added' : 'pdp-buy--go')
                   : 'pdp-buy--off'"
               >
-                <Icon :icon="isAddedToCart ? 'mdi:check-bold' : 'mdi:cart-plus'" height="22" />
+                <Icon :name="isAddedToCart ? 'mdi:check-bold' : 'mdi:cart-plus'" height="22" />
                 {{ product.stock > 0 ? (isAddedToCart ? 'Přidáno do košíku' : 'Přidat do košíku') : 'Nedostupné' }}
               </button>
             </div>
@@ -634,7 +634,7 @@ const submitReview = async () => {
       <!-- Similar Products -->
       <div v-if="similarProducts.length > 0" class="mt-12 md:mt-16">
         <h2 class="text-2xl md:text-3xl font-bold text-white mb-6 md:mb-8 neon-text-cyan flex items-center gap-3">
-          <Icon icon="lucide:sparkles" class="text-yellow-300" />
+          <Icon name="lucide:sparkles" class="text-yellow-300" />
           Také by se vám mohlo líbit
         </h2>
         <ProductCarousel :products="similarProducts" />
@@ -643,7 +643,7 @@ const submitReview = async () => {
       <!-- Recenze -->
       <div class="glass-card-strong p-6 md:p-8 mt-12 md:mt-16 min-h-[500px]" v-fly="{ direction: 'up', delay: 70, distance: 48 }">
         <h2 class="text-xl font-bold text-white mb-6 pb-4 border-b border-white/10 flex items-center gap-2">
-          <Icon icon="mdi:star-outline" class="text-primary-400" height="24" />
+          <Icon name="mdi:star-outline" class="text-primary-400" height="24" />
           Recenze ({{ productReviews?.length ?? 0 }})
         </h2>
 
@@ -661,7 +661,7 @@ const submitReview = async () => {
                   @click="reviewRating = n"
                   class="p-1 transition-colors"
                 >
-                  <Icon :icon="n <= reviewRating ? 'mdi:star' : 'mdi:star-outline'" height="24" :class="n <= reviewRating ? 'text-yellow-400' : 'text-white/30'" />
+                  <Icon :name="n <= reviewRating ? 'mdi:star' : 'mdi:star-outline'" height="24" :class="n <= reviewRating ? 'text-yellow-400' : 'text-white/30'" />
                 </button>
               </div>
             </div>
@@ -670,8 +670,8 @@ const submitReview = async () => {
               <textarea v-model="reviewComment" rows="3" placeholder="Co se vám na produktu líbilo?" class="input-cosmic w-full resize-none" />
             </div>
             <button type="submit" :disabled="isSubmittingReview" class="btn-cosmic micro-lift px-6 py-2.5 flex items-center gap-2">
-              <Icon v-if="isSubmittingReview" icon="lucide:loader-2" class="animate-spin" height="18" />
-              <Icon v-else icon="mdi:send-outline" height="18" />
+              <Icon v-if="isSubmittingReview" name="lucide:loader-2" class="animate-spin" height="18" />
+              <Icon v-else name="mdi:send-outline" height="18" />
               {{ isSubmittingReview ? 'Odesílám...' : 'Odeslat recenzi' }}
             </button>
           </form>
@@ -686,7 +686,7 @@ const submitReview = async () => {
             <div class="flex items-center justify-between mb-2">
               <span class="font-medium text-white">{{ rev.userName }}</span>
               <div class="flex text-yellow-400">
-                <Icon v-for="n in 5" :key="n" :icon="n <= rev.rating ? 'mdi:star' : 'mdi:star-outline'" height="14" />
+                <Icon v-for="n in 5" :key="n" :name="n <= rev.rating ? 'mdi:star' : 'mdi:star-outline'" height="14" />
               </div>
             </div>
             <p v-if="rev.comment" class="text-sm text-white/70">&bdquo;{{ rev.comment }}&ldquo;</p>
@@ -708,7 +708,7 @@ const submitReview = async () => {
       <h2 class="text-2xl md:text-3xl font-bold text-white mb-4 neon-text">Produkt nenalezen</h2>
       <p class="text-white/40 mb-6 md:mb-8 text-sm md:text-base">Tento produkt se ztratil ve vesmíru...</p>
       <NuxtLink to="/" class="btn-cosmic-outline inline-flex items-center gap-2 text-sm md:text-base">
-        <Icon icon="ep:arrow-left-bold" height="16" />
+        <Icon name="ep:arrow-left-bold" height="16" />
         Zpět
       </NuxtLink>
     </div>

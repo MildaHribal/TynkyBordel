@@ -33,12 +33,12 @@ onUnmounted(() => {
       <aside v-if="cart.isDrawerOpen" class="cart-drawer" role="dialog" aria-label="Košík">
         <header class="cart-head">
           <div class="cart-head-title">
-            <Icon icon="mdi:cart" height="20" />
+            <Icon name="mdi:cart" height="20" />
             <span>Košík</span>
             <span v-if="cart.itemCount > 0" class="cart-head-count">{{ cart.itemCount }}</span>
           </div>
           <button class="cart-close" @click="cart.closeDrawer()" aria-label="Zavřít košík">
-            <Icon icon="mdi:close" height="22" />
+            <Icon name="mdi:close" height="22" />
           </button>
         </header>
 
@@ -67,15 +67,15 @@ onUnmounted(() => {
               <div class="cart-item-controls">
                 <div class="cart-qty">
                   <button class="cart-qty-btn" @click="cart.updateQuantity(item.id, item.quantity - 1)" :disabled="item.quantity <= 1" aria-label="Ubrat">
-                    <Icon icon="mdi:minus" height="14" />
+                    <Icon name="mdi:minus" height="14" />
                   </button>
                   <span class="cart-qty-val">{{ item.quantity }}</span>
                   <button class="cart-qty-btn" @click="cart.updateQuantity(item.id, item.quantity + 1)" aria-label="Přidat">
-                    <Icon icon="mdi:plus" height="14" />
+                    <Icon name="mdi:plus" height="14" />
                   </button>
                 </div>
                 <button class="cart-remove" @click="cart.removeFromCart(item.id)" aria-label="Odebrat z košíku">
-                  <Icon icon="mdi:trash-can-outline" height="18" />
+                  <Icon name="mdi:trash-can-outline" height="18" />
                 </button>
               </div>
             </div>
@@ -90,7 +90,7 @@ onUnmounted(() => {
           </div>
           <NuxtLink to="/checkout" class="cart-checkout" @click="cart.closeDrawer()">
             K pokladně
-            <Icon icon="lucide:arrow-right" height="17" />
+            <Icon name="lucide:arrow-right" height="17" />
           </NuxtLink>
           <NuxtLink to="/cart" class="cart-view-link" @click="cart.closeDrawer()">
             Přejít do košíku

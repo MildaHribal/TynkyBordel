@@ -19,26 +19,40 @@ const searchResults = ref<any[]>([]);
 const isSearching = ref(false);
 const isSearchFocused = ref(false);
 let searchTimeout: ReturnType<typeof setTimeout> | null = null;
+// Odpovědi můžou dorazit v jiném pořadí, než v jakém odešly — bereme jen tu
+// poslední, jinak pomalejší dotaz na „kl" přepíše výsledky pro „klicenka".
+let searchRequestId = 0;
 
-const showSearchDropdown = computed(
-  () => isSearchFocused.value && searchQuery.value.length >= 2,
-);
+const hasSearchQuery = computed(() => searchQuery.value.trim().length >= 2);
+const showSearchDropdown = computed(() => isSearchFocused.value && hasSearchQuery.value);
+// Na mobilu je panel s výsledky samostatný blok pod inputem — kdyby závisel na
+// fokusu, zmizel by ve chvíli, kdy uživatel schová klávesnici nebo scrolluje.
+const showMobileResults = computed(() => hasSearchQuery.value);
 
 watch(searchQuery, (q) => {
   if (searchTimeout) clearTimeout(searchTimeout);
-  if (!q || q.length < 2) {
+  const term = q.trim();
+  if (term.length < 2) {
+    searchRequestId++;
     searchResults.value = [];
+    isSearching.value = false;
     return;
   }
+  // Spinner zapínáme hned, ne až po debounce — jinak během psaní problikne
+  // hláška „Nic pro…", i když se teprve chystáme hledat.
+  isSearching.value = true;
   searchTimeout = setTimeout(async () => {
-    isSearching.value = true;
+    const requestId = ++searchRequestId;
     try {
-      const res = await $fetch(`/api/products?search=${encodeURIComponent(q)}`);
+      const res = await $fetch(`/api/products?search=${encodeURIComponent(term)}&limit=8`);
+      if (requestId !== searchRequestId) return;
       searchResults.value = res as any[];
     } catch (err) {
+      if (requestId !== searchRequestId) return;
+      searchResults.value = [];
       console.error(err);
     } finally {
-      isSearching.value = false;
+      if (requestId === searchRequestId) isSearching.value = false;
     }
   }, 180);
 });
@@ -52,6 +66,13 @@ const goToResult = (slug: string) => {
   closeSearch();
   isMobileMenuOpen.value = false;
   router.push(`/product/${slug}`);
+};
+
+// Enter otevře první (nejrelevantnější) výsledek — samostatná stránka s
+// výsledky vyhledávání zatím neexistuje.
+const onSearchEnter = () => {
+  const first = searchResults.value[0];
+  if (first?.slug) goToResult(first.slug);
 };
 
 // ── Auth ────────────────────────────────────────────────────────────────────
@@ -74,12 +95,18 @@ const handleScroll = () => {
 const scrollToTop = () => window.scrollTo({ top: 0, behavior: 'smooth' });
 
 // ── Focus-out closes dropdown; small delay so click on result still fires ──
+// Desktopový a mobilní vyhledávač měly obě `ref="searchWrapRef"`. Vue si stejný
+// template ref přepisuje, takže po zavření mobilního menu zůstal ref null a
+// blur pak zavíral našeptávač i při kliku dovnitř. Každý má proto svůj vlastní.
 const searchWrapRef = ref<HTMLElement | null>(null);
+const mobileSearchWrapRef = ref<HTMLElement | null>(null);
 const onSearchBlur = () => {
   setTimeout(() => {
-    if (!searchWrapRef.value?.contains(document.activeElement)) {
-      isSearchFocused.value = false;
-    }
+    const active = document.activeElement;
+    const stillInside =
+      searchWrapRef.value?.contains(active) ||
+      mobileSearchWrapRef.value?.contains(active);
+    if (!stillInside) isSearchFocused.value = false;
   }, 120);
 };
 
@@ -88,6 +115,8 @@ watch(isMobileMenuOpen, (open) => {
   if (typeof document !== 'undefined') {
     document.body.style.overflow = open ? 'hidden' : '';
   }
+  // Zavřené menu = zahozený dotaz, ať se našeptávač nevynoří na desktopu.
+  if (!open) closeSearch();
 });
 
 onMounted(() => {
@@ -116,7 +145,7 @@ onUnmounted(() => {
       <NuxtLink to="/reklamace" class="nav-link">Doprava</NuxtLink>
 
       <div class="nav-search" ref="searchWrapRef">
-        <Icon icon="iconamoon:search-fill" height="16" class="nav-search-icon" />
+        <Icon name="iconamoon:search-fill" height="16" class="nav-search-icon" />
         <input
           v-model="searchQuery"
           type="text"
@@ -125,12 +154,13 @@ onUnmounted(() => {
           @focus="isSearchFocused = true"
           @blur="onSearchBlur"
           @keydown.esc="closeSearch"
+          @keydown.enter.prevent="onSearchEnter"
         />
 
         <!-- Results dropdown (desktop) -->
         <div v-if="showSearchDropdown" class="search-dropdown">
           <div v-if="isSearching" class="search-state">
-            <Icon icon="lucide:loader-2" class="animate-spin" height="16" />
+            <Icon name="lucide:loader-2" class="animate-spin" height="16" />
             Hledám…
           </div>
           <div v-else-if="searchResults.length === 0" class="search-state">
@@ -138,10 +168,14 @@ onUnmounted(() => {
           </div>
           <ul v-else class="search-list">
             <li v-for="prod in searchResults" :key="prod.id">
+              <!-- mousedown jen drží fokus v inputu (jinak by blur zavřel panel
+                   dřív, než klik dorazí); navigujeme až na click, aby to fungovalo
+                   i dotykem a klávesnicí. -->
               <button
                 type="button"
                 class="search-item"
-                @mousedown.prevent="goToResult(prod.slug)"
+                @mousedown.prevent
+                @click="goToResult(prod.slug)"
               >
                 <div class="search-thumb">
                   <NuxtImg
@@ -167,11 +201,11 @@ onUnmounted(() => {
     <!-- Right: User + Cart (desktop) / Hamburger (mobile) -->
     <div class="navbar-right">
       <NuxtLink to="/user" class="nav-avatar-btn hidden md:flex" title="Můj profil" aria-label="Můj profil">
-        <Icon icon="mdi:account" height="20" />
+        <Icon name="mdi:account" height="20" />
       </NuxtLink>
 
       <button type="button" data-cart-anchor="true" class="nav-avatar-btn relative hidden md:flex" title="Košík" aria-label="Košík" @click="cart.openDrawer()">
-        <Icon icon="mdi:cart" height="20" />
+        <Icon name="mdi:cart" height="20" />
         <span v-if="cart.itemCount > 0" class="cart-badge-small">{{ cart.itemCount }}</span>
       </button>
 
@@ -184,7 +218,7 @@ onUnmounted(() => {
         aria-label="Košík"
         @click="cart.openDrawer()"
       >
-        <Icon icon="mdi:cart-outline" height="21" />
+        <Icon name="mdi:cart-outline" height="21" />
         <span v-if="cart.itemCount > 0" class="cart-badge-small">{{ cart.itemCount }}</span>
       </button>
 
@@ -210,80 +244,91 @@ onUnmounted(() => {
           <div class="mobile-menu-header">
             <NuxtLink to="/" class="mobile-menu-brand" @click="isMobileMenuOpen = false">Týnky Bordel</NuxtLink>
             <button class="mobile-close-btn" @click="isMobileMenuOpen = false" aria-label="Zavřít menu">
-              <Icon icon="mdi:close" height="24" />
+              <Icon name="mdi:close" height="24" />
             </button>
           </div>
 
-          <!-- Mobile search -->
-          <div class="mobile-search" ref="searchWrapRef">
-            <Icon icon="iconamoon:search-fill" height="18" class="mobile-search-icon" />
-            <input
-              v-model="searchQuery"
-              type="text"
-              placeholder="Hledej produkty…"
-              class="mobile-search-input"
-              @focus="isSearchFocused = true"
-              @blur="onSearchBlur"
-              @keydown.esc="closeSearch"
-              autofocus
-            />
-            <button v-if="searchQuery" class="mobile-search-clear" @click="searchQuery = ''" aria-label="Vymazat">
-              <Icon icon="mdi:close" height="16" />
-            </button>
-          </div>
+          <!-- Mobile search — input i výsledky musí být v jednom obalu, protože
+               onSearchBlur se ptá, jestli fokus zůstal uvnitř. -->
+          <div ref="mobileSearchWrapRef" class="mobile-search-wrap">
+            <div class="mobile-search">
+              <Icon name="iconamoon:search-fill" height="18" class="mobile-search-icon" />
+              <input
+                v-model="searchQuery"
+                type="text"
+                placeholder="Hledej produkty…"
+                class="mobile-search-input"
+                @focus="isSearchFocused = true"
+                @blur="onSearchBlur"
+                @keydown.esc="closeSearch"
+                @keydown.enter.prevent="onSearchEnter"
+                autofocus
+              />
+              <button
+                v-if="searchQuery"
+                type="button"
+                class="mobile-search-clear"
+                aria-label="Vymazat"
+                @mousedown.prevent
+                @click="searchQuery = ''"
+              >
+                <Icon name="mdi:close" height="16" />
+              </button>
+            </div>
 
-          <div v-if="showSearchDropdown" class="mobile-results">
-            <div v-if="isSearching" class="search-state">
-              <Icon icon="lucide:loader-2" class="animate-spin" height="18" /> Hledám…
+            <div v-if="showMobileResults" class="mobile-results">
+              <div v-if="isSearching" class="search-state">
+                <Icon name="lucide:loader-2" class="animate-spin" height="18" /> Hledám…
+              </div>
+              <div v-else-if="searchResults.length === 0" class="search-state">
+                Nic pro <strong>„{{ searchQuery }}"</strong>.
+              </div>
+              <ul v-else class="search-list">
+                <li v-for="prod in searchResults" :key="prod.id">
+                  <button type="button" class="search-item" @mousedown.prevent @click="goToResult(prod.slug)">
+                    <div class="search-thumb">
+                      <NuxtImg
+                        v-if="prod.image"
+                        :src="prod.image.startsWith('http') || prod.image.startsWith('/') ? prod.image : `/${prod.image}`"
+                        width="80" height="80" class="w-full h-full object-cover"
+                      />
+                    </div>
+                    <div class="search-item-body">
+                      <span class="search-item-title">{{ prod.title }}</span>
+                      <span v-if="prod.category" class="search-item-cat">{{ prod.category }}</span>
+                    </div>
+                    <span class="search-item-price">{{ prod.price }} Kč</span>
+                  </button>
+                </li>
+              </ul>
             </div>
-            <div v-else-if="searchResults.length === 0" class="search-state">
-              Nic pro <strong>„{{ searchQuery }}"</strong>.
-            </div>
-            <ul v-else class="search-list">
-              <li v-for="prod in searchResults" :key="prod.id">
-                <button type="button" class="search-item" @mousedown.prevent="goToResult(prod.slug)">
-                  <div class="search-thumb">
-                    <NuxtImg
-                      v-if="prod.image"
-                      :src="prod.image.startsWith('http') || prod.image.startsWith('/') ? prod.image : `/${prod.image}`"
-                      width="80" height="80" class="w-full h-full object-cover"
-                    />
-                  </div>
-                  <div class="search-item-body">
-                    <span class="search-item-title">{{ prod.title }}</span>
-                    <span v-if="prod.category" class="search-item-cat">{{ prod.category }}</span>
-                  </div>
-                  <span class="search-item-price">{{ prod.price }} Kč</span>
-                </button>
-              </li>
-            </ul>
           </div>
 
           <!-- Nav links -->
           <nav class="mobile-nav">
             <NuxtLink to="/#kolekce" class="mobile-link" @click="isMobileMenuOpen = false">
-              <Icon icon="lucide:shopping-bag" height="20" />
+              <Icon name="lucide:shopping-bag" height="20" />
               <span>Shop</span>
             </NuxtLink>
             <NuxtLink to="/#about" class="mobile-link" @click="isMobileMenuOpen = false">
-              <Icon icon="lucide:user-round" height="20" />
+              <Icon name="lucide:user-round" height="20" />
               <span>About</span>
             </NuxtLink>
             <NuxtLink to="/reklamace" class="mobile-link" @click="isMobileMenuOpen = false">
-              <Icon icon="lucide:truck" height="20" />
+              <Icon name="lucide:truck" height="20" />
               <span>Doprava &amp; reklamace</span>
             </NuxtLink>
             <NuxtLink to="/cart" class="mobile-link" @click="isMobileMenuOpen = false">
-              <Icon icon="lucide:shopping-cart" height="20" />
+              <Icon name="lucide:shopping-cart" height="20" />
               <span>Košík</span>
               <span v-if="cart.itemCount > 0" class="mobile-badge">{{ cart.itemCount }}</span>
             </NuxtLink>
             <NuxtLink to="/user" class="mobile-link" @click="isMobileMenuOpen = false">
-              <Icon icon="lucide:circle-user-round" height="20" />
+              <Icon name="lucide:circle-user-round" height="20" />
               <span>{{ currentUser ? 'Můj profil' : 'Přihlášení' }}</span>
             </NuxtLink>
             <button v-if="currentUser" class="mobile-link mobile-link--danger" @click="logout">
-              <Icon icon="lucide:log-out" height="20" />
+              <Icon name="lucide:log-out" height="20" />
               <span>Odhlásit se</span>
             </button>
           </nav>
@@ -306,7 +351,7 @@ onUnmounted(() => {
         title="Nahoru"
         aria-label="Zpět nahoru"
       >
-        <Icon icon="lucide:arrow-up" height="20" />
+        <Icon name="lucide:arrow-up" height="20" />
       </button>
     </Transition>
   </Teleport>
@@ -323,7 +368,7 @@ onUnmounted(() => {
         aria-label="Košík"
         @click="cart.openDrawer()"
       >
-        <Icon icon="mdi:cart" height="20" />
+        <Icon name="mdi:cart" height="20" />
         <span v-if="cart.itemCount > 0" class="cart-float-badge">{{ cart.itemCount }}</span>
       </button>
     </Transition>
@@ -690,6 +735,13 @@ onUnmounted(() => {
 .mobile-close-btn:hover {
   background: rgba(20, 35, 26, 0.12);
   transform: rotate(90deg);
+}
+
+/* Obal inputu + výsledků; rodičovský `gap` na ně už nesahá, řeší si ho sám. */
+.mobile-search-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
 }
 
 .mobile-search {

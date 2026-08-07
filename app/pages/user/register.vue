@@ -134,7 +134,7 @@ const handleGoogleRegister = async () => {
             :disabled="loading"
             class="btn-cosmic w-full py-3.5 text-base flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <Icon v-if="loading" icon="mdi:loading" class="animate-spin" height="20" />
+            <Icon v-if="loading" name="mdi:loading" class="animate-spin" height="20" />
             {{ loading ? 'Registrace...' : 'Registrovat se 🌌' }}
           </button>
         </form>
@@ -154,7 +154,7 @@ const handleGoogleRegister = async () => {
           type="button"
           class="w-full flex items-center justify-center gap-3 glass-card py-3.5 text-white hover:bg-white/10 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
         >
-          <Icon icon="logos:google-icon" class="h-5 w-5" />
+          <Icon name="logos:google-icon" class="h-5 w-5" />
           <span class="text-sm font-semibold">Google</span>
         </button>
       </div>

@@ -272,7 +272,7 @@ watch(paymentMethod, async (m) => {
       <div class="flex-grow min-w-0">
         <div class="flex items-center gap-3 mb-6">
           <NuxtLink to="/cart" class="checkout-back" aria-label="Zpět do košíku">
-            <Icon icon="ep:arrow-left-bold" height="18" />
+            <Icon name="ep:arrow-left-bold" height="18" />
           </NuxtLink>
           <h1 class="checkout-title">Pokladna</h1>
         </div>
@@ -280,7 +280,7 @@ watch(paymentMethod, async (m) => {
         <!-- Osobní údaje -->
         <section class="checkout-card mb-4">
           <h2 class="checkout-section-title">
-            <Icon icon="mdi:account-outline" class="checkout-section-icon" height="18" />
+            <Icon name="mdi:account-outline" class="checkout-section-icon" height="18" />
             Kontaktní údaje
           </h2>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -302,7 +302,7 @@ watch(paymentMethod, async (m) => {
         <!-- Z-BOX výběr -->
         <section class="checkout-card mb-4">
           <h2 class="checkout-section-title">
-            <Icon icon="mdi:package-variant-closed" class="checkout-section-icon" height="18" />
+            <Icon name="mdi:package-variant-closed" class="checkout-section-icon" height="18" />
             Doprava
           </h2>
 
@@ -310,7 +310,7 @@ watch(paymentMethod, async (m) => {
           <div class="payment-options mb-4">
             <label class="payment-option" :class="{ 'is-active': shippingMethod === 'packeta-zbox' }">
               <input type="radio" v-model="shippingMethod" value="packeta-zbox" class="payment-radio" />
-              <div class="payment-icon payment-icon--bank"><Icon icon="mdi:archive-outline" height="22" /></div>
+              <div class="payment-icon payment-icon--bank"><Icon name="mdi:archive-outline" height="22" /></div>
               <div class="flex-grow">
                 <div class="payment-title">Zásilkovna — Z-BOX</div>
                 <div class="payment-note">Samoobslužný box, vyzvednutí PIN kódem 24/7.</div>
@@ -318,7 +318,7 @@ watch(paymentMethod, async (m) => {
             </label>
             <label class="payment-option" :class="{ 'is-active': shippingMethod === 'balikovna' }">
               <input type="radio" v-model="shippingMethod" value="balikovna" class="payment-radio" />
-              <div class="payment-icon payment-icon--card"><Icon icon="mdi:mailbox-outline" height="22" /></div>
+              <div class="payment-icon payment-icon--card"><Icon name="mdi:mailbox-outline" height="22" /></div>
               <div class="flex-grow">
                 <div class="payment-title">Balíkovna (Česká pošta)</div>
                 <div class="payment-note">Výdejní místo na poště, mimo poštu i AlzaBox.</div>
@@ -330,13 +330,13 @@ watch(paymentMethod, async (m) => {
           <div class="zbox-row">
             <div class="flex items-center gap-3 min-w-0">
               <div class="zbox-icon">
-                <Icon :icon="shippingMethod === 'balikovna' ? 'mdi:mailbox-outline' : 'mdi:archive-outline'" height="24" />
+                <Icon :name="shippingMethod === 'balikovna' ? 'mdi:mailbox-outline' : 'mdi:archive-outline'" height="24" />
               </div>
               <div class="min-w-0">
                 <div class="checkout-caption">{{ shippingMethod === 'balikovna' ? 'Vybraná Balíkovna' : 'Vybraný Z-BOX' }}</div>
                 <template v-if="pickupPoint">
                   <div class="zbox-name">
-                    <Icon icon="mdi:check-decagram" class="zbox-check" />
+                    <Icon name="mdi:check-decagram" class="zbox-check" />
                     {{ pickupPoint.name }}
                   </div>
                   <div class="zbox-address">{{ pickupPoint.address }}</div>
@@ -348,7 +348,7 @@ watch(paymentMethod, async (m) => {
               @click.prevent="shippingMethod === 'balikovna' ? openBalikovnaWidget() : openPacketaWidget()"
               class="btn-primary-pop whitespace-nowrap"
             >
-              <Icon icon="mdi:map-marker" height="18" />
+              <Icon name="mdi:map-marker" height="18" />
               {{ pickupPoint ? 'Změnit' : (shippingMethod === 'balikovna' ? 'Vybrat Balíkovnu' : 'Vybrat Z-BOX') }}
             </button>
           </div>
@@ -375,14 +375,14 @@ watch(paymentMethod, async (m) => {
         <!-- Platba -->
         <section class="checkout-card mb-4">
           <h2 class="checkout-section-title">
-            <Icon icon="mdi:cash-multiple" class="checkout-section-icon" height="18" />
+            <Icon name="mdi:cash-multiple" class="checkout-section-icon" height="18" />
             Platba
           </h2>
           <div class="payment-options">
             <label class="payment-option" :class="{ 'is-active': paymentMethod === 'cash' }">
               <input type="radio" v-model="paymentMethod" value="cash" class="payment-radio" />
               <div class="payment-icon">
-                <Icon icon="mdi:cash-multiple" height="22" />
+                <Icon name="mdi:cash-multiple" height="22" />
               </div>
               <div class="flex-grow">
                 <div class="payment-title">
@@ -395,7 +395,7 @@ watch(paymentMethod, async (m) => {
             <label class="payment-option" :class="{ 'is-active': paymentMethod === 'bank-transfer' }">
               <input type="radio" v-model="paymentMethod" value="bank-transfer" class="payment-radio" />
               <div class="payment-icon payment-icon--bank">
-                <Icon icon="mdi:bank-transfer" height="22" />
+                <Icon name="mdi:bank-transfer" height="22" />
               </div>
               <div class="flex-grow">
                 <div class="payment-title">Převod na účet</div>
@@ -405,7 +405,7 @@ watch(paymentMethod, async (m) => {
             <label v-if="cardEnabled" class="payment-option" :class="{ 'is-active': paymentMethod === 'card' }">
               <input type="radio" v-model="paymentMethod" value="card" class="payment-radio" />
               <div class="payment-icon payment-icon--card">
-                <Icon icon="mdi:credit-card-outline" height="22" />
+                <Icon name="mdi:credit-card-outline" height="22" />
               </div>
               <div class="flex-grow">
                 <div class="payment-title">Platba kartou</div>
@@ -441,8 +441,8 @@ watch(paymentMethod, async (m) => {
           :disabled="!formValid || isSubmitting"
           class="btn-primary-pop w-full justify-center py-4 text-lg"
         >
-          <Icon v-if="isSubmitting" icon="lucide:loader-2" height="22" class="animate-spin" />
-          <Icon v-else icon="mdi:check-decagram" height="22" />
+          <Icon v-if="isSubmitting" name="lucide:loader-2" height="22" class="animate-spin" />
+          <Icon v-else name="mdi:check-decagram" height="22" />
           {{ isSubmitting ? 'Odesíláme...' : 'Odeslat objednávku' }}
         </button>
       </div>
@@ -464,7 +464,7 @@ watch(paymentMethod, async (m) => {
                   loading="lazy"
                 />
                 <div v-else class="summary-thumb-empty">
-                  <Icon icon="mdi:image-off" height="14" />
+                  <Icon name="mdi:image-off" height="14" />
                 </div>
               </div>
               <div class="min-w-0 flex-grow">
@@ -496,7 +496,7 @@ watch(paymentMethod, async (m) => {
     <!-- ─── Success ──────────────────────────────────────────────── -->
     <div v-else class="max-w-xl mx-auto text-center py-16">
       <div class="success-badge">
-        <Icon icon="mdi:check-bold" height="48" />
+        <Icon name="mdi:check-bold" height="48" />
       </div>
       <h1 class="success-title">Objednáno! 🚀</h1>
       <p class="success-subtitle">
@@ -522,7 +522,7 @@ watch(paymentMethod, async (m) => {
           <div class="bank-row"><span>Zpráva pro příjemce</span><strong>Objednávka {{ successBank.variableSymbol }}</strong></div>
         </div>
         <div v-else class="bank-warning">
-          <Icon icon="mdi:alert-circle-outline" height="18" />
+          <Icon name="mdi:alert-circle-outline" height="18" />
           Platební údaje nejsou nakonfigurovány — pošlu ti je e-mailem.
         </div>
 
@@ -549,7 +549,7 @@ watch(paymentMethod, async (m) => {
       </div>
 
       <NuxtLink to="/" class="btn-primary-pop px-8 py-3 inline-flex">
-        <Icon icon="mdi:store-outline" height="20" />
+        <Icon name="mdi:store-outline" height="20" />
         Zpět k nakupování
       </NuxtLink>
     </div>

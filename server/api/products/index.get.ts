@@ -1,6 +1,25 @@
 import { db } from '../../utils/db';
 import { products, categories } from '../../database/schema';
-import { and, eq, ilike, or, sql, desc, gt } from 'drizzle-orm';
+import { and, eq, or, sql, desc, gt, type SQLWrapper } from 'drizzle-orm';
+
+// Diakritika: `ilike` je v Postgresu case-insensitive, ale NE accent-insensitive,
+// takže „klicenka" nikdy nenašlo „Klíčenka" — a to je u českého shopu většina
+// dotazů. Extension `unaccent` na DB nainstalovaná není a novou migraci sem
+// tahat nechceme, takže obě strany srovnáme ručně: DB stranu přes translate(),
+// hledaný výraz v JS přes NFD. Oba řetězce musí mít stejný počet znaků!
+const ACCENTED = 'áàâäãåčćďéèêëěíìîïĺľňñóòôöõřŕšśťúùûüůýÿžźż';
+const PLAIN    = 'aaaaaaccdeeeeeiiiillnnooooorrsstuuuuuyyzzz';
+
+/** Sloupec převedený na malá písmena bez diakritiky (NULL → prázdný řetězec). */
+const fold = (column: SQLWrapper) =>
+  sql`translate(lower(coalesce(${column}, '')), ${ACCENTED}, ${PLAIN})`;
+
+/** Totéž pro vstup od uživatele — NFD rozloží znak na písmeno + háček/čárku. */
+const foldInput = (value: string) =>
+  value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+
+/** `%` a `_` jsou v LIKE zástupné znaky, ve vyhledávaném textu je chceme doslova. */
+const escapeLike = (value: string) => value.replace(/[\\%_]/g, '\\$&');
 
 export default defineCachedEventHandler(async (event) => {
   const query = getQuery(event);
@@ -14,10 +33,15 @@ export default defineCachedEventHandler(async (event) => {
   // Public storefront: hide sold-out products (stock reached 0). Admin has its
   // own endpoints, so out-of-stock items stay visible/editable there.
   conditions.push(gt(products.stock, 0));
-  if (search) {
+  // Každé slovo z dotazu musí sedět (v názvu, popisu nebo kategorii) — díky tomu
+  // najde „meduza klicenka" i „Klíčenka Medúza z hlubin", nejen ve správném pořadí.
+  const terms = search ? foldInput(search).split(/\s+/).filter(Boolean).slice(0, 6) : [];
+  for (const term of terms) {
+    const needle = `%${escapeLike(term)}%`;
     conditions.push(or(
-      ilike(products.name, `%${search}%`),
-      ilike(products.description, `%${search}%`)
+      sql`${fold(products.name)} like ${needle}`,
+      sql`${fold(products.description)} like ${needle}`,
+      sql`${fold(categories.name)} like ${needle}`,
     ));
   }
   if (category) {
@@ -48,6 +72,13 @@ export default defineCachedEventHandler(async (event) => {
 
   if (query.random === 'true') {
     queryBuilder = queryBuilder.orderBy(sql`RANDOM()`);
+  } else if (terms.length) {
+    // Shoda v názvu je pro uživatele relevantnější než zmínka kdesi v popisu.
+    const phrase = `%${escapeLike(foldInput(search))}%`;
+    queryBuilder = queryBuilder.orderBy(
+      sql`(${fold(products.name)} like ${phrase}) desc`,
+      desc(products.id),
+    );
   } else {
     queryBuilder = queryBuilder.orderBy(desc(products.id));
   }
@@ -57,4 +88,15 @@ export default defineCachedEventHandler(async (event) => {
   }
 
   return await queryBuilder;
-}, { maxAge: 60 * 60 });
+}, {
+  maxAge: 60 * 60,
+  // Search is typed live in the navbar, so its result set is effectively
+  // unbounded and each distinct query would occupy its own cache entry for an
+  // hour — a slow memory leak that buys nothing, since almost no two shoppers
+  // type the same string. Worse, a stale hit can offer a product that has since
+  // sold out, and clicking it 404s. Listing requests (the homepage grid, the
+  // category rows) are the ones that repeat and are worth caching, so only
+  // those get an entry.
+  shouldBypassCache: event => Boolean((getQuery(event).search as string | undefined)?.trim()),
+  shouldInvalidateCache: event => Boolean((getQuery(event).search as string | undefined)?.trim()),
+});

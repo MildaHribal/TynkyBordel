@@ -17,11 +17,21 @@ useSeoMeta({
   twitterCard: 'summary_large_image',
 })
 
+// Only carry the fields rendered on the homepage into the SSR payload. Every
+// extra column (description, updatedAt, …) is serialized into the HTML and
+// parsed again during hydration — paid for twice.
+//
+// This has to be `transform`, not `pick`. Nuxt's `pick` builds a plain object
+// out of the listed keys, so handing it an ARRAY response returns
+// `{ id: undefined, title: undefined, … }` — the endpoint returns a list, so
+// the page then blew up on `.map is not a function` and the whole route 500'd.
+const HOMEPAGE_FIELDS = ['id', 'title', 'name', 'slug', 'price', 'image', 'images', 'stock', 'category'] as const
+
 const { data: allProducts, pending, error } = await useFetch<Product[]>('/api/products?limit=40', {
-  // Only carry the fields rendered on the homepage into the SSR payload.
-  // Every extra column (description, updatedAt, ...) is serialized into HTML
-  // and parsed again during hydration — paid for twice.
-  pick: ['id', 'title', 'name', 'slug', 'price', 'image', 'images', 'stock', 'category'],
+  transform: (rows: Product[]) =>
+    (Array.isArray(rows) ? rows : []).map(row =>
+      Object.fromEntries(HOMEPAGE_FIELDS.map(field => [field, (row as any)[field]])),
+    ) as Product[],
 })
 
 const collection = computed(() =>
@@ -149,7 +159,7 @@ function scrollToKolekce(e: MouseEvent) {
             </p>
             <div class="zhero-actions">
               <NuxtLink to="#kolekce" class="zine-btn" @click="scrollToKolekce">
-                Zobrazit všechno <Icon icon="lucide:arrow-down" height="16" />
+                Zobrazit všechno <Icon name="lucide:arrow-down" height="16" />
               </NuxtLink>
               <span v-if="inStockCount" class="zhero-stock">
                 <span class="zhero-dot"></span>{{ inStockCount }} kousků skladem
@@ -224,7 +234,10 @@ function scrollToKolekce(e: MouseEvent) {
 
       <!-- ═══ ABOUT ═══ -->
       <section id="about" class="zsection below-fold">
-        <div class="zabout zine-panel">
+        <!-- Not .zine-panel: that block is the dark surface. This one is a
+             light beige card, so the zine chrome is rebuilt in the scoped CSS
+             below and every foreground is the on-light variant. -->
+        <div class="zabout">
           <div class="zabout-art">
             <NuxtImg
               src="/hero/mushroom-eye.png" alt="Autorská ilustrace"
@@ -232,14 +245,14 @@ function scrollToKolekce(e: MouseEvent) {
             />
           </div>
           <div class="zabout-copy">
-            <span class="zine-eyebrow zine-eyebrow--ondark">✶ O mně</span>
+            <span class="zine-eyebrow">✶ O mně</span>
             <h2 class="zabout-title">Akustická děvka,<br />která musí furt něco tvořit</h2>
             <p class="zabout-desc">
               Jsem obsessed smažkama. Vytvářím jak hovna, tak absolutní bangery —
               obrazy, sochy z papírmašé, klíčenky. Každý kousek je originál, vyrobený rukama.
             </p>
-            <NuxtLink to="#kolekce" class="zine-btn zine-btn--lime zine-btn--ondark">
-              Celý příběh <Icon icon="lucide:arrow-right" height="16" />
+            <NuxtLink to="#kolekce" class="zine-btn zine-btn--lime">
+              Celý příběh <Icon name="lucide:arrow-right" height="16" />
             </NuxtLink>
           </div>
         </div>
@@ -410,12 +423,19 @@ function scrollToKolekce(e: MouseEvent) {
   gap: 1.5rem;
   padding: 1.75rem;
   align-items: center;
+  /* Beige card, not the dark .zine-panel. It is only a shade off the cream
+     page, so the 2px ink border and the hard offset shadow — copied from
+     .zine-panel — are what make it read as raised. */
+  background: #FBF7EE;
+  border: 2px solid var(--pop-ink);
+  border-radius: 16px;
+  box-shadow: 6px 6px 0 rgba(20, 35, 26, 0.85);
 }
 @media (min-width: 820px) { .zabout { grid-template-columns: 0.8fr 1.2fr; gap: 2.5rem; padding: 2.75rem; } }
 .zabout-art { display: flex; justify-content: center; }
 .zabout-img {
   width: 100%; max-width: 300px; border-radius: 12px;
-  border: 2px solid rgba(240, 231, 210, 0.25);
+  border: 2px solid rgba(20, 35, 26, 0.25);
 }
 .zabout-title {
   font-family: var(--font-zine);
@@ -423,14 +443,15 @@ function scrollToKolekce(e: MouseEvent) {
   font-size: clamp(1.5rem, 5vw, 2.5rem);
   line-height: 0.95;
   text-transform: uppercase;
-  color: #fff;
+  color: var(--pop-ink);
   margin: 0.7rem 0 1rem;
 }
 .zabout-desc {
   font-family: 'Manrope', system-ui;
   font-size: 1rem;
   line-height: 1.6;
-  color: rgba(240, 231, 210, 0.82);
+  /* Same softness the cream-on-dark version had, inverted. */
+  color: rgba(20, 35, 26, 0.78);
   margin: 0 0 1.6rem;
   max-width: 52ch;
 }

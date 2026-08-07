@@ -38,7 +38,7 @@ function handleError() {
         <div class="absolute inset-0 rounded-full scale-150 animate-pulse" style="background:rgba(139,92,246,0.25);filter:blur(30px);"></div>
         <div class="relative w-24 h-24 rounded-full flex items-center justify-center mx-auto text-white shadow-2xl"
           style="background:linear-gradient(135deg,#8b5cf6,#ec4899);">
-          <Icon :icon="is404 ? 'mdi:compass-off-outline' : 'mdi:alert-circle-outline'" height="48" />
+          <Icon :name="is404 ? 'mdi:compass-off-outline' : 'mdi:alert-circle-outline'" height="48" />
         </div>
       </div>
 
@@ -57,7 +57,7 @@ function handleError() {
         class="px-10 py-4 text-lg inline-flex items-center gap-3 rounded-full text-white font-semibold"
         style="background:linear-gradient(135deg,#8b5cf6,#ec4899);"
       >
-        <Icon icon="mdi:home-outline" height="22" />
+        <Icon name="mdi:home-outline" height="22" />
         Zpět na hlavní stránku
       </button>
     </div>

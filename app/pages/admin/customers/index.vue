@@ -32,14 +32,14 @@ const totalRevenue = computed(() =>
 
     <div class="stats-grid" v-if="!pending && customers" style="grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); margin-bottom: 1.5rem;">
       <div class="stat-card">
-        <div class="stat-icon-wrap"><Icon icon="lucide:users" height="18" /></div>
+        <div class="stat-icon-wrap"><Icon name="lucide:users" height="18" /></div>
         <div class="stat-info">
           <span class="stat-value">{{ customers.length }}</span>
           <span class="stat-label">Celkem zákazníků</span>
         </div>
       </div>
       <div class="stat-card">
-        <div class="stat-icon-wrap"><Icon icon="lucide:banknote" height="18" /></div>
+        <div class="stat-icon-wrap"><Icon name="lucide:banknote" height="18" /></div>
         <div class="stat-info">
           <span class="stat-value">{{ totalRevenue.toLocaleString('cs-CZ') }} Kč</span>
           <span class="stat-label">Celková útrata</span>
@@ -49,13 +49,13 @@ const totalRevenue = computed(() =>
 
     <div class="filters-row">
       <div class="search-box">
-        <Icon icon="lucide:search" height="16" class="search-icon" />
+        <Icon name="lucide:search" height="16" class="search-icon" />
         <input v-model="searchQuery" type="text" placeholder="Jméno nebo email…" class="search-input" />
       </div>
     </div>
 
     <div v-if="pending" class="loading">
-      <Icon icon="lucide:loader-2" height="20" class="spin" /> Načítání…
+      <Icon name="lucide:loader-2" height="20" class="spin" /> Načítání…
     </div>
 
     <div v-else class="admin-card">

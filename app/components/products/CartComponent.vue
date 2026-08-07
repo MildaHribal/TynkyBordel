@@ -10,7 +10,7 @@ const cart = useCartStore()
     <!-- Header -->
     <div class="flex items-center gap-3 mb-6 md:mb-8">
       <NuxtLink to="/" class="text-white/30 hover:text-white transition-colors" aria-label="Zpět k nakupování">
-        <Icon icon="ep:arrow-left-bold" height="18" />
+        <Icon name="ep:arrow-left-bold" height="18" />
       </NuxtLink>
       <h1 class="text-2xl md:text-3xl font-extrabold text-white neon-text">Váš košík 🛒</h1>
     </div>
@@ -21,7 +21,7 @@ const cart = useCartStore()
       <p class="text-lg md:text-xl text-white/50 mb-6 md:mb-8">Váš košík je zatím prázdný.</p>
       <NuxtLink to="/" class="btn-cosmic inline-flex items-center gap-2 text-sm md:text-base">
         <span>Pokračovat v nákupu</span>
-        <Icon icon="ep:right" height="18" />
+        <Icon name="ep:right" height="18" />
       </NuxtLink>
     </div>
 
@@ -44,7 +44,7 @@ const cart = useCartStore()
                 class="h-full w-full object-cover"
               >
               <div v-else class="h-full w-full flex items-center justify-center text-white/20">
-                <Icon icon="mdi:image-off-outline" height="20" />
+                <Icon name="mdi:image-off-outline" height="20" />
               </div>
             </div>
 
@@ -70,7 +70,7 @@ const cart = useCartStore()
                     type="button"
                     class="w-8 h-full flex items-center justify-center text-white/40 hover:text-white transition-colors hover:bg-white/5"
                   >
-                    <Icon icon="mdi:minus" height="14" />
+                    <Icon name="mdi:minus" height="14" />
                   </button>
                   <span class="w-8 text-center text-xs font-bold text-white">{{ item.quantity }}</span>
                   <button 
@@ -78,7 +78,7 @@ const cart = useCartStore()
                     type="button"
                     class="w-8 h-full flex items-center justify-center text-white/40 hover:text-white transition-colors hover:bg-white/5"
                   >
-                    <Icon icon="mdi:plus" height="14" />
+                    <Icon name="mdi:plus" height="14" />
                   </button>
                 </div>
 
@@ -87,7 +87,7 @@ const cart = useCartStore()
                   type="button"
                   class="text-[10px] md:text-xs text-red-400/60 hover:text-red-400 transition-colors flex items-center gap-1"
                 >
-                  <Icon icon="mdi:trash-can-outline" height="12" />
+                  <Icon name="mdi:trash-can-outline" height="12" />
                   <span class="hidden sm:inline">Odstranit</span>
                 </button>
               </div>
@@ -118,7 +118,7 @@ const cart = useCartStore()
           </dl>
 
           <NuxtLink to="/checkout" class="btn-cosmic w-full mt-6 md:mt-8 py-3.5 md:py-4 text-sm md:text-base flex items-center justify-center gap-2">
-            <Icon icon="mdi:credit-card-outline" height="18" />
+            <Icon name="mdi:credit-card-outline" height="18" />
             Přejít k pokladně
           </NuxtLink>
 

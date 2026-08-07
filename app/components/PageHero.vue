@@ -3,12 +3,15 @@
 <template>
   <section class="hero relative w-full">
     <div class="hero-wrap">
+      <!-- Dimensions and `sizes` are capped at the source's real width. The
+           file is 1200×670; asking IPX for 1400px made it upscale on wide
+           desktops — more bytes for a softer image. -->
       <NuxtImg
         src="/hero/frog-forest-hero.png"
         alt="Ilustrace kouzelného lesa s žabkami a muchomůrkami — signature artwork Tynky Bordel"
-        width="1600"
-        height="912"
-        sizes="sm:100vw md:100vw lg:1400px"
+        width="1200"
+        height="670"
+        sizes="sm:100vw md:100vw lg:1200px"
         format="webp"
         quality="70"
         loading="eager"

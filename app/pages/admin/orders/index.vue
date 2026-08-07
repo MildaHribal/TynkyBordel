@@ -106,7 +106,7 @@ const selectedOrder = ref<any>(null)
 
     <div class="filters-row">
       <div class="search-box">
-        <Icon icon="lucide:search" height="16" class="search-icon" />
+        <Icon name="lucide:search" height="16" class="search-icon" />
         <input v-model="searchQuery" type="text" placeholder="Jméno, email, ID…" class="search-input" />
       </div>
       <select v-model="statusFilter" class="filter-select">
@@ -118,7 +118,7 @@ const selectedOrder = ref<any>(null)
     <p class="results-count" v-if="!pending">{{ filteredOrders.length }} objednávek</p>
 
     <div v-if="pending" class="loading">
-      <Icon icon="lucide:loader-2" height="20" class="spin" /> Načítání…
+      <Icon name="lucide:loader-2" height="20" class="spin" /> Načítání…
     </div>
 
     <div v-else class="admin-card">
@@ -166,7 +166,7 @@ const selectedOrder = ref<any>(null)
               <td class="cell-actions">
                 <div class="actions-cell">
                   <button class="action-btn" @click="selectedOrder = o" title="Detail">
-                    <Icon icon="lucide:eye" height="14" />
+                    <Icon name="lucide:eye" height="14" />
                   </button>
                   <select
                     :value="o.paymentStatus"
@@ -202,7 +202,7 @@ const selectedOrder = ref<any>(null)
             <div class="modal-header">
               <h3 class="modal-title">Objednávka #{{ selectedOrder.orderNumber || selectedOrder.id }}</h3>
               <button @click="selectedOrder = null" class="modal-close" aria-label="Zavřít">
-                <Icon icon="lucide:x" height="18" />
+                <Icon name="lucide:x" height="18" />
               </button>
             </div>
             <div class="modal-body">

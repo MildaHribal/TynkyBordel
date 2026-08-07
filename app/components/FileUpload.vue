@@ -37,8 +37,8 @@ const uploadImage = async (event: Event) => {
 <template>
   <div class="file-upload">
     <label class="upload-btn" :class="{ disabled: uploading }">
-      <Icon v-if="uploading" icon="lucide:loader-2" height="16" class="animate-spin" />
-      <Icon v-else icon="lucide:upload" height="16" />
+      <Icon v-if="uploading" name="lucide:loader-2" height="16" class="animate-spin" />
+      <Icon v-else name="lucide:upload" height="16" />
       <span>{{ uploading ? 'Nahrávání...' : 'Nahrát obrázek' }}</span>
       <input type="file" @change="uploadImage" accept="image/*" class="hidden" :disabled="uploading" />
     </label>

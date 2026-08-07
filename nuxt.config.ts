@@ -1,18 +1,35 @@
 // nuxt.config.ts
+import { readFileSync } from 'node:fs'
+import { fileURLToPath } from 'node:url'
+import tailwindcss from '@tailwindcss/vite'
+
+// Which webfonts to <link rel="preload">. Written by scripts/build-fonts.py
+// alongside the .woff2 files themselves, so the content-hashed filenames here
+// can never drift out of sync with what assets/css/fonts.css references.
+const fontManifest = JSON.parse(
+    readFileSync(fileURLToPath(new URL('./public/fonts/manifest.json', import.meta.url)), 'utf8'),
+) as { preload: string[] }
+
 export default defineNuxtConfig({
     compatibilityDate: '2024-07-15',
     devtools: { enabled: process.env.NODE_ENV === 'development' },
 
     modules: [
-        '@nuxt/ui',
         '@pinia/nuxt',
         '@nuxt/icon',
         '@nuxt/image',
-        '@nuxt/fonts',
         '@nuxtjs/seo',
         '@nuxtjs/robots',
         '@nuxtjs/sitemap',
     ],
+
+    // Tailwind is wired straight into Vite rather than coming in via @nuxt/ui.
+    // @nuxt/ui was pulling ~200 KB of component CSS into the entry chunk to
+    // provide exactly one thing the app used — the <UApp> wrapper — so it was
+    // removed and Tailwind kept on its own.
+    vite: {
+        plugins: [tailwindcss()],
+    },
 
     features: { inlineStyles: true },
 
@@ -27,6 +44,21 @@ export default defineNuxtConfig({
                 { name: 'description', content: 'Tynky Bordel — ručně dělané originály: obrazy, sochy, klíčenky. Každý kousek je unikát.' },
                 { name: 'robots', content: 'index,follow,max-image-preview:large' },
             ],
+            // Preload the three faces painted above the fold (hero display,
+            // body, price/label mono). These have to be real <link> tags in the
+            // document head: a font referenced only from a stylesheet isn't
+            // requested until that stylesheet has been fetched AND the element
+            // using it has been matched, which costs a whole round trip on the
+            // critical path. `crossorigin` is mandatory even same-origin —
+            // fonts are always fetched in CORS mode, and without it the browser
+            // downloads the file twice.
+            link: fontManifest.preload.map(file => ({
+                rel: 'preload',
+                as: 'font',
+                type: 'font/woff2',
+                href: `/fonts/${file}`,
+                crossorigin: 'anonymous',
+            })),
         },
         // Page transitions removed entirely: the fade (and the View Transitions
         // before it) fought with lazy content + scroll restoration and read as

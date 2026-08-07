@@ -114,7 +114,7 @@ defineExpose({ next, prev });
               <span class="slide-price">{{ current.price }} Kč</span>
               <NuxtLink :to="productUrl(current)" class="slide-cta">
                 Koupit
-                <Icon icon="lucide:arrow-up-right" height="16" />
+                <Icon name="lucide:arrow-up-right" height="16" />
               </NuxtLink>
             </div>
           </div>
@@ -129,7 +129,7 @@ defineExpose({ next, prev });
       @click="prev"
       aria-label="Předchozí"
     >
-      <Icon icon="lucide:chevron-left" height="22" />
+      <Icon name="lucide:chevron-left" height="22" />
     </button>
     <button
       v-if="products.length > 1"
@@ -137,7 +137,7 @@ defineExpose({ next, prev });
       @click="next"
       aria-label="Další"
     >
-      <Icon icon="lucide:chevron-right" height="22" />
+      <Icon name="lucide:chevron-right" height="22" />
     </button>
 
     <!-- Dots -->

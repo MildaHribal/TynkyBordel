@@ -20,6 +20,31 @@ type FlyElement = HTMLElement & {
 // Singleton observer to reduce memory and CPU overhead
 let sharedObserver: IntersectionObserver | null = null
 
+/**
+ * Promote an element to its own compositor layer for the duration of the
+ * reveal, then let it go.
+ *
+ * `will-change: opacity, transform` used to be declared statically in the
+ * .fly-in CSS rule. That pins a layer — and its GPU memory — for every
+ * revealed element for as long as the page lives, which on a 40-tile grid is a
+ * lot of retained memory for an animation that plays once. Setting it just
+ * before the transition and clearing it on transitionend gets the same
+ * smoothness at the cost of only the elements currently animating.
+ */
+const reveal = (el: FlyElement) => {
+  el.style.willChange = 'opacity, transform'
+  el.classList.add('fly-in--visible')
+
+  const done = (event: TransitionEvent) => {
+    // Ignore transitions bubbling up from descendants — only this element's own
+    // opacity/transform run signals that the reveal is over.
+    if (event.target !== el) return
+    el.style.willChange = ''
+    el.removeEventListener('transitionend', done)
+  }
+  el.addEventListener('transitionend', done)
+}
+
 const getSharedObserver = (options: { threshold: number, rootMargin: string }) => {
   if (!sharedObserver && typeof window !== 'undefined') {
     sharedObserver = new IntersectionObserver(
@@ -28,7 +53,7 @@ const getSharedObserver = (options: { threshold: number, rootMargin: string }) =
           if (entry.isIntersecting) {
             const el = entry.target as FlyElement
             const opts = el[FLY_OPTIONS_KEY]
-            el.classList.add('fly-in--visible')
+            reveal(el)
             if (opts?.once) sharedObserver?.unobserve(el)
           } else {
             const el = entry.target as FlyElement
@@ -95,7 +120,17 @@ const prepareElement = (el: HTMLElement, options: ReturnType<typeof normalizeOpt
 export default defineNuxtPlugin((nuxtApp) => {
   if (import.meta.client) cachedPretest = null
 
+  // Registered on the server too, even though every hook below is a client-side
+  // no-op. This plugin used to be `fly-in.client.ts`, which meant `v-fly` did
+  // not exist during SSR — and Vue's server renderer calls `getSSRProps` on
+  // whatever a directive resolves to, so every page using `v-fly` (the product
+  // detail, category listings, the carousel) died with
+  // "Cannot read properties of undefined (reading 'getSSRProps')" and returned
+  // a 500. Registering it universally, with an explicit no-op `getSSRProps`,
+  // gives the renderer something valid to call while keeping all the actual
+  // DOM work on the client.
   nuxtApp.vueApp.directive('fly', {
+    getSSRProps: () => ({}),
     beforeMount(el, binding) {
       if (import.meta.server) return
       const options = normalizeOptions(binding.value as FlyDirection | FlyOptions | undefined)
@@ -118,7 +153,7 @@ export default defineNuxtPlugin((nuxtApp) => {
       const rect = el.getBoundingClientRect()
       const vh = window.innerHeight || document.documentElement.clientHeight
       if (rect.top < vh * 0.92 && rect.bottom > 0) {
-        el.classList.add('fly-in--visible')
+        reveal(flyElement)
         if (options.once) return
       }
 
@@ -128,6 +163,7 @@ export default defineNuxtPlugin((nuxtApp) => {
     unmounted(el) {
       if (import.meta.server) return
       sharedObserver?.unobserve(el)
+      el.style.willChange = ''
       delete (el as any)[FLY_OPTIONS_KEY]
     },
   })

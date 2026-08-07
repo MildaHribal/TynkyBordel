@@ -1,0 +1,29 @@
+{
+  "preload": [
+    "bricolage-ef5f9f42.woff2",
+    "manrope-988ecb1a.woff2",
+    "spacemono-700-9d007886.woff2"
+  ],
+  "files": [
+    {
+      "file": "bricolage-ef5f9f42.woff2",
+      "family": "Bricolage Grotesque",
+      "size": 37736
+    },
+    {
+      "file": "manrope-988ecb1a.woff2",
+      "family": "Manrope",
+      "size": 27636
+    },
+    {
+      "file": "spacemono-400-a2e58b94.woff2",
+      "family": "Space Mono",
+      "size": 9488
+    },
+    {
+      "file": "spacemono-700-9d007886.woff2",
+      "family": "Space Mono",
+      "size": 9656
+    }
+  ]
+}

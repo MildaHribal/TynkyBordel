@@ -157,7 +157,7 @@ useHead(() => ({
         @click="showMobileFilters = !showMobileFilters"
         class="lg:hidden flex items-center gap-2 px-3 py-2 glass-card text-white/60 hover:text-white text-sm transition-all"
       >
-        <Icon icon="mdi:filter-variant" height="18" />
+        <Icon name="mdi:filter-variant" height="18" />
         <span class="hidden sm:inline">Kategorie</span>
       </button>
     </div>

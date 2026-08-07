@@ -41,14 +41,14 @@ const STATUS_CLASS: Record<string, string> = {
     </div>
 
     <div v-if="pending" class="loading">
-      <Icon icon="lucide:loader-2" height="24" class="spin" /> Načítání…
+      <Icon name="lucide:loader-2" height="24" class="spin" /> Načítání…
     </div>
 
     <template v-else-if="stats">
       <div class="stats-grid">
         <div v-for="card in statCards" :key="card.label" class="stat-card">
           <div class="stat-icon-wrap">
-            <Icon :icon="card.icon" height="18" />
+            <Icon :name="card.icon" height="18" />
           </div>
           <div class="stat-info">
             <span class="stat-value">{{ card.value }}</span>
@@ -61,7 +61,7 @@ const STATUS_CLASS: Record<string, string> = {
         <div class="card-header">
           <h2 class="card-title">Poslední objednávky</h2>
           <NuxtLink to="/admin/orders" class="card-link">
-            Vše <Icon icon="lucide:arrow-right" height="14" />
+            Vše <Icon name="lucide:arrow-right" height="14" />
           </NuxtLink>
         </div>
         <div class="table-wrap">

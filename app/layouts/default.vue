@@ -17,18 +17,29 @@ import { BUSINESS } from "~~/shared/shop";
 
       <!-- Footer -->
       <footer class="site-footer">
-        <LazyNewsletterSignup hydrate-on-visible />
         <div class="site-footer-inner">
-          <!-- Big brand row -->
+          <!-- Brand row: identity on the left, newsletter signup on the right.
+               The signup used to be a full-bleed band above this row with a
+               display-sized heading, which read as a separate section shouting
+               over the footer rather than part of it. -->
           <div class="footer-brand-row">
-            <NuxtLink to="/" class="footer-brand">
-              <NuxtImg src="/hero/logo-mushroom.png" alt="" class="footer-brand-logo" width="72" height="72" format="webp" quality="85" loading="lazy" />
-              <span class="footer-brand-name">Týnky Bordel</span>
-            </NuxtLink>
-            <p class="footer-tagline">
-              Ručně dělané originály — obrazy, sochy, klíčenky.<br />
-              Každý kousek je jeden na světě.
-            </p>
+            <div class="footer-brand-block">
+              <NuxtLink to="/" class="footer-brand">
+                <NuxtImg src="/hero/logo-mushroom.png" alt="" class="footer-brand-logo" width="72" height="72" format="webp" quality="85" loading="lazy" />
+                <span class="footer-brand-name">Týnky Bordel</span>
+              </NuxtLink>
+              <p class="footer-tagline">
+                Ručně dělané originály — obrazy, sochy, klíčenky.<br />
+                Každý kousek je jeden na světě.
+              </p>
+            </div>
+            <!--
+              Idle rather than on-visible: it is server-rendered either way, but
+              on-visible hydrates the moment its first pixel appears, so a fast
+              scroller can hit the field before the submit handler is attached
+              and the form does a native GET navigation instead of subscribing.
+            -->
+            <LazyNewsletterSignup hydrate-on-idle />
           </div>
 
           <!-- Link columns -->
@@ -56,15 +67,15 @@ import { BUSINESS } from "~~/shared/shop";
               <h4 class="footer-heading">Sleduj</h4>
               <div class="footer-socials">
                 <a href="https://www.instagram.com/_kristyna_aaa/" target="_blank" rel="noopener noreferrer" class="footer-social footer-social--instagram" aria-label="Instagram Kristýna">
-                  <Icon icon="mdi:instagram" height="18" />
+                  <Icon name="mdi:instagram" height="18" />
                   <span>Instagram</span>
                 </a>
                 <a href="https://www.instagram.com/tynky_bordel/" target="_blank" rel="noopener noreferrer" class="footer-social footer-social--instagram" aria-label="Instagram Tynky Bordel">
-                  <Icon icon="mdi:instagram" height="18" />
+                  <Icon name="mdi:instagram" height="18" />
                   <span>Instagram (Tynky Bordel)</span>
                 </a>
                 <a href="https://www.tiktok.com/@_kristyna_aaa" target="_blank" rel="noopener noreferrer" class="footer-social footer-social--tiktok" aria-label="TikTok">
-                  <Icon icon="ic:baseline-tiktok" height="18" />
+                  <Icon name="ic:baseline-tiktok" height="18" />
                   <span>TikTok</span>
                 </a>
               </div>
@@ -78,9 +89,9 @@ import { BUSINESS } from "~~/shared/shop";
             </div>
             <div class="footer-payments">
               <span class="footer-payments-label">Platby</span>
-              <Icon icon="mdi:bank-transfer" class="footer-pay-icon" height="22" />
-              <Icon icon="mdi:cash" class="footer-pay-icon" height="22" />
-              <Icon icon="mdi:qrcode" class="footer-pay-icon" height="20" />
+              <Icon name="mdi:bank-transfer" class="footer-pay-icon" height="22" />
+              <Icon name="mdi:cash" class="footer-pay-icon" height="22" />
+              <Icon name="mdi:qrcode" class="footer-pay-icon" height="20" />
             </div>
           </div>
         </div>
@@ -96,27 +107,48 @@ import { BUSINESS } from "~~/shared/shop";
 
 /* ── Footer ──────────────────────────────────────────── */
 .site-footer {
-  background: var(--pop-panel, #331825);
+  /* Deep wine. Local to the footer because the shared palette in main.css has
+     no wine token — NewsletterSignup.vue repeats this literal so the newsletter
+     band and the footer read as one continuous block with no two-tone seam. */
+  --footer-wine: #5A1F2E;
+  /* Gutter lives on a variable so .site-footer-inner and the newsletter band
+     (which pads itself by the same amount) line their content up exactly. */
+  --footer-gutter: 1.25rem;
+  background: var(--footer-wine);
   color: #F1EBDF;
-  padding: 0 1.25rem 2rem;
+  padding: 0 0 2rem;
   position: relative;
 }
 @media (min-width: 768px) {
-  .site-footer { padding: 0 2rem 2rem; }
+  .site-footer { --footer-gutter: 2rem; }
 }
 
 .site-footer-inner {
-  max-width: 1400px;
+  /* max-width absorbs the gutters so the text column matches .nl-card's
+     own 1400px box rather than sitting 1.25rem further in. */
+  max-width: calc(1400px + 2 * var(--footer-gutter));
   margin: 0 auto;
+  padding: 0 var(--footer-gutter);
 }
 
 /* Brand row */
-.footer-brand-row {
+.footer-brand-block {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
+  align-items: flex-start;
+}
+
+.footer-brand-row {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  padding-top: 2.75rem;
   padding-bottom: 3rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  /* Warm cream hairlines instead of pure white: white over wine goes cool and
+     dusty, and wine is lighter than the old near-black so it needs more alpha
+     to stay as visible as before. */
+  border-bottom: 1px solid rgba(240, 231, 210, 0.16);
 }
 @media (min-width: 900px) {
   .footer-brand-row {
@@ -211,9 +243,9 @@ import { BUSINESS } from "~~/shared/shop";
   align-items: center;
   gap: 0.6rem;
   padding: 0.55rem 0.85rem;
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(240, 231, 210, 0.22);
   border-radius: 9999px;
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(240, 231, 210, 0.06);
   color: rgba(241, 235, 223, 0.9);
   font-family: 'Manrope', system-ui;
   font-weight: 600;
@@ -223,8 +255,8 @@ import { BUSINESS } from "~~/shared/shop";
   width: fit-content;
 }
 .footer-social:hover {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.3);
+  background: rgba(240, 231, 210, 0.14);
+  border-color: rgba(240, 231, 210, 0.45);
   transform: translateY(-2px);
   color: #ffffff;
 }
@@ -248,7 +280,7 @@ import { BUSINESS } from "~~/shared/shop";
   flex-direction: column;
   gap: 1rem;
   padding-top: 2rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  border-top: 1px solid rgba(240, 231, 210, 0.16);
   align-items: center;
   justify-content: space-between;
 }
@@ -259,16 +291,18 @@ import { BUSINESS } from "~~/shared/shop";
   font-family: 'Manrope', system-ui;
   font-weight: 500;
   font-size: 0.78rem;
-  color: rgba(241, 235, 223, 0.5);
+  /* Raised from .5: wine is a lighter backdrop than the old near-black, and
+     .5 alpha dropped this small print under 4.5:1. */
+  color: rgba(241, 235, 223, 0.62);
 }
 .footer-payments {
   display: inline-flex;
   align-items: center;
   gap: 0.75rem;
   padding: 0.4rem 0.9rem;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(240, 231, 210, 0.18);
   border-radius: 9999px;
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(240, 231, 210, 0.06);
 }
 .footer-payments-label {
   font-family: 'Manrope', system-ui;
@@ -276,7 +310,9 @@ import { BUSINESS } from "~~/shared/shop";
   font-size: 0.65rem;
   letter-spacing: 0.22em;
   text-transform: uppercase;
-  color: rgba(241, 235, 223, 0.5);
+  /* Same reason as .footer-copyright — tiny tracked-out caps need the extra
+     alpha to clear 4.5:1 on wine. */
+  color: rgba(241, 235, 223, 0.62);
   margin-right: 0.2rem;
 }
 .footer-pay-icon {

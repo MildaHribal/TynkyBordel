@@ -58,6 +58,16 @@ onMounted(() => {
   }
 })
 
+// …and even on desktop, don't fetch it until the pointer actually arrives.
+// Mounting it eagerly doubled the number of product images the homepage
+// requests (40 tiles → 80 images); `loading="lazy"` only delays them to
+// near-viewport, it doesn't prevent them. Most visitors hover a handful of
+// cards at most, so this turns a guaranteed 2× image cost into a per-card
+// one paid only when it's about to be seen. Latched, so leaving and
+// re-entering doesn't unmount and refetch.
+const hasHovered = ref(false)
+const onCardEnter = () => { hasHovered.value = true }
+
 const isImageLoading = ref(true)
 const isImageError = ref(false)
 const isAddedToCart = ref(false)
@@ -145,14 +155,21 @@ const toggleFavorite = async () => {
 </script>
 
 <template>
-  <NuxtLink :to="productUrl" class="product-card group relative flex w-full flex-col h-full" :style="{ '--tilt': tilt + 'deg' }" :aria-label="product.title">
+  <NuxtLink
+    :to="productUrl"
+    class="product-card group relative flex w-full flex-col h-full"
+    :style="{ '--tilt': tilt + 'deg' }"
+    :aria-label="product.title"
+    @pointerenter="onCardEnter"
+    @focusin="onCardEnter"
+  >
     <!-- Image frame -->
     <div ref="imageWrapRef" class="card-image relative w-full aspect-[5/4] overflow-hidden rounded-xl">
       <NuxtImg
         v-if="imageSrc && !isImageError"
         :src="imageSrc"
         :alt="product.title"
-        class="card-img w-full h-full object-contain"
+        class="card-img w-full h-full object-cover"
         :class="[ isImageLoading ? 'is-loading' : '' ]"
         width="500"
         height="625"
@@ -168,10 +185,10 @@ const toggleFavorite = async () => {
 
       <!-- Second photo, cross-faded in on hover (desktop pointers only) -->
       <NuxtImg
-        v-if="secondImageSrc && !isImageError && canHover"
+        v-if="secondImageSrc && !isImageError && canHover && hasHovered"
         :src="secondImageSrc"
         :alt="product.title"
-        class="card-img card-img--hover w-full h-full object-contain"
+        class="card-img card-img--hover w-full h-full object-cover"
         width="500"
         height="625"
         format="webp"
@@ -185,11 +202,11 @@ const toggleFavorite = async () => {
         v-if="imageSrc && isImageLoading && !isImageError"
         class="absolute inset-0 flex items-center justify-center bg-black/30 backdrop-blur-[1px]"
       >
-        <Icon icon="lucide:loader-2" height="26" class="animate-spin text-white/70" />
+        <Icon name="lucide:loader-2" height="26" class="animate-spin text-white/70" />
       </div>
 
       <div v-if="!imageSrc || isImageError" class="w-full h-full flex flex-col items-center justify-center text-white/20 bg-white/5">
-        <Icon icon="mdi:image-off-outline" height="44" />
+        <Icon name="mdi:image-off-outline" height="44" />
       </div>
 
       <!-- Desktop add-to-cart button -->
@@ -200,7 +217,7 @@ const toggleFavorite = async () => {
           :class="{ 'is-added': isAddedToCart }"
           :aria-label="'Přidat do košíku: ' + product.title"
         >
-          <Icon :icon="isAddedToCart ? 'mdi:check-bold' : 'mdi:plus'" height="18" />
+          <Icon :name="isAddedToCart ? 'mdi:check-bold' : 'mdi:plus'" height="18" />
         </button>
       </div>
     </div>
@@ -228,7 +245,7 @@ const toggleFavorite = async () => {
           :aria-label="isFavorite ? 'Odebrat z oblíbených' : 'Přidat do oblíbených'"
           :title="isFavorite ? 'Odebrat z oblíbených' : 'Přidat do oblíbených'"
         >
-          <Icon :icon="isFavorite ? 'mdi:heart' : 'mdi:heart-outline'" height="20" />
+          <Icon :name="isFavorite ? 'mdi:heart' : 'mdi:heart-outline'" height="20" />
         </button>
       </div>
     </div>
@@ -301,11 +318,14 @@ const toggleFavorite = async () => {
   width: 34px;
   height: 34px;
   border-radius: 9999px;
-  background: rgba(10, 0, 16, 0.78);
-  backdrop-filter: blur(8px);
+  /* Opaque rather than translucent-with-backdrop-filter. A blur here is billed
+     once per card, and with 40 tiles on the homepage that is 40 backdrop
+     filters the compositor has to maintain — for a 34px button sitting on a
+     solid black photo frame, where the blur is invisible anyway. */
+  background: rgba(10, 0, 16, 0.92);
   border: 1px solid rgba(255, 107, 181, 0.55);
   color: #fff;
-  transition: all 0.25s ease;
+  transition: background 0.25s ease, border-color 0.25s ease, transform 0.25s ease;
 }
 .add-btn:hover {
   background: #ff6bb5;
@@ -326,15 +346,6 @@ const toggleFavorite = async () => {
   flex-direction: column;
   gap: 0.35rem;
   flex-grow: 1;
-}
-
-.card-info-eyebrow {
-  font-family: var(--psy-body);
-  font-size: 0.68rem;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.72);
-  font-weight: 600;
 }
 
 .card-title {
@@ -394,7 +405,6 @@ const toggleFavorite = async () => {
 @media (max-width: 639px) {
   .product-card { padding: 0.45rem 0.45rem 0.7rem; border-radius: 1rem; }
   .card-info { margin-top: 0.6rem; gap: 0.3rem; padding: 0 0.15rem; }
-  .card-info-eyebrow { display: none; }
   .card-title {
     font-size: 1.08rem;
     line-height: 1.25;
@@ -443,20 +453,6 @@ const toggleFavorite = async () => {
   color: var(--pop-lime, #B9E14B);
   font-weight: 700;
 }
-
-.mobile-cta {
-  font-size: 0.78rem;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.7);
-  padding: 0.45rem 0;
-  background: none;
-  border: none;
-  cursor: pointer;
-  transition: color 0.2s ease;
-}
-.mobile-cta:hover { color: #ffffff; }
-.mobile-cta.is-added { color: #7ee0a1; }
 
 @media (prefers-reduced-motion: reduce) {
   .product-card:hover { transform: none; }

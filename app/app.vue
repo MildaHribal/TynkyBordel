@@ -21,8 +21,11 @@ const organizationSchema = {
   logo: {
     '@type': 'ImageObject',
     url: `${siteUrl}/hero/logo-mushroom.png`,
-    width: 512,
-    height: 512,
+    // Must match the file's real pixel size — this asset is 200×145, not the
+    // 512×512 square previously declared here (it was never square). Google
+    // requires a logo of at least 112×112, which this clears.
+    width: 200,
+    height: 145,
   },
   image: `${siteUrl}/hero/logo-mushroom.png`,
   description: 'Autorský eshop s ručně dělanými originály — obrazy, sochy a klíčenky. Každý kousek je unikát.',
@@ -86,7 +89,12 @@ useHead({
 })
 </script>
 <template>
-    <UApp>
+    <!-- Was wrapped in <UApp>. That was the only @nuxt/ui component the app
+         ever rendered, and it cost ~200 KB of component CSS in the entry chunk
+         to provide overlay/toast portals this app doesn't use — it has its own
+         ToastHost. The module was removed and Tailwind wired straight into
+         Vite instead. -->
+    <div class="app-root">
         <ToastHost />
         <NuxtLoadingIndicator color="repeating-linear-gradient(to right, #06b6d4 0%, #8b5cf6 50%, #ec4899 100%)" :height="4" :throttle="80" />
         <NuxtLayout>
@@ -97,5 +105,5 @@ useHead({
         <ClientOnly>
             <CookieConsent />
         </ClientOnly>
-    </UApp>
+    </div>
 </template>

@@ -76,7 +76,7 @@ const formatDate = (iso: string | null) => {
     </div>
 
     <div v-if="pending" class="loading-state">
-      <Icon icon="lucide:loader-2" class="animate-spin" height="22" />
+      <Icon name="lucide:loader-2" class="animate-spin" height="22" />
       <span>Načítám...</span>
     </div>
 
@@ -88,7 +88,7 @@ const formatDate = (iso: string | null) => {
       >
         <header class="tpl-header">
           <div class="tpl-icon">
-            <Icon :icon="KEY_LABELS[tpl.key].icon" height="20" />
+            <Icon :name="KEY_LABELS[tpl.key].icon" height="20" />
           </div>
           <div class="tpl-header-copy">
             <h2 class="tpl-title">{{ KEY_LABELS[tpl.key].label }}</h2>
@@ -126,8 +126,8 @@ const formatDate = (iso: string | null) => {
             :disabled="resetingKey === tpl.key || !tpl.isCustom"
             @click="resetTemplate(tpl)"
           >
-            <Icon v-if="resetingKey === tpl.key" icon="lucide:loader-2" class="animate-spin" height="16" />
-            <Icon v-else icon="lucide:rotate-ccw" height="16" />
+            <Icon v-if="resetingKey === tpl.key" name="lucide:loader-2" class="animate-spin" height="16" />
+            <Icon v-else name="lucide:rotate-ccw" height="16" />
             Vrátit výchozí
           </button>
           <button
@@ -135,8 +135,8 @@ const formatDate = (iso: string | null) => {
             :disabled="savingKey === tpl.key"
             @click="saveTemplate(tpl)"
           >
-            <Icon v-if="savingKey === tpl.key" icon="lucide:loader-2" class="animate-spin" height="16" />
-            <Icon v-else icon="lucide:save" height="16" />
+            <Icon v-if="savingKey === tpl.key" name="lucide:loader-2" class="animate-spin" height="16" />
+            <Icon v-else name="lucide:save" height="16" />
             Uložit
           </button>
         </footer>

@@ -21,7 +21,7 @@ const ico = orPlaceholder(BUSINESS.ico, 'IČO');
     <div class="glass-card-strong p-6 md:p-10 space-y-8">
       <section>
         <h2 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
-          <Icon icon="mdi:store-outline" class="text-primary-400" />
+          <Icon name="mdi:store-outline" class="text-primary-400" />
           1. Prodávající
         </h2>
         <div class="p-5 bg-white/5 border border-white/5 rounded-2xl space-y-1 text-sm">
@@ -41,7 +41,7 @@ const ico = orPlaceholder(BUSINESS.ico, 'IČO');
 
       <section>
         <h2 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
-          <Icon icon="mdi:info-outline" class="text-primary-400" />
+          <Icon name="mdi:info-outline" class="text-primary-400" />
           2. Úvodní ustanovení
         </h2>
         <ul class="list-disc list-inside space-y-2 ml-4">
@@ -56,7 +56,7 @@ const ico = orPlaceholder(BUSINESS.ico, 'IČO');
 
       <section>
         <h2 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
-          <Icon icon="mdi:file-certificate-outline" class="text-secondary-400" />
+          <Icon name="mdi:file-certificate-outline" class="text-secondary-400" />
           3. Objednávka a uzavření kupní smlouvy
         </h2>
         <ul class="list-disc list-inside space-y-2 ml-4">
@@ -70,7 +70,7 @@ const ico = orPlaceholder(BUSINESS.ico, 'IČO');
 
       <section>
         <h2 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
-          <Icon icon="mdi:currency-usd" class="text-emerald-400" />
+          <Icon name="mdi:currency-usd" class="text-emerald-400" />
           4. Ceny a platba
         </h2>
         <ul class="list-disc list-inside space-y-2 ml-4">
@@ -85,7 +85,7 @@ const ico = orPlaceholder(BUSINESS.ico, 'IČO');
 
       <section>
         <h2 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
-          <Icon icon="mdi:truck-delivery-outline" class="text-sky-400" />
+          <Icon name="mdi:truck-delivery-outline" class="text-sky-400" />
           5. Doprava a doručení
         </h2>
         <ul class="list-disc list-inside space-y-2 ml-4">
@@ -100,7 +100,7 @@ const ico = orPlaceholder(BUSINESS.ico, 'IČO');
 
       <section>
         <h2 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
-          <Icon icon="mdi:undo-variant" class="text-orange-400" />
+          <Icon name="mdi:undo-variant" class="text-orange-400" />
           6. Odstoupení od smlouvy
         </h2>
         <p class="mb-3">
@@ -121,7 +121,7 @@ const ico = orPlaceholder(BUSINESS.ico, 'IČO');
 
       <section>
         <h2 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
-          <Icon icon="mdi:shield-check-outline" class="text-amber-400" />
+          <Icon name="mdi:shield-check-outline" class="text-amber-400" />
           7. Práva z vadného plnění a reklamace
         </h2>
         <p>
@@ -134,7 +134,7 @@ const ico = orPlaceholder(BUSINESS.ico, 'IČO');
 
       <section>
         <h2 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
-          <Icon icon="mdi:gavel" class="text-rose-400" />
+          <Icon name="mdi:gavel" class="text-rose-400" />
           8. Mimosoudní řešení sporů
         </h2>
         <p>
@@ -148,7 +148,7 @@ const ico = orPlaceholder(BUSINESS.ico, 'IČO');
 
       <section>
         <h2 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
-          <Icon icon="mdi:lock-outline" class="text-violet-400" />
+          <Icon name="mdi:lock-outline" class="text-violet-400" />
           9. Ochrana osobních údajů
         </h2>
         <p>
@@ -159,7 +159,7 @@ const ico = orPlaceholder(BUSINESS.ico, 'IČO');
 
       <section>
         <h2 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
-          <Icon icon="mdi:flag-checkered" class="text-white/60" />
+          <Icon name="mdi:flag-checkered" class="text-white/60" />
           10. Závěrečná ustanovení
         </h2>
         <ul class="list-disc list-inside space-y-2 ml-4">
@@ -178,7 +178,7 @@ const ico = orPlaceholder(BUSINESS.ico, 'IČO');
 
     <div class="mt-12 text-center">
       <NuxtLink to="/" class="btn-cosmic px-8 py-3 inline-flex items-center gap-2">
-        <Icon icon="mdi:arrow-left" />
+        <Icon name="mdi:arrow-left" />
         Zpět k nakupování
       </NuxtLink>
     </div>

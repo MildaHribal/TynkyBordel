@@ -2,7 +2,7 @@
  * Storefront service worker — makes repeat visits feel instant.
  *
  * Strategy (deliberately conservative, no Workbox):
- *   • Hashed, immutable assets (/_nuxt, /_fonts, /_ipx, /hero, /bg, /uploads,
+ *   • Hashed, immutable assets (/_nuxt, /_fonts, /_ipx, /hero, /uploads,
  *     /_payload.json) → CACHE-FIRST. Their URL changes when content changes, so
  *     serving a cached copy forever is safe and means fonts/CSS/JS/images load
  *     from disk with zero network on every subsequent page.
@@ -14,13 +14,17 @@
  * The cache name carries a version; bumping it (or any deploy shipping a new SW)
  * drops every old cache on activate, so stale assets can't pile up.
  */
-const VERSION = 'v3'
+// Bump on any deploy that changes an asset's *bytes* without changing its URL.
+// v4: public/ images were recompressed in place (scripts/optimize-images.mjs) and
+// /bg/ was removed — v3 clients would otherwise serve the old, larger copies from
+// the cache-first asset cache forever.
+const VERSION = 'v4'
 const ASSET_CACHE = `tynky-assets-${VERSION}`
 const PAGE_CACHE = `tynky-pages-${VERSION}`
 
 // URL path prefixes whose responses are safe to cache forever (content-hashed
 // or content-stable, long-lived assets).
-const IMMUTABLE = ['/_nuxt/', '/_fonts/', '/_ipx/', '/hero/', '/bg/', '/uploads/', '/pwa/']
+const IMMUTABLE = ['/_nuxt/', '/_fonts/', '/_ipx/', '/hero/', '/uploads/', '/pwa/']
 
 self.addEventListener('install', () => {
   self.skipWaiting()

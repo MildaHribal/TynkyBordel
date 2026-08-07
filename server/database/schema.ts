@@ -1,5 +1,5 @@
-import { pgTable, serial, text, doublePrecision, integer, timestamp, jsonb, boolean } from 'drizzle-orm/pg-core';
-import { relations } from 'drizzle-orm';
+import { pgTable, serial, text, doublePrecision, integer, timestamp, jsonb, boolean, uniqueIndex, check } from 'drizzle-orm/pg-core';
+import { relations, sql } from 'drizzle-orm';
 
 // ── Better-auth: user ────────────────────────────────────────────────────────
 // Better-auth expects: id (text), name, email, emailVerified (bool), image, createdAt, updatedAt
@@ -109,6 +109,11 @@ export const orders = pgTable('orders', {
   totalPrice: doublePrecision('total_price').notNull(),
   status: text('status').notNull().default('pending'),
   paymentStatus: text('payment_status').notNull().default('unpaid'),
+  // When the payment was confirmed. Payments are NOT reconciled automatically —
+  // the admin checks the bank statement and marks the order paid, which stamps
+  // this. Nullable: unpaid orders (and every order created before this column
+  // existed) simply have no timestamp.
+  paidAt: timestamp('paid_at'),
   // When the customer ticked the terms/GDPR checkbox — evidence of consent.
   termsAcceptedAt: timestamp('terms_accepted_at'),
   createdAt: timestamp('created_at').defaultNow(),
@@ -125,6 +130,64 @@ export const orderItems = pgTable('order_items', {
   quantity: integer('quantity').notNull().default(1),
   image: text('image'),
 });
+
+// ── Fakturoid subjects ──────────────────────────────────────────────────────────
+// Maps a buyer's e-mail address to the `subject` (odběratel) we created for them
+// in Fakturoid, so a repeat buyer is never duplicated over there.
+//
+// Why its own table rather than a column on `user`: most checkouts are guest
+// checkouts — `orders.user_id` is nullable and the only identity every order is
+// guaranteed to carry is `orders.customer_email`. A column on `user` would only
+// ever cover registered buyers. It is deliberately NOT called `customers`: it
+// holds no customer data of its own (orders keep their own name/address
+// snapshot), it is purely an external-id mapping.
+//
+// `email` must be stored lower-cased/trimmed by the caller — the unique index is
+// plain, not case-insensitive.
+export const fakturoidSubjects = pgTable('fakturoid_subjects', {
+  id: serial('id').primaryKey(),
+  email: text('email').notNull(),
+  // Fakturoid subject id (numeric in API v3).
+  fakturoidId: integer('fakturoid_id').notNull(),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+}, (t) => [
+  uniqueIndex('fakturoid_subjects_email_unique_idx').on(t.email),
+]);
+
+// ── Invoices ────────────────────────────────────────────────────────────────────
+// One invoice per order, created on demand when the admin clicks "Issue invoice"
+// (never at checkout — the confirmation e-mail only carries a payment request).
+//
+// The UNIQUE INDEX on order_id is what makes issuing idempotent: two concurrent
+// clicks race to INSERT and the database rejects the loser. Do not rely on an
+// application-level "has this order been invoiced?" read instead — that check is
+// not atomic.
+//
+// No monetary column lives here on purpose: the amount belongs to the order, and
+// Fakturoid is the system of record for the issued document.
+export const invoices = pgTable('invoices', {
+  id: serial('id').primaryKey(),
+  orderId: integer('order_id').notNull().references(() => orders.id, { onDelete: 'cascade' }),
+  // 'pending' — row claimed, Fakturoid call not finished yet
+  // 'issued'  — created in Fakturoid, fakturoid_id/number/pdf_key populated
+  // 'failed'  — the call failed; `error` says why, the row may be retried
+  status: text('status').$type<'pending' | 'issued' | 'failed'>().notNull().default('pending'),
+  // Fakturoid invoice id (numeric in API v3).
+  fakturoidId: integer('fakturoid_id'),
+  // Human-facing invoice number as assigned by Fakturoid, e.g. "2026-0001".
+  number: text('number'),
+  // Storage key of the archived PDF.
+  pdfKey: text('pdf_key'),
+  // When the invoice was e-mailed to the customer.
+  sentAt: timestamp('sent_at'),
+  // Last failure message, for the admin to see why issuing did not work.
+  error: text('error'),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+}, (t) => [
+  uniqueIndex('invoices_order_id_unique_idx').on(t.orderId),
+  check('invoices_status_check', sql`${t.status} IN ('pending', 'issued', 'failed')`),
+]);
 
 // ── Reviews ─────────────────────────────────────────────────────────────────────
 export const reviews = pgTable('reviews', {
@@ -188,6 +251,11 @@ export const accountRelations = relations(account, ({ one }) => ({
 export const ordersRelations = relations(orders, ({ many, one }) => ({
   items: many(orderItems),
   user: one(user, { fields: [orders.userId], references: [user.id] }),
+  invoice: one(invoices, { fields: [orders.id], references: [invoices.orderId] }),
+}));
+
+export const invoicesRelations = relations(invoices, ({ one }) => ({
+  order: one(orders, { fields: [invoices.orderId], references: [orders.id] }),
 }));
 
 export const reviewsRelations = relations(reviews, ({ one }) => ({

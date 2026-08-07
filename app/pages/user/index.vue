@@ -155,20 +155,20 @@ const itemLink = (item: any) => (item?.productId ? `/product/${item.productId}` 
 
         <nav class="glass-card-strong p-2 flex flex-row flex-wrap md:flex-col gap-2 justify-center md:justify-start">
           <button @click="activeTab = 'profile'" :class="['flex items-center gap-2 px-3 py-2 md:px-4 md:py-3 rounded-lg text-sm font-medium transition-colors text-left whitespace-nowrap flex-grow md:flex-grow-0', activeTab === 'profile' ? 'bg-white/10 text-white' : 'text-white/60 hover:bg-white/5 hover:text-white']">
-            <Icon icon="mdi:account-outline" height="20" /> <span class="hidden sm:inline">Osobní údaje</span><span class="sm:hidden">Profil</span>
+            <Icon name="mdi:account-outline" height="20" /> <span class="hidden sm:inline">Osobní údaje</span><span class="sm:hidden">Profil</span>
           </button>
           <button @click="activeTab = 'orders'" :class="['flex items-center gap-2 px-3 py-2 md:px-4 md:py-3 rounded-lg text-sm font-medium transition-colors text-left whitespace-nowrap flex-grow md:flex-grow-0', activeTab === 'orders' ? 'bg-white/10 text-white' : 'text-white/60 hover:bg-white/5 hover:text-white']">
-            <Icon icon="mdi:shopping-outline" height="20" /> <span class="hidden sm:inline">Moje objednávky</span><span class="sm:hidden">Objednávky</span>
+            <Icon name="mdi:shopping-outline" height="20" /> <span class="hidden sm:inline">Moje objednávky</span><span class="sm:hidden">Objednávky</span>
           </button>
           <button @click="activeTab = 'favorites'" :class="['flex items-center gap-2 px-3 py-2 md:px-4 md:py-3 rounded-lg text-sm font-medium transition-colors text-left whitespace-nowrap flex-grow md:flex-grow-0', activeTab === 'favorites' ? 'bg-white/10 text-white' : 'text-white/60 hover:bg-white/5 hover:text-white']">
-            <Icon icon="mdi:heart-outline" height="20" /> <span class="hidden sm:inline">Oblíbené</span><span class="sm:hidden">Oblíbené</span>
+            <Icon name="mdi:heart-outline" height="20" /> <span class="hidden sm:inline">Oblíbené</span><span class="sm:hidden">Oblíbené</span>
           </button>
           <button @click="activeTab = 'reviews'" :class="['flex items-center gap-2 px-3 py-2 md:px-4 md:py-3 rounded-lg text-sm font-medium transition-colors text-left whitespace-nowrap flex-grow md:flex-grow-0', activeTab === 'reviews' ? 'bg-white/10 text-white' : 'text-white/60 hover:bg-white/5 hover:text-white']">
-            <Icon icon="mdi:star-outline" height="20" /> <span class="hidden sm:inline">Moje recenze</span><span class="sm:hidden">Recenze</span>
+            <Icon name="mdi:star-outline" height="20" /> <span class="hidden sm:inline">Moje recenze</span><span class="sm:hidden">Recenze</span>
           </button>
           <div class="w-full h-px bg-white/10 my-1 md:block hidden"></div>
           <button @click="handleSignOut" class="flex items-center gap-2 px-3 py-2 md:px-4 md:py-3 rounded-lg text-sm font-medium text-red-400 hover:bg-red-500/10 transition-colors text-left whitespace-nowrap flex-grow md:flex-grow-0 w-full md:w-auto justify-center md:justify-start mt-2 md:mt-0 border md:border-none border-red-500/20">
-            <Icon icon="mdi:logout" height="20" /> Odhlásit se
+            <Icon name="mdi:logout" height="20" /> Odhlásit se
           </button>
         </nav>
       </div>
@@ -244,8 +244,8 @@ const itemLink = (item: any) => (item?.productId ? `/product/${item.productId}` 
 
             <div class="pt-6 border-t border-white/10 mt-8 flex justify-end">
               <button type="submit" :disabled="isSaving" class="btn-cosmic px-8 flex items-center gap-2">
-                <Icon v-if="isSaving" icon="lucide:loader-2" class="animate-spin" height="18" />
-                <Icon v-else icon="mdi:content-save-outline" height="18" />
+                <Icon v-if="isSaving" name="lucide:loader-2" class="animate-spin" height="18" />
+                <Icon v-else name="mdi:content-save-outline" height="18" />
                 {{ isSaving ? 'Ukládám...' : 'Uložit změny' }}
               </button>
             </div>
@@ -281,7 +281,7 @@ const itemLink = (item: any) => (item?.productId ? `/product/${item.productId}` 
                     {{ statusLabel(order.status) }}
                   </span>
                   <Icon
-                    icon="mdi:chevron-down" height="22"
+                    name="mdi:chevron-down" height="22"
                     class="text-white/40 transition-transform duration-200 flex-shrink-0"
                     :class="{ 'rotate-180': expandedOrder === order.id }"
                   />
@@ -343,7 +343,7 @@ const itemLink = (item: any) => (item?.productId ? `/product/${item.productId}` 
                       <div class="text-sm text-white truncate">{{ item.title }}</div>
                       <div class="text-xs text-white/40">{{ item.quantity }} × {{ item.price }} Kč</div>
                     </div>
-                    <Icon v-if="itemLink(item)" icon="mdi:arrow-right" height="16" class="text-white/30 flex-shrink-0" />
+                    <Icon v-if="itemLink(item)" name="mdi:arrow-right" height="16" class="text-white/30 flex-shrink-0" />
                   </component>
                 </div>
               </div>
@@ -352,7 +352,7 @@ const itemLink = (item: any) => (item?.productId ? `/product/${item.productId}` 
 
           <div v-else class="text-center py-12">
             <div class="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mx-auto mb-4 text-white/20">
-              <Icon icon="mdi:shopping-off-outline" height="32" />
+              <Icon name="mdi:shopping-off-outline" height="32" />
             </div>
             <p class="text-white/60 mb-6">Zatím nemáte žádné objednávky.</p>
             <NuxtLink to="/" class="btn-cosmic inline-block">Začít nakupovat</NuxtLink>
@@ -362,7 +362,7 @@ const itemLink = (item: any) => (item?.productId ? `/product/${item.productId}` 
         <!-- ── FAVORITES ── -->
         <div v-else-if="activeTab === 'favorites'" class="glass-card-strong p-6 md:p-8 animate-fade-in min-h-[500px]">
           <h2 class="text-2xl font-bold text-white mb-6 pb-4 border-b border-white/10 flex items-center gap-2">
-            <Icon icon="mdi:heart" class="text-secondary-500" /> Oblíbené produkty
+            <Icon name="mdi:heart" class="text-secondary-500" /> Oblíbené produkty
           </h2>
 
           <div v-if="favoritesPending" class="grid grid-cols-2 sm:grid-cols-3 gap-4">
@@ -391,7 +391,7 @@ const itemLink = (item: any) => (item?.productId ? `/product/${item.productId}` 
 
           <div v-else class="text-center py-12">
             <div class="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mx-auto mb-4 text-white/20">
-              <Icon icon="mdi:heart-broken-outline" height="32" />
+              <Icon name="mdi:heart-broken-outline" height="32" />
             </div>
             <p class="text-white/60">Zatím nemáte oblíbené žádné produkty.</p>
           </div>
@@ -426,7 +426,7 @@ const itemLink = (item: any) => (item?.productId ? `/product/${item.productId}` 
                     <div class="text-xs text-white/40">{{ review.createdAt ? new Date(review.createdAt).toLocaleDateString('cs-CZ') : '' }}</div>
                   </div>
                   <div class="flex text-yellow-500 mb-2">
-                    <Icon v-for="n in 5" :key="n" :icon="n <= review.rating ? 'mdi:star' : 'mdi:star-outline'" height="16" />
+                    <Icon v-for="n in 5" :key="n" :name="n <= review.rating ? 'mdi:star' : 'mdi:star-outline'" height="16" />
                   </div>
                   <p class="text-sm text-white/70 italic">&bdquo;{{ review.comment }}&ldquo;</p>
                 </div>
@@ -436,7 +436,7 @@ const itemLink = (item: any) => (item?.productId ? `/product/${item.productId}` 
 
           <div v-else class="text-center py-12">
             <div class="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mx-auto mb-4 text-white/20">
-              <Icon icon="mdi:comment-outline" height="32" />
+              <Icon name="mdi:comment-outline" height="32" />
             </div>
             <p class="text-white/60">Zatím jste nenapsali žádnou recenzi.</p>
           </div>

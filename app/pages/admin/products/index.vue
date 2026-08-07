@@ -135,6 +135,7 @@ function openCreate() {
   uploadError.value = ''
   pickerPath.value = []
   showNewCat.value = false
+  closeCropper()
   showModal.value = true
 }
 function openEdit(product: any) {
@@ -153,31 +154,95 @@ function openEdit(product: any) {
   uploadError.value = ''
   pickerPath.value = []
   showNewCat.value = false
+  closeCropper()
   showModal.value = true
 }
 
-async function handleImageUpload(event: Event) {
+// ── Photo editor (ImageCropper) ───────────────────────────────────────────
+// Nothing is uploaded raw any more: every picked file goes through the 5:4
+// cropper first, so the photo the owner frames is exactly what the product card
+// shows. Files are queued — the editor walks them one at a time.
+const cropQueue = ref<File[]>([])
+// Set only when re-editing an image that is already in `form.images`; the result
+// then replaces that slot instead of appending a new one.
+const cropReplaceIndex = ref<number | null>(null)
+const preparingEdit = ref<number | null>(null)
+
+// Uploads are chained so two quick "Použít" clicks can't race each other into
+// form.images in the wrong order.
+let uploadChain: Promise<void> = Promise.resolve()
+let inflightUploads = 0
+
+function handleImageUpload(event: Event) {
   const input = event.target as HTMLInputElement
   const files = input.files
   if (!files || files.length === 0) return
   const remaining = MAX_IMAGES - form.value.images.length
+  // Clear the input straight away so picking the same file twice still fires.
+  input.value = ''
   if (remaining <= 0) { uploadError.value = `Maximálně ${MAX_IMAGES} obrázků`; return }
-  const filesToUpload = Array.from(files).slice(0, remaining)
-  uploading.value = true
   uploadError.value = ''
+  cropReplaceIndex.value = null
+  cropQueue.value = Array.from(files).slice(0, remaining)
+}
+
+async function uploadCropped(blob: Blob, fileName: string, replaceIndex: number | null) {
+  inflightUploads += 1
+  uploading.value = true
   try {
-    for (const file of filesToUpload) {
-      const formData = new FormData()
-      formData.append('file', file)
-      const result = await $fetch<{ url: string }>('/api/admin/upload', { method: 'POST', body: formData })
+    const formData = new FormData()
+    formData.append('file', blob, fileName)
+    const result = await $fetch<{ url: string }>('/api/admin/upload', { method: 'POST', body: formData })
+    if (replaceIndex !== null && replaceIndex >= 0 && replaceIndex < form.value.images.length) {
+      const previous = form.value.images[replaceIndex]
+      form.value.images[replaceIndex] = result.url
+      if (form.value.image === previous || !form.value.image) form.value.image = result.url
+    } else if (form.value.images.length < MAX_IMAGES) {
       form.value.images.push(result.url)
       if (!form.value.image) form.value.image = result.url
+    } else {
+      uploadError.value = `Maximálně ${MAX_IMAGES} obrázků`
     }
   } catch (e: any) {
-    uploadError.value = e.data?.message || e.message || 'Chyba při nahrávání'
+    uploadError.value = e.data?.message || e.data?.statusMessage || e.message || 'Chyba při nahrávání'
   } finally {
-    uploading.value = false
-    input.value = ''
+    inflightUploads -= 1
+    if (inflightUploads === 0) uploading.value = false
+  }
+}
+
+function onCropApply(result: { blob: Blob; previewUrl: string; fileName: string }) {
+  const replaceIndex = cropReplaceIndex.value
+  uploadChain = uploadChain
+    .then(() => uploadCropped(result.blob, result.fileName, replaceIndex))
+    // The cropper hands over the object URL; we own it from here on.
+    .finally(() => URL.revokeObjectURL(result.previewUrl))
+}
+
+function closeCropper() {
+  cropQueue.value = []
+  cropReplaceIndex.value = null
+}
+
+// Re-crop an image that's already attached. The original upload is gone (the
+// server keeps only the re-encoded WebP), so we pull that file back down and
+// feed it to the editor again.
+async function editImage(index: number) {
+  const url = form.value.images[index]
+  if (!url || preparingEdit.value !== null) return
+  preparingEdit.value = index
+  uploadError.value = ''
+  try {
+    const res = await fetch(getImageSrc(url))
+    if (!res.ok) throw new Error('fetch failed')
+    const blob = await res.blob()
+    const name = url.split('/').pop() || 'obrazek.webp'
+    cropReplaceIndex.value = index
+    cropQueue.value = [new File([blob], name, { type: blob.type || 'image/webp' })]
+  } catch {
+    uploadError.value = 'Obrázek se nepodařilo načíst k úpravě.'
+  } finally {
+    preparingEdit.value = null
   }
 }
 
@@ -250,13 +315,13 @@ function getImageSrc(image: string) {
         <p class="page-subtitle">Katalog v shopiku</p>
       </div>
       <button class="btn-primary" @click="openCreate">
-        <Icon icon="lucide:plus" height="16" /> Přidat produkt
+        <Icon name="lucide:plus" height="16" /> Přidat produkt
       </button>
     </div>
 
     <div class="filters-row">
       <div class="search-box">
-        <Icon icon="lucide:search" height="16" class="search-icon" />
+        <Icon name="lucide:search" height="16" class="search-icon" />
         <input v-model="searchQuery" type="text" placeholder="Hledat produkty…" class="search-input" />
       </div>
       <select v-model="selectedCategory" class="filter-select">
@@ -268,7 +333,7 @@ function getImageSrc(image: string) {
     <p class="results-count" v-if="!pending">{{ filteredProducts.length }} produktů</p>
 
     <div v-if="pending" class="loading">
-      <Icon icon="lucide:loader-2" height="20" class="spin" /> Načítání…
+      <Icon name="lucide:loader-2" height="20" class="spin" /> Načítání…
     </div>
 
     <div v-else class="admin-card">
@@ -290,7 +355,7 @@ function getImageSrc(image: string) {
                 <div class="product-cell">
                   <div class="product-thumb">
                     <img v-if="p.image" :src="getImageSrc(p.image)" :alt="p.title" />
-                    <Icon v-else icon="lucide:image" height="18" />
+                    <Icon v-else name="lucide:image" height="18" />
                   </div>
                   <div>
                     <span class="product-name">{{ p.title }}</span>
@@ -309,7 +374,7 @@ function getImageSrc(image: string) {
               <td class="cell-actions">
                 <div class="actions-cell">
                   <button class="action-btn" @click="openEdit(p)" title="Upravit">
-                    <Icon icon="lucide:pencil" height="14" />
+                    <Icon name="lucide:pencil" height="14" />
                   </button>
                   <button
                     class="action-btn delete-btn"
@@ -317,7 +382,7 @@ function getImageSrc(image: string) {
                     :disabled="deletingId === p.id"
                     title="Smazat"
                   >
-                    <Icon :icon="deletingId === p.id ? 'lucide:loader-2' : 'lucide:trash-2'" height="14" :class="{ spin: deletingId === p.id }" />
+                    <Icon :name="deletingId === p.id ? 'lucide:loader-2' : 'lucide:trash-2'" height="14" :class="{ spin: deletingId === p.id }" />
                   </button>
                 </div>
               </td>
@@ -335,7 +400,7 @@ function getImageSrc(image: string) {
             <div class="modal-header">
               <h3 class="modal-title">{{ isEditing ? 'Upravit produkt' : 'Nový produkt' }}</h3>
               <button @click="showModal = false" class="modal-close" aria-label="Zavřít">
-                <Icon icon="lucide:x" height="18" />
+                <Icon name="lucide:x" height="18" />
               </button>
             </div>
 
@@ -362,10 +427,10 @@ function getImageSrc(image: string) {
               <div class="form-group">
                 <label class="form-label">Kategorie</label>
                 <div v-if="form.categoryId" class="selected-cat">
-                  <Icon icon="lucide:check" height="14" />
+                  <Icon name="lucide:check" height="14" />
                   <span>{{ getCategoryPath(form.categoryId) }}</span>
                   <button type="button" class="cat-clear" @click="form.categoryId = null; form.category = ''">
-                    <Icon icon="lucide:x" height="12" />
+                    <Icon name="lucide:x" height="12" />
                   </button>
                 </div>
 
@@ -388,7 +453,7 @@ function getImageSrc(image: string) {
                       @click="selectLevel(cat)"
                     >
                       <span>{{ cat.name }}</span>
-                      <Icon v-if="cat.children?.length" icon="lucide:chevron-right" height="12" />
+                      <Icon v-if="cat.children?.length" name="lucide:chevron-right" height="12" />
                     </button>
                     <div v-if="currentLevelCategories.length === 0" class="picker-empty">
                       Žádné podkategorie
@@ -400,14 +465,14 @@ function getImageSrc(image: string) {
                     class="picker-confirm"
                     @click="setFinalCategory(pickerPath[pickerPath.length - 1])"
                   >
-                    <Icon icon="lucide:check" height="14" />
+                    <Icon name="lucide:check" height="14" />
                     Zvolit „{{ pickerPath[pickerPath.length - 1].name }}"
                   </button>
 
                   <!-- Inline new-category creator -->
                   <div class="new-cat">
                     <button v-if="!showNewCat" type="button" class="new-cat-toggle" @click="openNewCat">
-                      <Icon icon="lucide:plus" height="14" />
+                      <Icon name="lucide:plus" height="14" />
                       Přidat novou kategorii{{ newCatParent ? ` do „${newCatParent.name}"` : '' }}
                     </button>
                     <div v-else class="new-cat-form">
@@ -424,7 +489,7 @@ function getImageSrc(image: string) {
                           @keydown.esc.prevent="showNewCat = false"
                         />
                         <button type="button" class="btn-primary new-cat-save" :disabled="creatingCat || !newCatName.trim()" @click="createCategory">
-                          <Icon :icon="creatingCat ? 'lucide:loader-2' : 'lucide:check'" height="14" :class="{ spin: creatingCat }" />
+                          <Icon :name="creatingCat ? 'lucide:loader-2' : 'lucide:check'" height="14" :class="{ spin: creatingCat }" />
                           Vytvořit
                         </button>
                         <button type="button" class="btn-ghost new-cat-cancel" @click="showNewCat = false">Zrušit</button>
@@ -436,6 +501,10 @@ function getImageSrc(image: string) {
 
               <div class="form-group">
                 <label class="form-label">Obrázky (max {{ MAX_IMAGES }})</label>
+                <p class="images-note">
+                  Každou fotku si nejdřív ořízneš v editoru na formát 5:4 — přesně tak,
+                  jak se zobrazí na kartě produktu.
+                </p>
                 <div v-if="form.images.length > 0" class="images-grid">
                   <div
                     v-for="(img, index) in form.images"
@@ -445,16 +514,30 @@ function getImageSrc(image: string) {
                   >
                     <img :src="getImageSrc(img)" alt="" />
                     <div v-if="form.image === img" class="thumb-tag">
-                      <Icon icon="lucide:star" height="10" /> Náhled
+                      <Icon name="lucide:star" height="10" /> Náhled
                     </div>
                     <button type="button" class="image-remove" @click.stop="removeImage(index)" aria-label="Odebrat">
-                      <Icon icon="lucide:x" height="10" />
+                      <Icon name="lucide:x" height="10" />
+                    </button>
+                    <button
+                      type="button"
+                      class="image-edit"
+                      :disabled="preparingEdit !== null"
+                      @click.stop="editImage(index)"
+                      aria-label="Upravit výřez"
+                    >
+                      <Icon
+                        :name="preparingEdit === index ? 'lucide:loader-2' : 'lucide:crop'"
+                        height="10"
+                        :class="{ spin: preparingEdit === index }"
+                      />
+                      Upravit
                     </button>
                   </div>
                 </div>
 
                 <label v-if="form.images.length < MAX_IMAGES" class="upload-zone">
-                  <Icon :icon="uploading ? 'lucide:loader-2' : 'lucide:image-plus'" height="18" :class="{ spin: uploading }" />
+                  <Icon :name="uploading ? 'lucide:loader-2' : 'lucide:image-plus'" height="18" :class="{ spin: uploading }" />
                   <span>{{ uploading ? 'Nahrávání…' : 'Přidat obrázky' }}</span>
                   <span class="upload-hint">{{ form.images.length }}/{{ MAX_IMAGES }}</span>
                   <input type="file" accept="image/*" multiple class="upload-input" @change="handleImageUpload" :disabled="uploading" />
@@ -465,7 +548,7 @@ function getImageSrc(image: string) {
               <div class="modal-footer">
                 <button type="button" class="btn-ghost" @click="showModal = false">Zrušit</button>
                 <button type="submit" class="btn-primary" :disabled="saving || uploading">
-                  <Icon v-if="saving" icon="lucide:loader-2" height="14" class="spin" />
+                  <Icon v-if="saving" name="lucide:loader-2" height="14" class="spin" />
                   {{ isEditing ? 'Uložit' : 'Vytvořit' }}
                 </button>
               </div>
@@ -474,6 +557,15 @@ function getImageSrc(image: string) {
         </div>
       </Transition>
     </Teleport>
+
+    <!-- Photo editor — teleports itself above the product modal -->
+    <ImageCropper
+      v-if="cropQueue.length > 0"
+      :files="cropQueue"
+      :title="cropReplaceIndex !== null ? 'Upravit výřez fotky' : 'Úprava fotky'"
+      @apply="onCropApply"
+      @close="closeCropper"
+    />
   </div>
 </template>
 
@@ -630,6 +722,13 @@ function getImageSrc(image: string) {
 .new-cat-cancel { white-space: nowrap; }
 
 /* Images grid */
+.images-note {
+  margin: 0 0 0.5rem;
+  font-size: 0.78rem;
+  line-height: 1.4;
+  color: rgba(42, 19, 64, 0.55);
+  font-style: italic;
+}
 .images-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
@@ -677,6 +776,26 @@ function getImageSrc(image: string) {
   color: #b3324c;
 }
 .image-remove:hover { background: #b3324c; color: #fff; }
+/* Top-left: bottom-left is the "Náhled" tag and top-right the remove button. */
+.image-edit {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  padding: 0.14rem 0.4rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.9);
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.63rem;
+  font-weight: 700;
+  color: #b3324c;
+}
+.image-edit:hover:not(:disabled) { background: #b3324c; color: #fff; }
+.image-edit:disabled { opacity: 0.6; cursor: default; }
 
 .upload-zone {
   display: inline-flex;

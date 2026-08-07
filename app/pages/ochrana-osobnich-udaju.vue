@@ -94,7 +94,7 @@ const purposes = [
         <h2 class="text-2xl font-bold text-white mb-6">Správce údajů</h2>
         <div class="p-6 bg-white/5 border border-white/5 rounded-2xl flex items-center gap-6">
           <div class="w-16 h-16 rounded-full bg-primary-500/10 flex items-center justify-center flex-shrink-0 border border-primary-500/20">
-            <Icon icon="mdi:account-lock" height="32" class="text-primary-400" />
+            <Icon name="mdi:account-lock" height="32" class="text-primary-400" />
           </div>
           <div>
             <p class="font-bold text-white mb-1">{{ BUSINESS.legalName }}</p>
@@ -140,7 +140,7 @@ const purposes = [
         </p>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div v-for="partner in partners" :key="partner.name" class="p-5 bg-white/5 rounded-xl border border-white/5 flex gap-4">
-            <Icon :icon="partner.icon" class="text-emerald-400 mt-1 flex-shrink-0" height="24" />
+            <Icon :name="partner.icon" class="text-emerald-400 mt-1 flex-shrink-0" height="24" />
             <div>
               <p class="font-bold text-white text-sm mb-1 uppercase tracking-tight">{{ partner.name }}</p>
               <p class="text-white/40 text-xs leading-relaxed">{{ partner.description }}</p>
@@ -212,7 +212,7 @@ const purposes = [
 
     <div class="mt-12 text-center">
       <NuxtLink to="/" class="btn-cosmic px-8 py-3 inline-flex items-center gap-2">
-        <Icon icon="mdi:arrow-left" />
+        <Icon name="mdi:arrow-left" />
         Zpět na hlavní stranu
       </NuxtLink>
     </div>

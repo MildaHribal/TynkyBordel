@@ -36,7 +36,9 @@
         "posthog-node": "^5.40.0",
         "qrcode": "^1.5.4",
         "qrcode.vue": "^3.8.0",
+        "sharp": "^0.34.5",
         "stripe": "^20.4.1",
+        "tailwindcss": "^4.3.3",
         "tsx": "^4.21.0",
         "vue": "^3.5.25",
         "vue-router": "^4.6.4"
@@ -49,6 +51,7 @@
         "@iconify-json/iconamoon": "^1.2.2",
         "@iconify-json/mdi": "^1.2.3",
         "@iconify/vue": "^5.0.0",
+        "@tailwindcss/vite": "^4.3.3",
         "@types/node": "^25.0.3",
         "@vite-pwa/nuxt": "^1.1.1",
         "dotenv": "^17.3.1",

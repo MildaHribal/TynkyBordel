@@ -10,7 +10,7 @@ const { needsDecision, accept, reject } = useCookieConsent()
     <div v-if="needsDecision" class="cookie-bar" role="dialog" aria-live="polite" aria-label="Souhlas s cookies">
       <div class="cookie-inner">
         <div class="cookie-icon" aria-hidden="true">
-          <Icon icon="mdi:cookie-outline" height="22" />
+          <Icon name="mdi:cookie-outline" height="22" />
         </div>
 
         <div class="cookie-text">

@@ -45,11 +45,11 @@ const handleSubmit = async () => {
 
         <ul class="contact-list">
           <li class="contact-item">
-            <span class="contact-icon"><Icon icon="mdi:account-outline" height="18" /></span>
+            <span class="contact-icon"><Icon name="mdi:account-outline" height="18" /></span>
             <span class="contact-item-text">Kristýna Egnerová</span>
           </li>
           <li class="contact-item">
-            <span class="contact-icon"><Icon icon="mdi:email-outline" height="18" /></span>
+            <span class="contact-icon"><Icon name="mdi:email-outline" height="18" /></span>
             <a href="mailto:info@tynkybordel.shop" class="contact-item-text contact-link">info@tynkybordel.shop</a>
           </li>
         </ul>
@@ -96,9 +96,9 @@ const handleSubmit = async () => {
           :disabled="isSubmitting"
           class="form-submit"
         >
-          <Icon v-if="isSubmitting" icon="lucide:loader-2" height="20" class="animate-spin" />
+          <Icon v-if="isSubmitting" name="lucide:loader-2" height="20" class="animate-spin" />
           <span v-else>Odeslat zprávu</span>
-          <Icon v-if="!isSubmitting" icon="mdi:send" height="18" />
+          <Icon v-if="!isSubmitting" name="mdi:send" height="18" />
         </button>
       </form>
     </div>

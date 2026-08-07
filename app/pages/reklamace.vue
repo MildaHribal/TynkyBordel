@@ -55,14 +55,14 @@ async function copyTemplate() {
       <!-- Shipping Info -->
       <div class="glass-card-strong p-6 md:p-8 flex flex-col items-center text-center">
         <div class="w-16 h-16 rounded-full bg-primary-500/20 flex items-center justify-center mb-6 border border-primary-500/30">
-          <Icon icon="mdi:truck-fast-outline" height="32" class="text-primary-400" />
+          <Icon name="mdi:truck-fast-outline" height="32" class="text-primary-400" />
         </div>
         <h2 class="text-xl font-bold text-white mb-4">Doprava</h2>
         <p class="text-sm mb-6">Zboží odesíláme do 2–7 pracovních dnů (u platby předem od připsání platby).</p>
         <ul class="w-full space-y-3">
           <li v-for="method in SHIPPING_OPTIONS" :key="method.id" class="flex justify-between items-center text-sm p-3 bg-white/5 rounded-lg border border-white/5 gap-3">
             <div class="flex items-center gap-2 text-left min-w-0">
-              <Icon :icon="method.icon" class="text-primary-300 flex-shrink-0" />
+              <Icon :name="method.icon" class="text-primary-300 flex-shrink-0" />
               <span class="truncate">{{ method.name }}</span>
             </div>
             <span class="font-bold text-white whitespace-nowrap">{{ method.price }} Kč</span>
@@ -73,14 +73,14 @@ async function copyTemplate() {
       <!-- Payment Info -->
       <div class="glass-card-strong p-6 md:p-8 flex flex-col items-center text-center">
         <div class="w-16 h-16 rounded-full bg-emerald-500/20 flex items-center justify-center mb-6 border border-emerald-500/30">
-          <Icon icon="mdi:cash-multiple" height="32" class="text-emerald-400" />
+          <Icon name="mdi:cash-multiple" height="32" class="text-emerald-400" />
         </div>
         <h2 class="text-xl font-bold text-white mb-4">Platba</h2>
         <p class="text-sm mb-6">{{ CARD_PAYMENT_ENABLED ? 'Zaplatíš dobírkou, převodem na účet s QR kódem, nebo kartou přes PayPal.' : 'Zaplatíš dobírkou nebo převodem na účet s QR kódem.' }}</p>
         <ul class="w-full space-y-3">
           <li v-for="option in PAYMENT_OPTIONS" :key="option.id" class="flex justify-between items-center text-sm p-3 bg-white/5 rounded-lg border border-white/5 gap-3">
             <div class="flex items-center gap-2 text-left min-w-0">
-              <Icon icon="mdi:check-circle-outline" class="text-emerald-300 flex-shrink-0" />
+              <Icon name="mdi:check-circle-outline" class="text-emerald-300 flex-shrink-0" />
               <span class="truncate">{{ option.name }}</span>
             </div>
             <span class="text-white/50 text-xs whitespace-nowrap">{{ option.id === 'cash' ? `+ ${COD_FEE} Kč` : '' }}</span>
@@ -123,7 +123,7 @@ async function copyTemplate() {
           class="mt-4 px-6 py-3 rounded-full text-xs font-bold uppercase tracking-wider bg-white text-[#1a0f28] hover:bg-white/90 transition inline-flex items-center gap-2"
           @click="copyTemplate"
         >
-          <Icon :icon="copied ? 'mdi:check' : 'mdi:content-copy'" height="16" />
+          <Icon :name="copied ? 'mdi:check' : 'mdi:content-copy'" height="16" />
           {{ copied ? 'Zkopírováno' : 'Zkopírovat formulář' }}
         </button>
       </section>
@@ -169,7 +169,7 @@ async function copyTemplate() {
 
     <div class="mt-12 text-center">
       <NuxtLink to="/" class="btn-cosmic px-8 py-3 inline-flex items-center gap-2">
-        <Icon icon="mdi:arrow-left" />
+        <Icon name="mdi:arrow-left" />
         Zpět k nákupu
       </NuxtLink>
     </div>

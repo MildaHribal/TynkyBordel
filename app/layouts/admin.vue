@@ -92,7 +92,7 @@ onUnmounted(() => {
           :to="item.to"
           :class="['sidebar-link', { active: isActive(item.to) }]"
         >
-          <Icon :icon="item.icon" height="18" />
+          <Icon :name="item.icon" height="18" />
           <span>{{ item.label }}</span>
         </NuxtLink>
       </nav>
@@ -103,12 +103,12 @@ onUnmounted(() => {
         class="install-btn"
         title="Nainstalovat jako aplikaci"
       >
-        <Icon icon="lucide:download" height="16" />
+        <Icon name="lucide:download" height="16" />
         <span>Instalovat aplikaci</span>
       </button>
 
       <NuxtLink to="/" class="sidebar-back">
-        <Icon icon="lucide:arrow-left" height="16" />
+        <Icon name="lucide:arrow-left" height="16" />
         <span>Zpět na shop</span>
       </NuxtLink>
     </aside>
@@ -122,7 +122,7 @@ onUnmounted(() => {
         :to="item.to"
         :class="['tabbar-link', { active: isActive(item.to) }]"
       >
-        <Icon :icon="item.icon" height="21" />
+        <Icon :name="item.icon" height="21" />
         <span>{{ item.label }}</span>
       </NuxtLink>
     </nav>
