@@ -248,6 +248,17 @@ export default defineNuxtConfig({
             headers: { 'cache-control': 'public, max-age=2592000' },
         },
         '/uploads/**':  { headers: { 'cache-control': 'public, max-age=2592000' } },
+        // Self-hosted fonts carry a content hash in the filename (see
+        // scripts/build-fonts.py), so a given URL's bytes can never change —
+        // that is exactly what `immutable` is for. They were being served with
+        // no cache-control at all and fell back to an 8 h heuristic TTL, which
+        // made repeat visitors re-validate the whole typographic system.
+        '/fonts/**':    { headers: { 'cache-control': 'public, max-age=31536000, immutable' } },
+        // Brand art and PWA icons: long-lived but not content-hashed, so allow
+        // revalidation rather than promising immutability.
+        '/hero/**':     { headers: { 'cache-control': 'public, max-age=604800' } },
+        '/pwa/**':      { headers: { 'cache-control': 'public, max-age=604800' } },
+        '/logo.webp':   { headers: { 'cache-control': 'public, max-age=604800' } },
     },
 
     linkChecker: {

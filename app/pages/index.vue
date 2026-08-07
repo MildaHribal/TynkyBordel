@@ -176,7 +176,7 @@ function scrollToKolekce(e: MouseEvent) {
               <NuxtImg
                 :src="heroSrc(pic.image)" :alt="pic.title || ''"
                 width="220" height="220" format="webp" quality="78"
-                sizes="40vw md:220px"
+                sizes="160px sm:200px md:220px"
                 :loading="i === 0 ? 'eager' : 'lazy'"
                 :preload="i === 0 || undefined"
                 :fetchpriority="i === 0 ? 'high' : 'auto'"
@@ -485,7 +485,9 @@ function scrollToKolekce(e: MouseEvent) {
   font-family: var(--font-mono);
   font-weight: 700;
   font-size: 0.8rem;
-  color: var(--pop-pink-ink);
+  /* --pop-pink-ink is only 4.12:1 on the cream tile — below AA for text this
+     small. primary-700 is the same rose family at 5.83:1. */
+  color: var(--color-primary-700, #97325c);
   letter-spacing: 0.1em;
 }
 .ztile-title {
