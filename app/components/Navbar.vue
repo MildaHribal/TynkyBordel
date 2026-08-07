@@ -703,7 +703,15 @@ onUnmounted(() => {
   position: fixed;
   inset: 0;
   z-index: 100;
-  background: #ffffff;
+  /* Cream paper with the same dotted print grid as <body> and the cart drawer,
+     instead of flat white — the white sheet read as a system dialog rather than
+     part of the shop. */
+  background-color: var(--pop-cream, #F0E7D2);
+  background-image:
+    radial-gradient(rgba(32, 17, 52, 0.14) 1.3px, transparent 1.5px),
+    radial-gradient(rgba(32, 17, 52, 0.07) 1px, transparent 1.2px);
+  background-size: 26px 26px, 52px 52px;
+  background-position: 0 0, 13px 13px;
   overflow-y: auto;
 }
 .mobile-menu-inner {
@@ -722,7 +730,9 @@ onUnmounted(() => {
 }
 .mobile-menu-brand {
   font-family: var(--font-zine);
+  font-weight: 800;
   font-size: 1.5rem;
+  text-transform: uppercase;
   color: #14231a;
   text-decoration: none;
   letter-spacing: -0.01em;
@@ -734,15 +744,21 @@ onUnmounted(() => {
   width: 44px;
   height: 44px;
   border-radius: 999px;
-  background: rgba(20, 35, 26, 0.06);
+  background: #ffffff;
   color: #14231a;
-  border: none;
+  border: 2px solid var(--pop-ink, #14231a);
+  box-shadow: 2px 2px 0 rgba(20, 35, 26, 0.85);
   cursor: pointer;
-  transition: background 0.2s ease, transform 0.2s ease;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.2s ease;
 }
 .mobile-close-btn:hover {
-  background: rgba(20, 35, 26, 0.12);
-  transform: rotate(90deg);
+  background: var(--pop-pink, #E585AA);
+  transform: translate(-1px, -1px);
+  box-shadow: 3px 3px 0 rgba(20, 35, 26, 0.85);
+}
+.mobile-close-btn:active {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0 rgba(20, 35, 26, 0.85);
 }
 
 /* Obal inputu + výsledků; rodičovský `gap` na ně už nesahá, řeší si ho sám. */
@@ -756,10 +772,10 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   gap: 0.6rem;
-  padding: 0.85rem 1rem;
-  background: #f1ebdf;
-  border: 1px solid rgba(20, 35, 26, 0.1);
-  border-radius: 1rem;
+  padding: 0.8rem 1rem;
+  background: #fbf7ee;
+  border: 2px solid var(--pop-ink, #14231a);
+  border-radius: 9px;
 }
 .mobile-search-icon { color: rgba(20, 35, 26, 0.55); flex-shrink: 0; }
 .mobile-search-input {
@@ -804,22 +820,25 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   gap: 0.9rem;
-  padding: 1rem 1.1rem;
-  background: #f1ebdf;
-  border: 1px solid rgba(20, 35, 26, 0.06);
-  border-radius: 0.9rem;
+  padding: 0.95rem 1.1rem;
+  background: #fbf7ee;
+  border: 2px solid var(--pop-ink, #14231a);
+  border-radius: 10px;
+  box-shadow: 3px 3px 0 rgba(20, 35, 26, 0.85);
   text-decoration: none;
-  font-family: var(--font-body);
+  font-family: var(--font-mono, monospace);
   font-weight: 700;
-  font-size: 0.85rem;
-  letter-spacing: 0.05em;
+  font-size: 0.78rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
   color: var(--pop-ink);
-  transition: transform 0.2s ease, background 0.2s ease;
+  transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.2s ease;
   cursor: pointer;
   width: 100%;
   text-align: left;
 }
-.mobile-link:hover { transform: translateX(3px); background: #ede4d3; }
+.mobile-link:hover { transform: translate(-1px, -1px); box-shadow: 4px 4px 0 rgba(20, 35, 26, 0.85); background: var(--pop-pink, #E585AA); }
+.mobile-link:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 rgba(20, 35, 26, 0.85); }
 .mobile-link--danger { color: #8a2a2a; }
 .mobile-badge {
   margin-left: auto;

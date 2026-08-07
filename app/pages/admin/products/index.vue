@@ -175,15 +175,19 @@ let inflightUploads = 0
 
 function handleImageUpload(event: Event) {
   const input = event.target as HTMLInputElement
-  const files = input.files
-  if (!files || files.length === 0) return
-  const remaining = MAX_IMAGES - form.value.images.length
-  // Clear the input straight away so picking the same file twice still fires.
+  if (!input.files || input.files.length === 0) return
+  // Copy the FileList into a real array BEFORE clearing the input. `input.files`
+  // is a LIVE FileList — resetting `input.value` empties it, so reading it
+  // afterwards yields nothing and the editor never opens.
+  const picked = Array.from(input.files)
+  // Clearing lets the same file be picked again and still fire `change`.
   input.value = ''
+
+  const remaining = MAX_IMAGES - form.value.images.length
   if (remaining <= 0) { uploadError.value = `Maximálně ${MAX_IMAGES} obrázků`; return }
   uploadError.value = ''
   cropReplaceIndex.value = null
-  cropQueue.value = Array.from(files).slice(0, remaining)
+  cropQueue.value = picked.slice(0, remaining)
 }
 
 async function uploadCropped(blob: Blob, fileName: string, replaceIndex: number | null) {
