@@ -33,6 +33,22 @@ export default defineNuxtConfig({
 
     features: { inlineStyles: true },
 
+    // @nuxt/icon: bundle every icon the source references straight into the
+    // CLIENT JS. Without this, the client @nuxt/icon runtime fetches icon data
+    // from /api/_nuxt_icon/*.json on demand after hydration — and on production
+    // that fetch fails (Cloudflare in front + `/api/**` is `no-store`), so the
+    // hydrated page throws away the correct SSR glyphs and shows the loading
+    // placeholder instead (the "broken flower" shape). `scan: true` greps the
+    // source for `collection:name` string literals — which covers the ternary
+    // and object-driven `:name` bindings too, since those names are literals in
+    // the source — so the icons ship in the bundle and never need a runtime call.
+    icon: {
+        clientBundle: {
+            scan: true,
+            sizeLimitKb: 1024,
+        },
+    },
+
     app: {
         head: {
             htmlAttrs: { lang: 'cs' },
