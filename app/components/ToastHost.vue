@@ -1,16 +1,19 @@
 <script setup lang="ts">
 const { toasts, remove } = useCosmicToast()
 
-// Opaque backgrounds + white text so toasts are readable on ANY page background
+// Opaque backgrounds + light text so toasts are readable on ANY page background
 // (the light checkout/pastel pages made the old translucent variants invisible).
+// The colours moved out of Tailwind utilities and into the scoped stylesheet
+// below so the neutral toast can follow the palette tokens; the two status
+// toasts stay deliberately constant — see the comment there.
 const variantClasses = (variant: string) => {
   switch (variant) {
     case 'success':
-      return 'border-green-400/40 bg-green-600 text-white'
+      return 'toast-item--success'
     case 'error':
-      return 'border-red-400/40 bg-red-600 text-white'
+      return 'toast-item--error'
     default:
-      return 'border-white/15 bg-[#14231a] text-white'
+      return 'toast-item--info'
   }
 }
 </script>
@@ -64,9 +67,39 @@ const variantClasses = (variant: string) => {
   gap: 12px;
   padding: 12px 14px;
   border-radius: 14px;
+  /* Every toast fill is dark in BOTH themes, so the hairline is a constant
+     light alpha rather than --pop-line (which is dark ink in light mode and
+     would disappear against the fill it is supposed to outline). */
   border: 1px solid rgba(255, 255, 255, 0.12);
   backdrop-filter: blur(14px);
   box-shadow: 0 18px 60px rgba(0, 0, 0, 0.45);
+}
+
+/* ── Variants ───────────────────────────────────────────────────────────────
+   The neutral toast is the app's dark panel, so it takes --pop-panel /
+   --pop-on-dark and drifts with the theme.
+
+   The two status toasts do NOT: green and red carry meaning, and a status
+   colour that changed between themes would be a different signal. They stay
+   constant — and they are the one place where the light theme moves. The old
+   fills were Tailwind green-600 / red-600, which measure 3.30:1 and 3.82:1
+   against the white body text (AA wants 4.5:1) in BOTH themes. Stepping to
+   green-800 / red-700 keeps the same hue and clears it at 5.66:1 and 5.01:1.
+   White, not --pop-on-dark: the cream is only 4.08:1 on green-800. */
+.toast-item--info {
+  background: var(--pop-panel, #201c19);
+  color: var(--pop-on-dark, #F0E7D2);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+.toast-item--success {
+  background: #166534;
+  color: #ffffff;
+  border-color: rgba(74, 222, 128, 0.4);   /* green-400/40, unchanged */
+}
+.toast-item--error {
+  background: #b91c1c;
+  color: #ffffff;
+  border-color: rgba(248, 113, 113, 0.4);  /* red-400/40, unchanged */
 }
 
 .toast-title {

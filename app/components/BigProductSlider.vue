@@ -94,7 +94,7 @@ defineExpose({ next, prev });
             width="1000"
             height="1000"
             format="webp"
-            quality="74"
+            quality="75"
             sizes="sm:100vw md:60vw lg:900px"
             loading="eager"
             fetchpriority="high"
@@ -156,6 +156,41 @@ defineExpose({ next, prev });
 </template>
 
 <style scoped>
+/* ── Local colours ─────────────────────────────────────────────────────────
+   Two colour families live in this component and only one of them is
+   theme-dependent.
+
+   THEME-INVARIANT (left as literals on purpose): every #000000 below, the
+   white arrow discs, the dots pill and the whole @media (max-width: 767px)
+   block. All of them sit ON the black slide frame — the product photos are
+   shot on a black seamless and the frame is the photograph continuing past
+   its own edge — so that ground does not change between themes and neither
+   may anything painted on it. Tokenising them would make the frame drift
+   away from the photo in one theme or the other.
+
+   THEME-DEPENDENT: the description card, which is a paper card lifted off
+   the frame. It is --pop-sheet, so its contents ride the --pop-* ink tokens.
+   The one thing the shared palette has no answer for is the "Koupit" pill:
+   it is a dark fill on that card, and in dark mode the card is itself dark,
+   so the pill has to invert with it. --pop-panel stays dark in both themes
+   and would sink into the card; --pop-ink inverts correctly but has no
+   matching hover step. Hence the local trio — light values are exactly the
+   ones the component shipped with (#1a0f28 was a leftover from the pre-zine
+   cosmic palette). Guarded like main.css: with no light-dark() the plain
+   block stands and light mode is untouched. */
+.big-slider {
+  --slide-cta-bg: #1a0f28;
+  --slide-cta-bg-hover: #14231a;
+  --slide-cta-fg: #ffffff;
+}
+@supports (color: light-dark(#fff, #000)) {
+  .big-slider {
+    --slide-cta-bg: light-dark(#1a0f28, #EFE6F6);
+    --slide-cta-bg-hover: light-dark(#14231a, #ffffff);
+    --slide-cta-fg: light-dark(#ffffff, #241934);
+  }
+}
+
 .big-slider {
   position: relative;
   max-width: 1400px;
@@ -163,8 +198,8 @@ defineExpose({ next, prev });
   border-radius: 1.75rem;
   overflow: hidden;
   background: #000000;
-  box-shadow: 0 14px 40px rgba(20, 35, 26, 0.18);
-  border: 1px solid rgba(20, 35, 26, 0.1);
+  box-shadow: 0 14px 40px var(--pop-shadow-soft);
+  border: 1px solid var(--pop-line);
 }
 
 /* Mobile: stacked — a square image on top (product fully visible on black), the
@@ -228,7 +263,9 @@ defineExpose({ next, prev });
 }
 
 .slide-card {
-  background: #ffffff;
+  /* The crisp white sticker fill — #ffffff in light, #33244C in dark. It has
+     to be a token, because var(--pop-ink) below inverts to near-white. */
+  background: var(--pop-sheet);
   color: var(--pop-ink);
   border-radius: 1rem;
   padding: 1.5rem;
@@ -251,7 +288,10 @@ defineExpose({ next, prev });
   font-size: 0.7rem;
   letter-spacing: 0.22em;
   text-transform: uppercase;
-  color: rgba(20, 35, 26, 0.6);
+  /* Was a flat 60% ink, which main.css measures at 4.37:1 on white — under AA.
+     --pop-ink-mute is the palette's muted-text token and exists at 0.64 for
+     exactly this reason (4.96:1), and it inverts for dark. */
+  color: var(--pop-ink-mute);
   font-weight: 700;
   margin-bottom: 0.65rem;
 }
@@ -274,7 +314,7 @@ defineExpose({ next, prev });
   font-weight: 500;
   font-size: 0.92rem;
   line-height: 1.55;
-  color: rgba(20, 35, 26, 0.78);
+  color: color-mix(in srgb, var(--pop-ink) 78%, transparent);
   margin: 0 0 1.25rem;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -290,7 +330,7 @@ defineExpose({ next, prev });
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  border-top: 1px solid rgba(20, 35, 26, 0.1);
+  border-top: 1px solid var(--pop-line);
   padding-top: 0.9rem;
 }
 .slide-price {
@@ -305,8 +345,8 @@ defineExpose({ next, prev });
   align-items: center;
   gap: 0.4rem;
   padding: 0.65rem 1.1rem;
-  background: #1a0f28;
-  color: #ffffff;
+  background: var(--slide-cta-bg);
+  color: var(--slide-cta-fg);
   border-radius: 9999px;
   font-family: var(--font-body);
   font-weight: 700;
@@ -317,7 +357,7 @@ defineExpose({ next, prev });
   transition: background 0.2s ease, transform 0.2s ease;
 }
 .slide-cta:hover {
-  background: #14231a;
+  background: var(--slide-cta-bg-hover);
   transform: translateY(-1px);
 }
 
@@ -356,8 +396,11 @@ defineExpose({ next, prev });
   width: 44px;
   height: 44px;
   border-radius: 9999px;
+  /* The disc is theme-invariant white (it sits on the black frame), so its
+     glyph is --pop-ink-on-accent — the palette's ink that stays dark in both
+     themes. Plain --pop-ink would invert to near-white and erase the chevron. */
   background: rgba(255, 255, 255, 0.92);
-  color: var(--pop-ink);
+  color: var(--pop-ink-on-accent);
   border: none;
   display: flex;
   align-items: center;

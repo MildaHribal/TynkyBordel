@@ -778,17 +778,35 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped>
+/* ══════════════════════════════════════════════════════════════════════════
+   The editor renders inside .admin-modal, so its chrome follows the ADMIN
+   palette (--adx-*, declared globally in app/layouts/admin.vue) and not the
+   storefront's --pop-* tokens: the modal sheet is #FFFFFF in light and #2B1E3F
+   in dark, which is why every hardcoded ink below had to move onto a token —
+   #14231a on a #2B1E3F sheet is unreadable.
+
+   The exceptions are everything that lands ON THE PHOTO — the stage, the crop
+   frame, the thirds guides, the ratio badge, the loading veil. Those are dark
+   with light markings in both themes on purpose: they sit over the picture,
+   not over the sheet, and the picture does not change with the theme.
+   ══════════════════════════════════════════════════════════════════════════ */
+
 /* Sits above the product modal (.admin-modal-overlay is z-index 200). */
 .cropper-overlay {
   position: fixed;
   inset: 0;
   z-index: 300;
+  /* No --adx token holds a scrim; 55% green ink over the violet ground barely
+     separates the editor from the page behind it, so dark mode goes deeper. */
   background: rgba(20, 35, 26, 0.55);
   backdrop-filter: blur(6px);
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 1rem;
+}
+@supports (color: light-dark(#fff, #000)) {
+  .cropper-overlay { background: light-dark(rgba(20, 35, 26, 0.55), rgba(9, 5, 17, 0.66)); }
 }
 .cropper-panel {
   max-width: 860px;
@@ -801,8 +819,8 @@ onBeforeUnmount(() => {
   font-family: var(--font-body), sans-serif;
   font-size: 0.75rem;
   font-weight: 600;
-  color: #b3324c;
-  background: rgba(179, 50, 76, 0.1);
+  color: var(--adx-accent, #b3324c);
+  background: var(--adx-accent-10, rgba(179, 50, 76, 0.1));
   border-radius: 999px;
   padding: 0.15rem 0.55rem;
   vertical-align: middle;
@@ -812,7 +830,9 @@ onBeforeUnmount(() => {
   margin: 0 0 0.75rem;
   font-size: 0.82rem;
   line-height: 1.45;
-  color: rgba(20, 35, 26, 0.6);
+  /* --adx-label is the modal's muted-text token (0.65 ink, where this was 0.60
+     — the same green ink, five points apart). */
+  color: var(--adx-label, rgba(20, 35, 26, 0.65));
 }
 
 /* ── Stage ── */
@@ -823,6 +843,9 @@ onBeforeUnmount(() => {
   min-height: 220px;
   border-radius: 12px;
   overflow: hidden;
+  /* Deliberately NOT tokenised: this is the surround for a photograph, and the
+     canvas paints the crop window itself black to match the exported file. A
+     stage that lightened in one theme would misrepresent the result. */
   background: #14231a;
   cursor: grab;
   touch-action: none;
@@ -837,6 +860,10 @@ onBeforeUnmount(() => {
   display: block;
 }
 
+/* Everything from here to .cr-status lies OVER THE PHOTO, inside the black
+   stage — white cut line, white thirds, a dark chip for the ratio, a dark veil
+   while decoding. All constant in both themes by design: they have to read
+   against the picture, which does not know what a theme is. */
 .cr-window {
   position: absolute;
   top: 50%;
@@ -892,22 +919,25 @@ onBeforeUnmount(() => {
   gap: 0.7rem;
 }
 .cr-control { display: flex; flex-direction: column; gap: 0.3rem; }
+/* Same token as .admin-modal .form-label — this control block is a sibling of
+   the modal's own form rows and now matches them exactly. */
 .cr-label {
   font-size: 0.66rem;
   letter-spacing: 0.2em;
   text-transform: uppercase;
   font-weight: 600;
-  color: rgba(20, 35, 26, 0.6);
+  color: var(--adx-label, rgba(20, 35, 26, 0.65));
 }
 .cr-slider-row {
   display: flex;
   align-items: center;
   gap: 0.55rem;
-  color: rgba(20, 35, 26, 0.5);
+  /* Zoom glyphs — the modal's muted-icon token (0.55 where this was 0.50). */
+  color: var(--adx-icon-mute, rgba(20, 35, 26, 0.55));
 }
 .cr-range {
   flex: 1;
-  accent-color: #b3324c;
+  accent-color: var(--adx-accent, #b3324c);
   height: 22px;
   cursor: pointer;
 }
@@ -917,7 +947,7 @@ onBeforeUnmount(() => {
   text-align: right;
   font-family: ui-monospace, SFMono-Regular, monospace;
   font-size: 0.78rem;
-  color: rgba(20, 35, 26, 0.65);
+  color: var(--adx-label, rgba(20, 35, 26, 0.65));
 }
 
 .cr-buttons {
@@ -930,22 +960,26 @@ onBeforeUnmount(() => {
   align-items: center;
   gap: 0.4rem;
   padding: 0.45rem 0.8rem;
-  background: #FAF1F4;
-  border: 1px solid rgba(20, 35, 26, 0.12);
+  background: var(--adx-surface-2, #FAF1F4);
+  border: 1px solid var(--adx-line-field, rgba(20, 35, 26, 0.15));
   border-radius: 8px;
   cursor: pointer;
   font-family: inherit;
   font-size: 0.82rem;
   font-weight: 600;
-  color: #14231a;
+  color: var(--adx-ink, #14231a);
   transition: all 0.15s ease;
 }
-.cr-tool:hover:not(:disabled) { border-color: #b3324c; color: #b3324c; background: rgba(179, 50, 76, 0.06); }
+.cr-tool:hover:not(:disabled) {
+  border-color: var(--adx-accent, #b3324c);
+  color: var(--adx-accent, #b3324c);
+  background: var(--adx-accent-06, rgba(179, 50, 76, 0.06));
+}
 .cr-tool:disabled { opacity: 0.5; cursor: default; }
 
 .cr-error {
   margin: 0.6rem 0 0;
-  color: #b3324c;
+  color: var(--adx-accent, #b3324c);
   font-size: 0.82rem;
   font-style: italic;
 }

@@ -77,7 +77,13 @@
 
 /* ── Comic buttons (hard offset shadow, press-in on click) ──────────────── */
 .zine-btn {
-  --btn-shadow: var(--pop-ink);
+  /* The edge and the hard offset follow the FILL, not the theme. The default
+     fill is pink, which stays light in dark mode, so both default to the
+     constant dark ink — plain --pop-ink inverts to near-white and the sticker
+     loses its cut-out edge against its own fill. Variants whose fill DOES
+     flip (--plum, --cream, --ghost) reset them to --pop-ink below. */
+  --btn-edge: var(--pop-ink-on-accent);
+  --btn-shadow: var(--btn-edge);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -88,7 +94,7 @@
   letter-spacing: 0.12em;
   text-transform: uppercase;
   padding: 0.8rem 1.35rem;
-  border: 2px solid var(--pop-ink);
+  border: 2px solid var(--btn-edge);
   border-radius: 9px;
   cursor: pointer;
   text-decoration: none;
@@ -101,12 +107,12 @@
 .zine-btn:hover { transform: translate(-1px, -1px); box-shadow: 5px 5px 0 var(--btn-shadow); }
 .zine-btn:active { transform: translate(3px, 3px); box-shadow: 1px 1px 0 var(--btn-shadow); }
 .zine-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: 4px 4px 0 var(--btn-shadow); }
-.zine-btn--plum { background: var(--pop-plum); color: #fff; }
+.zine-btn--plum { background: var(--pop-plum); color: #fff; --btn-edge: var(--pop-ink); }
 .zine-btn--lime { background: var(--pop-lime); color: var(--pop-ink-on-accent); }
 /* --pop-cream IS the page in dark mode, so a "cream" button would dissolve
    into it. --pop-card is the raised paper token and reads as a surface. */
-.zine-btn--cream { background: var(--pop-card); color: var(--pop-ink); }
-.zine-btn--ghost { background: transparent; color: var(--pop-ink); box-shadow: 4px 4px 0 var(--pop-shadow-soft); }
+.zine-btn--cream { background: var(--pop-card); color: var(--pop-ink); --btn-edge: var(--pop-ink); }
+.zine-btn--ghost { background: transparent; color: var(--pop-ink); --btn-edge: var(--pop-ink); box-shadow: 4px 4px 0 var(--pop-shadow-soft); }
 .zine-btn--ghost:hover { background: var(--pop-ink-wash); }
 /* On dark surfaces the shadow needs to be a colour, not near-black. */
 .zine-btn--ondark { --btn-shadow: var(--pop-pink); border-color: var(--pop-on-dark); }
@@ -135,8 +141,10 @@
   padding: 0.55rem 0;
   white-space: nowrap;
 }
-.zine-marquee--pink { background: var(--pop-pink); }
-.zine-marquee--lime { background: var(--pop-lime); }
+/* Pink/lime strips stay light in dark mode, so their rules must stay dark
+   ink — the base rule's --pop-ink borders invert to near-white. */
+.zine-marquee--pink { background: var(--pop-pink); border-color: var(--pop-ink-on-accent); }
+.zine-marquee--lime { background: var(--pop-lime); border-color: var(--pop-ink-on-accent); }
 .zine-marquee-track {
   display: inline-flex;
   align-items: center;
@@ -236,36 +244,51 @@
   letter-spacing: 0.1em !important;
   text-transform: uppercase !important;
   border-radius: 10px !important;
-  border: 2px solid var(--pop-ink) !important;
   padding: 0.75rem 1.5rem !important;
   transition: transform 0.12s ease, box-shadow 0.12s ease !important;
 }
+/* The outline and the shadow follow the FILL, not the theme. Pink and lime
+   stay light in dark mode, so their outline has to stay dark ink — plain
+   --pop-ink inverts to near-white and the sticker loses its cut-out edge
+   against its own fill. The outline button's fill does flip, so it keeps
+   --pop-ink. */
 .btn-cosmic {
   background: var(--pop-pink) !important;
   color: var(--pop-ink-on-accent) !important;
-  box-shadow: 4px 4px 0 var(--pop-ink) !important;
+  border: 2px solid var(--pop-ink-on-accent) !important;
+  box-shadow: 4px 4px 0 var(--pop-ink-on-accent) !important;
 }
 .btn-cosmic::before { display: none !important; }
 .btn-cosmic-cyan {
   background: var(--pop-lime) !important;
   color: var(--pop-ink-on-accent) !important;
-  box-shadow: 4px 4px 0 var(--pop-ink) !important;
+  border: 2px solid var(--pop-ink-on-accent) !important;
+  box-shadow: 4px 4px 0 var(--pop-ink-on-accent) !important;
 }
 .btn-cosmic-outline {
   /* NOT --pop-cream: that token is the page ground and the button would
      vanish into it in dark mode. */
   background: var(--pop-card) !important;
   color: var(--pop-ink) !important;
+  border: 2px solid var(--pop-ink) !important;
   box-shadow: 4px 4px 0 var(--pop-ink) !important;
 }
+/* Hover/active only change the offset — each button keeps the shadow colour
+   set above, so these must not re-declare it for all three at once. */
 .btn-cosmic:hover,
-.btn-cosmic-cyan:hover,
+.btn-cosmic-cyan:hover {
+  transform: translate(-1px, -1px) !important;
+  box-shadow: 5px 5px 0 var(--pop-ink-on-accent) !important;
+}
+.btn-cosmic:active,
+.btn-cosmic-cyan:active {
+  transform: translate(3px, 3px) !important;
+  box-shadow: 1px 1px 0 var(--pop-ink-on-accent) !important;
+}
 .btn-cosmic-outline:hover {
   transform: translate(-1px, -1px) !important;
   box-shadow: 5px 5px 0 var(--pop-ink) !important;
 }
-.btn-cosmic:active,
-.btn-cosmic-cyan:active,
 .btn-cosmic-outline:active {
   transform: translate(3px, 3px) !important;
   box-shadow: 1px 1px 0 var(--pop-ink) !important;

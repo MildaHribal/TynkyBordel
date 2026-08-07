@@ -174,7 +174,7 @@ const toggleFavorite = async () => {
         width="500"
         height="400"
         format="webp"
-        quality="72"
+        quality="73"
         sizes="180px sm:240px md:280px lg:320px"
         :loading="isPriority ? 'eager' : 'lazy'"
         :preload="isPriority || undefined"
@@ -192,7 +192,7 @@ const toggleFavorite = async () => {
         width="500"
         height="400"
         format="webp"
-        quality="72"
+        quality="73"
         sizes="180px sm:240px md:280px lg:320px"
         loading="lazy"
         aria-hidden="true"
@@ -254,6 +254,28 @@ const toggleFavorite = async () => {
 
 <style scoped>
 .product-card {
+  /* THE OLIVE CARD IS DARK IN BOTH THEMES — --pop-plum only lifts a little for
+     dark mode, it never flips. So every foreground painted on it is
+     theme-invariant and comes from --pop-on-dark (the constant cream), never
+     --pop-ink, which flips to near-white and would be fine here but wrong the
+     moment anything moved onto paper.
+
+     Three locals below have no shared token because they are tuned against the
+     BLACK photo frame rather than against the palette: */
+  /* the photos are shot on black and must blend into their frame — a flipping
+     surface token would put a violet halo around every product */
+  --card-photo-bg: #000000;
+  /* the add-to-cart chip's own near-black, a hair violet so it reads as a
+     control rather than a hole in the photo */
+  --card-chip-bg: #0a0010;
+  /* a hotter pink than --pop-pink, which is a pastel meant for cream paper and
+     disappears against a black photo */
+  --card-hot-pink: #ff6bb5;
+  /* the "favourited" red-pink, and the "added to cart" green — both are states
+     read at a glance on that same black/olive, not palette accents */
+  --card-fav-pink: #ff5c8a;
+  --card-added-green: #34d399;
+
   text-decoration: none;
   color: inherit;
   background: var(--pop-plum, #182a1c);
@@ -262,7 +284,7 @@ const toggleFavorite = async () => {
   padding: 0.5rem 0.5rem 0.6rem;
   transform: rotate(var(--tilt, 0deg));
   transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.3s ease;
-  box-shadow: 4px 5px 0 rgba(32, 8, 40, 0.55);
+  box-shadow: 4px 5px 0 var(--pop-shadow);
 }
 .product-card:hover {
   transform: rotate(0deg) translateY(-4px);
@@ -272,7 +294,7 @@ const toggleFavorite = async () => {
 
 /* ── Image frame — black so the product photos (shot on black) blend in ── */
 .card-image {
-  background: #000000;
+  background: var(--card-photo-bg);
   border: 2px solid var(--pop-ink, #14231a);
   border-radius: 0.6rem;
   transition: border-color 0.3s ease;
@@ -322,20 +344,21 @@ const toggleFavorite = async () => {
      once per card, and with 40 tiles on the homepage that is 40 backdrop
      filters the compositor has to maintain — for a 34px button sitting on a
      solid black photo frame, where the blur is invisible anyway. */
-  background: rgba(10, 0, 16, 0.92);
-  border: 1px solid rgba(255, 107, 181, 0.55);
-  color: #fff;
+  /* Sits on the black photo frame, so it stays as it is in both themes. */
+  background: color-mix(in srgb, var(--card-chip-bg) 92%, transparent);
+  border: 1px solid color-mix(in srgb, var(--card-hot-pink) 55%, transparent);
+  color: var(--pop-on-dark);
   transition: background 0.25s ease, border-color 0.25s ease, transform 0.25s ease;
 }
 .add-btn:hover {
-  background: #ff6bb5;
-  border-color: #ff6bb5;
+  background: var(--card-hot-pink);
+  border-color: var(--card-hot-pink);
   transform: scale(1.06);
-  box-shadow: 0 8px 22px rgba(255, 107, 181, 0.45);
+  box-shadow: 0 8px 22px color-mix(in srgb, var(--card-hot-pink) 45%, transparent);
 }
 .add-btn.is-added {
-  background: #34d399;
-  border-color: #34d399;
+  background: var(--card-added-green);
+  border-color: var(--card-added-green);
 }
 
 /* ── Info ──────────────────────────────────────────── */
@@ -354,7 +377,7 @@ const toggleFavorite = async () => {
   font-size: 0.92rem;
   line-height: 1.2;
   letter-spacing: 0.01em;
-  color: #FDF7EC;
+  color: var(--pop-on-dark);
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
@@ -370,7 +393,7 @@ const toggleFavorite = async () => {
   font-weight: 500;
   font-size: 0.82rem;
   line-height: 1.45;
-  color: #ffffff;
+  color: var(--pop-on-dark);
   margin: 0;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -390,15 +413,15 @@ const toggleFavorite = async () => {
   width: 34px;
   height: 34px;
   border-radius: 9999px;
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  background: rgba(255, 255, 255, 0.04);
-  color: rgba(255, 255, 255, 0.75);
+  border: 1px solid color-mix(in srgb, var(--pop-on-dark) 14%, transparent);
+  background: color-mix(in srgb, var(--pop-on-dark) 4%, transparent);
+  color: color-mix(in srgb, var(--pop-on-dark) 75%, transparent);
   cursor: pointer;
   transition: color 0.2s ease, background 0.2s ease, border-color 0.2s ease, transform 0.15s ease;
 }
-.fav-btn:hover { color: #ff6bb5; border-color: rgba(255, 107, 181, 0.5); background: rgba(255, 107, 181, 0.1); }
+.fav-btn:hover { color: var(--card-hot-pink); border-color: color-mix(in srgb, var(--card-hot-pink) 50%, transparent); background: color-mix(in srgb, var(--card-hot-pink) 10%, transparent); }
 .fav-btn:active { transform: scale(0.9); }
-.fav-btn.is-fav { color: #ff5c8a; border-color: rgba(255, 92, 138, 0.55); background: rgba(255, 92, 138, 0.14); }
+.fav-btn.is-fav { color: var(--card-fav-pink); border-color: color-mix(in srgb, var(--card-fav-pink) 55%, transparent); background: color-mix(in srgb, var(--card-fav-pink) 14%, transparent); }
 .fav-btn.is-loading { opacity: 0.6; }
 /* Phones: tighter card so the image dominates; show the title (not the number),
    price underneath, no add button. */
@@ -423,7 +446,7 @@ const toggleFavorite = async () => {
   align-items: center;
   justify-content: space-between;
   gap: 0.75rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-top: 1px solid color-mix(in srgb, var(--pop-on-dark) 10%, transparent);
 }
 
 .card-price {

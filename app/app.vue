@@ -76,7 +76,22 @@ useHead({
       return titleChunk ? `${titleChunk} · Tynky Bordel` : 'Tynky Bordel — ručně dělané originály';
     },
     meta: [
-        { name: 'theme-color', content: '#0d0020' },
+        // Browser chrome follows the OS scheme, exactly like the palette does:
+        // two static tags, one per media query, no JavaScript and nothing to
+        // hydrate. The values are the page grounds themselves — --pop-cream
+        // resolves to #F0E7D2 in light and #1B1129 in dark — so the address bar
+        // is a continuation of the page instead of the stale #0d0020 that was
+        // here (a deep violet left over from the pre-zine design, which framed
+        // the cream site in near-black).
+        //
+        // The light tag is deliberately KEYLESS: unhead dedupes meta by
+        // `name` unless a `key` is present, so this one replaces the
+        // `theme-color` that nuxt.config's app.head pushes (#faf5ef). The dark
+        // tag carries a key so it survives alongside it rather than being
+        // collapsed into the same slot. Drop either detail and the browser gets
+        // a single media-less tag again.
+        { name: 'theme-color', media: '(prefers-color-scheme: light)', content: '#F0E7D2' },
+        { key: 'theme-color-dark', name: 'theme-color', media: '(prefers-color-scheme: dark)', content: '#1B1129' },
     ],
     link: [
         { rel: 'icon', type: 'image/webp', href: '/logo.webp' },

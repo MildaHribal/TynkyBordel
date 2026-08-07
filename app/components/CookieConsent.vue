@@ -37,6 +37,15 @@ const { needsDecision, accept, reject } = useCookieConsent()
 </template>
 
 <style scoped>
+/* ══════════════════════════════════════════════════════════════════════════
+   The consent banner is a DARK panel in BOTH themes — a pasted cut-out that
+   sits over whatever page is behind it. That is why most of its inks are
+   deliberate constants (cream / white / pale rose on a dark ground reads the
+   same at noon and at midnight) rather than --pop-ink, which flips to
+   near-white and would disappear on the pale "Souhlasím" sticker.
+   Only the panel fill itself follows the theme, so the banner stops being a
+   green island on the violet ground.
+   ══════════════════════════════════════════════════════════════════════════ */
 .cookie-bar {
   position: fixed;
   z-index: 9999;
@@ -56,11 +65,22 @@ const { needsDecision, accept, reject } = useCookieConsent()
   flex-direction: column;
   gap: 1rem;
   padding: 1.15rem 1.25rem;
-  background: #182a1c;
-  color: #F1EBDF;
+  /* No shared token carries this deep bottle-green; --pop-panel is the right
+     ROLE (dark panel) but its light value is the warm near-black #201c19, which
+     would change light mode. So: local prop, light byte-identical to what
+     shipped, dark borrowing the palette's own "sheet" step (#33244C — the
+     sticker/popover rung of the ramp). --pop-panel's dark value would have been
+     the obvious pick but it measures 1.09:1 against the #1B1129 page ground, so
+     the banner would read as a hole in the page rather than a pasted card. */
+  --cookie-bg: #182a1c;
+  background: var(--cookie-bg);
+  color: var(--pop-on-dark, #F0E7D2);
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 1.15rem;
   box-shadow: 0 18px 50px rgba(8, 20, 12, 0.45);
+}
+@supports (color: light-dark(#fff, #000)) {
+  .cookie-inner { --cookie-bg: light-dark(#182a1c, #33244C); }
 }
 @media (min-width: 860px) {
   .cookie-inner {
@@ -91,7 +111,7 @@ const { needsDecision, accept, reject } = useCookieConsent()
   font-weight: 700;
   font-size: 0.95rem;
   margin: 0 0 0.3rem;
-  color: #ffffff;
+  color: var(--pop-on-dark, #F0E7D2);
 }
 
 .cookie-desc {
@@ -146,8 +166,11 @@ const { needsDecision, accept, reject } = useCookieConsent()
 }
 
 .cookie-btn--primary {
+  /* A pale sticker that must stay pale in both themes (it is the primary action
+     on a dark banner), so the fill is a constant and the label takes
+     --pop-ink-on-accent — the token for ink on a fill that never darkens. */
   background: #F1EBDF;
-  color: #182a1c;
+  color: var(--pop-ink-on-accent, #14231a);
   border: 1px solid transparent;
 }
 .cookie-btn--primary:hover { background: #ffffff; }

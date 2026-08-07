@@ -221,7 +221,7 @@ const formatDate = (iso: string | null) => {
 .tpl-badge.is-custom {
   color: var(--ad-accent);
   background: var(--ad-accent-bg);
-  border-color: rgba(179, 50, 76, 0.25);
+  border-color: var(--adx-accent-25);
 }
 .tpl-updated {
   font-size: 0.7rem;

@@ -676,35 +676,113 @@ watch(paymentMethod, async (m) => {
 </template>
 
 <style scoped>
-/* ── Palette overrides (checkout uses dark text on pastel body) ── */
+/* ══════════════════════════════════════════════════════════════
+   COLOUR
+   Every colour on this page is a token. The shared ones live on :root
+   in assets/css/main.css and flip themselves in dark mode; the few
+   roles the shared palette does not cover are declared below in the
+   same shape main.css uses — a light value first (which doubles as the
+   fallback for browsers without `light-dark()`), then a `light-dark()`
+   redefinition inside the identical @supports guard.
+
+   The rule that governs everything here: --pop-ink flips to near-white
+   in dark mode, so it may never land on a hardcoded light fill, and a
+   fill that stays light in both themes must carry --pop-ink-on-accent
+   or --pop-on-dark rather than --pop-ink.
+   ══════════════════════════════════════════════════════════════ */
 .checkout-page {
-  color: var(--pop-ink, #14231a);
+  color: var(--pop-ink);
+
+  /* ── Page-local roles (no shared token fits) ──
+
+     --co-rose-ink — the checkout's crimson-rose: focus rings, the active
+     payment option, the +dobírka badge, every field error. Deliberately
+     neither --pop-pink-ink (#b34a72 — a softer rose this page also uses,
+     side by side with this one) nor --pop-danger (#8a2a2a — browner);
+     either substitution would restyle light mode. */
+  --co-rose-ink: #b3324c;
+  /* --co-rose-hover — the darker rose a link goes to on hover. In dark it has
+     to go *lighter* than --pop-pink-ink instead, which no token does. */
+  --co-rose-hover: #97325c;
+  /* --co-success — the "point picked" check and the dobírka icon. --pop-green
+     (#A8DF8E) is a pastel: right as dark-mode text on violet, far too pale to
+     read on cream, so both ends are spelled out. */
+  --co-success: #2e7d32;
+  /* --co-paypal — PayPal's brand blue, lifted for dark so it stays legible on
+     the violet card instead of sinking into it. */
+  --co-paypal: #0070ba;
+  /* --co-warn-* — the amber "bank details are not configured" notice. The
+     shared palette has no amber at all. */
+  --co-warn-ink: #6a4400;
+  --co-warn-fill: rgba(255, 200, 80, 0.18);
+  --co-warn-line: rgba(138, 90, 0, 0.25);
+
+  /* ── Constants: fills that are dark in BOTH themes ──
+     These carry --pop-on-dark text, so they must NOT flip — a light-dark()
+     here would put light text on a light button. */
+  --co-btn-from: #b34a72;
+  --co-btn-to: #b3324c;
+  /* Zásilkovna's carrier red. A logo colour, never themed. */
+  --co-carrier-from: #cc0000;
+  --co-carrier-to: #ff3d3d;
+  /* The label on those two fills. This is the --pop-on-dark role, but NOT the
+     token: --pop-on-dark is cream (#F0E7D2), and cream on this rose measures
+     4.12:1 where white measures 5.07:1 — that drops the 18px bold button
+     label under AA. The fill never flips, so plain white is safe and is what
+     the design already shipped. */
+  --co-on-rose: #ffffff;
+  /* The paper a payment QR is printed on. Stays white in both themes: the
+     generated PNG is opaque white (server/utils/spayd.ts) and a QR wants a
+     white quiet zone to scan reliably. */
+  --co-qr-paper: #ffffff;
+
+  /* ── Derived shadows ──
+     --pop-shadow-soft carries a fixed alpha (.18 light / .55 dark) and these
+     cards were tuned to a fraction of it, so it is scaled with color-mix()
+     rather than re-hardcoding a colour that could not flip. Every engine that
+     has light-dark() has had color-mix() for years, and on the fallback path
+     it scales the light value just as correctly. */
+  --co-lift-1: color-mix(in srgb, var(--pop-shadow-soft) 33%, transparent);  /* was rgba(20,35,26,.06) */
+  --co-lift-2: color-mix(in srgb, var(--pop-shadow-soft) 44%, transparent);  /* was rgba(20,35,26,.08) */
+  --co-lift-3: color-mix(in srgb, var(--pop-shadow-soft) 78%, transparent);  /* was rgba(20,35,26,.14) */
+}
+
+@supports (color: light-dark(#fff, #000)) {
+  .checkout-page {
+    --co-rose-ink:   light-dark(#b3324c, #FF9AA2);
+    --co-rose-hover: light-dark(#97325c, #FFC6DD);
+    --co-success:    light-dark(#2e7d32, #A8DF8E);
+    --co-paypal:     light-dark(#0070ba, #7CC4FF);
+    --co-warn-ink:   light-dark(#6a4400, #FFD98A);
+    --co-warn-fill:  light-dark(rgba(255, 200, 80, 0.18), rgba(255, 200, 80, 0.12));
+    --co-warn-line:  light-dark(rgba(138, 90, 0, 0.25), rgba(255, 217, 138, 0.30));
+  }
 }
 
 .checkout-back {
-  color: rgba(20, 35, 26, 0.45);
+  color: var(--pop-ink-faint);
   transition: color 0.2s;
 }
 .checkout-back:hover {
-  color: var(--pop-ink, #14231a);
+  color: var(--pop-ink);
 }
 
 .checkout-title {
   font-family: var(--font-zine);
   font-size: clamp(1.6rem, 4vw, 2.2rem);
   line-height: 1;
-  color: var(--pop-ink, #14231a);
+  color: var(--pop-ink);
   letter-spacing: -0.02em;
 }
 
 /* ── Cards ── */
 .checkout-card {
-  background: rgba(255, 255, 255, 0.7);
+  background: var(--pop-card);
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(20, 35, 26, 0.1);
+  border: 1px solid var(--pop-line);
   border-radius: 1.25rem;
   padding: 1.25rem 1.25rem;
-  box-shadow: 0 2px 12px rgba(20, 35, 26, 0.06);
+  box-shadow: 0 2px 12px var(--co-lift-1);
 }
 @media (min-width: 768px) {
   .checkout-card { padding: 1.5rem 1.5rem; }
@@ -716,20 +794,24 @@ watch(paymentMethod, async (m) => {
   gap: 0.5rem;
   font-size: 0.95rem;
   font-weight: 700;
-  color: var(--pop-ink, #14231a);
+  color: var(--pop-ink);
   margin-bottom: 1rem;
   padding-bottom: 0.75rem;
-  border-bottom: 1px solid rgba(20, 35, 26, 0.08);
+  border-bottom: 1px solid var(--pop-line);
 }
 .checkout-section-icon {
-  color: var(--pop-lavender, #b34a72);
+  /* Was --pop-lavender (a pale sage) at ~1.6:1 on the light card — the icon
+     next to every section heading was effectively invisible. The dead fallback
+     it used to carry, #b34a72, says the original colour was --pop-pink-ink;
+     the sage was a mis-tokenisation. */
+  color: var(--pop-pink-ink);
 }
 
 .checkout-label {
   display: block;
   font-size: 0.72rem;
   font-weight: 600;
-  color: rgba(20, 35, 26, 0.6);
+  color: var(--pop-ink-mute);
   margin-bottom: 0.35rem;
   letter-spacing: 0.02em;
 }
@@ -737,31 +819,33 @@ watch(paymentMethod, async (m) => {
 .checkout-input {
   width: 100%;
   padding: 0.75rem 0.9rem;
-  border: 1px solid rgba(20, 35, 26, 0.15);
-  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid var(--pop-line);
+  /* The crisp sheet fill: brighter than the card it sits on in light, lighter
+     than it in dark, so the field stays visibly a field either way. */
+  background: var(--pop-sheet);
   border-radius: 0.65rem;
-  color: var(--pop-ink, #14231a);
+  color: var(--pop-ink);
   font-size: 0.95rem;
   transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
 }
 .checkout-input::placeholder {
-  color: rgba(20, 35, 26, 0.35);
+  color: var(--pop-ink-faint);
 }
 .checkout-input:focus {
   outline: none;
-  border-color: rgba(179, 50, 76, 0.55);
-  background: #fff;
-  box-shadow: 0 0 0 3px rgba(179, 50, 76, 0.12);
+  border-color: color-mix(in srgb, var(--co-rose-ink) 55%, transparent);
+  background: var(--pop-sheet);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--co-rose-ink) 12%, transparent);
 }
 
 /* ── Field validation ── */
 .checkout-input.is-invalid {
-  border-color: #b3324c;
-  background: rgba(179, 50, 76, 0.05);
+  border-color: var(--co-rose-ink);
+  background: color-mix(in srgb, var(--co-rose-ink) 5%, transparent);
 }
 .checkout-input.is-invalid:focus {
-  border-color: #b3324c;
-  box-shadow: 0 0 0 3px rgba(179, 50, 76, 0.18);
+  border-color: var(--co-rose-ink);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--co-rose-ink) 18%, transparent);
 }
 .field-error {
   display: flex;
@@ -770,13 +854,13 @@ watch(paymentMethod, async (m) => {
   margin-top: 0.35rem;
   font-size: 0.78rem;
   font-weight: 600;
-  color: #b3324c;
+  color: var(--co-rose-ink);
   line-height: 1.35;
 }
 .field-hint {
   margin-top: 0.35rem;
   font-size: 0.75rem;
-  color: rgba(20, 35, 26, 0.5);
+  color: var(--pop-ink-mute);
   line-height: 1.35;
 }
 /* Everything required isn't filled in yet — the button still works, clicking it
@@ -788,23 +872,28 @@ watch(paymentMethod, async (m) => {
 
 .checkout-note {
   font-size: 0.85rem;
-  color: rgba(20, 35, 26, 0.65);
+  color: var(--pop-ink-mute);
   margin-bottom: 1rem;
 }
 .checkout-caption {
   font-size: 0.7rem;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: rgba(20, 35, 26, 0.55);
+  color: var(--pop-ink-mute);
   font-weight: 700;
   margin-bottom: 0.15rem;
 }
 
-/* ── Balíkovna picker modal ── */
+/* ── Balíkovna picker modal ──
+   This block is <Teleport>ed to <body>, i.e. it renders OUTSIDE .checkout-page
+   and cannot see the --co-* properties declared on it. It only uses the shared
+   :root tokens, plus two deliberate constants noted below. */
 .balikovna-overlay {
   position: fixed;
   inset: 0;
   z-index: 10000;
+  /* A modal scrim. Dark in both themes by definition — the same role
+     --pop-shadow has — and nothing readable ever sits on it. */
   background: rgba(20, 8, 36, 0.6);
   backdrop-filter: blur(3px);
   display: flex;
@@ -815,11 +904,13 @@ watch(paymentMethod, async (m) => {
 .balikovna-modal {
   width: min(760px, 100%);
   height: min(85vh, 820px);
-  background: #fff;
+  background: var(--pop-sheet);
   border-radius: 16px;
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  /* Constant black drop: it separates the dialog from the page in both
+     themes, and a themed shadow would vanish against its own scrim. */
   box-shadow: 0 30px 80px rgba(0, 0, 0, 0.5);
 }
 .balikovna-modal-head {
@@ -828,19 +919,19 @@ watch(paymentMethod, async (m) => {
   justify-content: space-between;
   padding: 0.75rem 1rem;
   font-weight: 700;
-  color: #14231a;
-  border-bottom: 1px solid rgba(20, 35, 26, 0.1);
+  color: var(--pop-ink);
+  border-bottom: 1px solid var(--pop-line);
 }
 .balikovna-close {
   border: 0;
   background: transparent;
   font-size: 1.1rem;
   cursor: pointer;
-  color: rgba(20, 35, 26, 0.6);
+  color: var(--pop-ink-mute);
   padding: 4px 8px;
   border-radius: 8px;
 }
-.balikovna-close:hover { background: rgba(20, 35, 26, 0.08); }
+.balikovna-close:hover { background: var(--pop-ink-wash-2); }
 .balikovna-iframe {
   flex-grow: 1;
   width: 100%;
@@ -855,8 +946,8 @@ watch(paymentMethod, async (m) => {
   align-items: stretch;
   padding: 0.9rem 1rem;
   border-radius: 0.9rem;
-  background: rgba(169, 203, 191, 0.18);
-  border: 1px solid rgba(179, 50, 76, 0.2);
+  background: color-mix(in srgb, var(--pop-lavender) 18%, transparent);
+  border: 1px solid color-mix(in srgb, var(--co-rose-ink) 20%, transparent);
 }
 @media (min-width: 640px) {
   .zbox-row {
@@ -870,31 +961,31 @@ watch(paymentMethod, async (m) => {
   width: 42px;
   height: 42px;
   border-radius: 12px;
-  background: linear-gradient(135deg, #cc0000, #ff3d3d);
-  color: #fff;
+  background: linear-gradient(135deg, var(--co-carrier-from), var(--co-carrier-to));
+  color: var(--co-on-rose);
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 12px rgba(204, 0, 0, 0.25);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--co-carrier-from) 25%, transparent);
 }
 .zbox-name {
   font-weight: 700;
-  color: var(--pop-ink, #14231a);
+  color: var(--pop-ink);
   display: flex;
   align-items: center;
   gap: 0.35rem;
   font-size: 0.95rem;
 }
 .zbox-check {
-  color: #2e7d32;
+  color: var(--co-success);
 }
 .zbox-address {
   font-size: 0.8rem;
-  color: rgba(20, 35, 26, 0.7);
+  color: var(--pop-ink-soft);
   margin-top: 2px;
 }
 .zbox-empty {
-  color: #b3324c;
+  color: var(--co-rose-ink);
   font-weight: 600;
   font-size: 0.9rem;
 }
@@ -907,21 +998,23 @@ watch(paymentMethod, async (m) => {
   gap: 0.85rem;
   padding: 0.85rem 1rem;
   border-radius: 0.9rem;
-  background: rgba(255, 255, 255, 0.55);
-  border: 1px solid rgba(20, 35, 26, 0.12);
+  background: var(--pop-sheet);
+  border: 1px solid var(--pop-line);
   cursor: pointer;
   transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
 }
-.payment-option:hover { border-color: rgba(20, 35, 26, 0.3); }
+.payment-option:hover { border-color: var(--pop-line-strong); }
 .payment-option.is-active {
-  border-color: #b3324c;
-  background: rgba(179, 50, 76, 0.06);
-  box-shadow: 0 0 0 3px rgba(179, 50, 76, 0.08);
+  border-color: var(--co-rose-ink);
+  /* A rose wash over the card, exactly as before: the selected option reads
+     as tinted paper rather than a brighter sheet, in both themes. */
+  background: color-mix(in srgb, var(--co-rose-ink) 6%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--co-rose-ink) 8%, transparent);
 }
 .payment-radio {
   width: 18px;
   height: 18px;
-  accent-color: #b3324c;
+  accent-color: var(--co-rose-ink);
   cursor: pointer;
   flex-shrink: 0;
 }
@@ -930,25 +1023,27 @@ watch(paymentMethod, async (m) => {
   width: 40px;
   height: 40px;
   border-radius: 10px;
-  background: rgba(46, 125, 50, 0.15);
-  color: #2e7d32;
+  background: color-mix(in srgb, var(--co-success) 15%, transparent);
+  color: var(--co-success);
   display: flex;
   align-items: center;
   justify-content: center;
 }
 .payment-icon--bank {
-  background: rgba(179, 50, 76, 0.15);
-  color: #b34a72;
+  background: color-mix(in srgb, var(--co-rose-ink) 15%, transparent);
+  color: var(--pop-pink-ink);
 }
 .payment-icon--card {
-  background: rgba(0, 112, 186, 0.15);
-  color: #0070ba;
+  background: color-mix(in srgb, var(--co-paypal) 15%, transparent);
+  color: var(--co-paypal);
 }
 .paypal-hint {
   font-size: 0.85rem;
-  color: rgba(20, 35, 26, 0.6);
-  background: rgba(20, 35, 26, 0.05);
-  border: 1px solid rgba(20, 35, 26, 0.1);
+  /* A sentence of instruction, not a caption — --pop-ink-soft is the body
+     secondary role and is the only mapping here that clears AA in light. */
+  color: var(--pop-ink-soft);
+  background: var(--pop-ink-wash);
+  border: 1px solid var(--pop-line);
   border-radius: 12px;
   padding: 0.85rem 1rem;
   margin-bottom: 0.75rem;
@@ -964,7 +1059,7 @@ watch(paymentMethod, async (m) => {
 }
 .payment-title {
   font-weight: 700;
-  color: var(--pop-ink, #14231a);
+  color: var(--pop-ink);
   font-size: 0.98rem;
   display: inline-flex;
   align-items: center;
@@ -974,15 +1069,15 @@ watch(paymentMethod, async (m) => {
   font-size: 0.72rem;
   font-weight: 700;
   letter-spacing: 0.08em;
-  color: #b3324c;
-  background: rgba(179, 50, 76, 0.1);
-  border: 1px solid rgba(179, 50, 76, 0.25);
+  color: var(--co-rose-ink);
+  background: color-mix(in srgb, var(--co-rose-ink) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--co-rose-ink) 25%, transparent);
   padding: 0.1rem 0.5rem;
   border-radius: 999px;
 }
 .payment-note {
   font-size: 0.8rem;
-  color: rgba(20, 35, 26, 0.7);
+  color: var(--pop-ink-soft);
 }
 
 /* ── Bank transfer success panel ── */
@@ -1000,7 +1095,7 @@ watch(paymentMethod, async (m) => {
 .bank-lead {
   font-size: 0.92rem;
   line-height: 1.55;
-  color: rgba(20, 35, 26, 0.75);
+  color: var(--pop-ink-soft);
   margin: 0 0 1.25rem;
   text-align: center;
 }
@@ -1011,24 +1106,24 @@ watch(paymentMethod, async (m) => {
 }
 .bank-qr {
   border-radius: 0.75rem;
-  background: #ffffff;
+  background: var(--co-qr-paper);
   padding: 0.75rem;
-  box-shadow: 0 4px 18px rgba(20, 35, 26, 0.14);
-  border: 1px solid rgba(20, 35, 26, 0.1);
+  box-shadow: 0 4px 18px var(--co-lift-3);
+  border: 1px solid var(--pop-line);
 }
 .bank-details {
   display: flex;
   flex-direction: column;
   gap: 0.55rem;
   padding-top: 0.85rem;
-  border-top: 1px solid rgba(20, 35, 26, 0.1);
+  border-top: 1px solid var(--pop-line);
 }
 .bank-row {
   display: flex;
   justify-content: space-between;
   gap: 1rem;
   font-size: 0.9rem;
-  color: rgba(20, 35, 26, 0.7);
+  color: var(--pop-ink-soft);
 }
 .bank-row strong {
   color: var(--pop-ink);
@@ -1041,18 +1136,18 @@ watch(paymentMethod, async (m) => {
   align-items: center;
   gap: 0.5rem;
   padding: 0.85rem 1rem;
-  background: rgba(255, 200, 80, 0.18);
-  border: 1px solid rgba(138, 90, 0, 0.25);
-  color: #6a4400;
+  background: var(--co-warn-fill);
+  border: 1px solid var(--co-warn-line);
+  color: var(--co-warn-ink);
   border-radius: 0.75rem;
   font-size: 0.88rem;
 }
 .bank-footer {
   margin-top: 1.25rem;
   padding-top: 0.85rem;
-  border-top: 1px solid rgba(20, 35, 26, 0.08);
+  border-top: 1px solid var(--pop-line);
   font-size: 0.82rem;
-  color: rgba(20, 35, 26, 0.6);
+  color: var(--pop-ink-mute);
   text-align: center;
 }
 
@@ -1068,23 +1163,23 @@ watch(paymentMethod, async (m) => {
   width: 20px;
   height: 20px;
   margin-top: 2px;
-  accent-color: #b34a72;
+  accent-color: var(--pop-pink-ink);
   cursor: pointer;
   flex-shrink: 0;
 }
 .terms-text {
   font-size: 0.85rem;
-  color: rgba(20, 35, 26, 0.75);
+  color: var(--pop-ink-soft);
   line-height: 1.5;
 }
 .terms-link {
-  color: #b34a72;
+  color: var(--pop-pink-ink);
   font-weight: 600;
   text-decoration: underline;
   text-decoration-thickness: 1px;
   text-underline-offset: 2px;
 }
-.terms-link:hover { color: #97325c; }
+.terms-link:hover { color: var(--co-rose-hover); }
 
 /* ── Primary button (pastel-safe) ── */
 .btn-primary-pop {
@@ -1093,17 +1188,17 @@ watch(paymentMethod, async (m) => {
   gap: 0.55rem;
   padding: 0.65rem 1.2rem;
   border-radius: 9999px;
-  background: linear-gradient(135deg, #b34a72, #b3324c);
-  color: #fff;
+  background: linear-gradient(135deg, var(--co-btn-from), var(--co-btn-to));
+  color: var(--co-on-rose);
   font-weight: 700;
   border: none;
   cursor: pointer;
   transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
-  box-shadow: 0 4px 18px rgba(179, 50, 76, 0.3);
+  box-shadow: 0 4px 18px color-mix(in srgb, var(--co-btn-to) 30%, transparent);
 }
 .btn-primary-pop:hover:not(:disabled) {
   transform: translateY(-1px);
-  box-shadow: 0 6px 22px rgba(179, 50, 76, 0.4);
+  box-shadow: 0 6px 22px color-mix(in srgb, var(--co-btn-to) 40%, transparent);
 }
 .btn-primary-pop:disabled {
   opacity: 0.4;
@@ -1113,17 +1208,17 @@ watch(paymentMethod, async (m) => {
 
 /* ── Summary card ── */
 .summary-card {
-  background: rgba(255, 255, 255, 0.75);
+  background: var(--pop-card);
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(20, 35, 26, 0.1);
+  border: 1px solid var(--pop-line);
   border-radius: 1.25rem;
   padding: 1.25rem;
-  box-shadow: 0 4px 20px rgba(20, 35, 26, 0.08);
+  box-shadow: 0 4px 20px var(--co-lift-2);
 }
 .summary-title {
   font-size: 1rem;
   font-weight: 700;
-  color: var(--pop-ink, #14231a);
+  color: var(--pop-ink);
   margin-bottom: 1rem;
 }
 .summary-items {
@@ -1146,7 +1241,8 @@ watch(paymentMethod, async (m) => {
   border-radius: 10px;
   overflow: hidden;
   flex-shrink: 0;
-  background: rgba(20, 35, 26, 0.06);
+  /* The secondary-paper token: this is the thumbnail placeholder surface. */
+  background: var(--pop-card-2);
 }
 .summary-thumb-empty {
   width: 100%;
@@ -1154,22 +1250,22 @@ watch(paymentMethod, async (m) => {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: rgba(20, 35, 26, 0.3);
+  color: var(--pop-ink-faint);
 }
 .summary-item-title {
   font-size: 0.85rem;
   font-weight: 600;
-  color: var(--pop-ink, #14231a);
+  color: var(--pop-ink);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 .summary-item-qty {
   font-size: 0.72rem;
-  color: rgba(20, 35, 26, 0.55);
+  color: var(--pop-ink-mute);
 }
 .summary-totals {
-  border-top: 1px solid rgba(20, 35, 26, 0.1);
+  border-top: 1px solid var(--pop-line);
   padding-top: 0.85rem;
   display: flex;
   flex-direction: column;
@@ -1179,14 +1275,14 @@ watch(paymentMethod, async (m) => {
   display: flex;
   justify-content: space-between;
   font-size: 0.85rem;
-  color: rgba(20, 35, 26, 0.65);
+  color: var(--pop-ink-mute);
 }
 .summary-total {
   padding-top: 0.6rem;
-  border-top: 1px solid rgba(20, 35, 26, 0.1);
+  border-top: 1px solid var(--pop-line);
   font-size: 1.05rem;
   font-weight: 800;
-  color: var(--pop-ink, #14231a);
+  color: var(--pop-ink);
   margin-top: 0.2rem;
 }
 
@@ -1197,36 +1293,36 @@ watch(paymentMethod, async (m) => {
   width: 96px;
   height: 96px;
   border-radius: 9999px;
-  background: linear-gradient(135deg, #b34a72, #b3324c);
-  color: #fff;
+  background: linear-gradient(135deg, var(--co-btn-from), var(--co-btn-to));
+  color: var(--co-on-rose);
   align-items: center;
   justify-content: center;
   margin: 0 auto 2rem;
-  box-shadow: 0 12px 30px rgba(179, 50, 76, 0.35);
+  box-shadow: 0 12px 30px color-mix(in srgb, var(--co-btn-to) 35%, transparent);
 }
 .success-title {
   font-family: var(--font-zine);
   font-size: clamp(2rem, 6vw, 3rem);
-  color: var(--pop-ink, #14231a);
+  color: var(--pop-ink);
   margin-bottom: 0.5rem;
   letter-spacing: -0.02em;
 }
 .success-subtitle {
   font-size: 1.05rem;
-  color: rgba(20, 35, 26, 0.7);
+  color: var(--pop-ink-soft);
   margin-bottom: 1.75rem;
 }
 .success-code {
   font-family: 'Menlo', monospace;
   font-weight: 700;
-  color: #b34a72;
+  color: var(--pop-pink-ink);
 }
 .success-panel {
-  background: rgba(255, 255, 255, 0.75);
-  border: 1px solid rgba(20, 35, 26, 0.1);
+  background: var(--pop-card);
+  border: 1px solid var(--pop-line);
   border-radius: 1rem;
   padding: 1rem 1.25rem;
-  color: rgba(20, 35, 26, 0.75);
+  color: var(--pop-ink-soft);
   font-size: 0.95rem;
   margin-bottom: 2rem;
   text-align: left;

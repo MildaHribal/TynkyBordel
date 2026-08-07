@@ -63,8 +63,11 @@ export default {
 </script>
 
 <style scoped>
+/* The active item is a raised sheet on the page ground, so it takes the sheet /
+   ink pair and flips with the theme. Hardcoded #f5f5f5 + #363636 turned into
+   near-white ink on a near-white fill as soon as --pop-ink inverted. */
 .menu-list a.is-active {
-  background-color: #f5f5f5;
-  color: #363636;
+  background-color: var(--pop-sheet-2, #F5F1EA);
+  color: var(--pop-ink, #14231a);
 }
 </style>

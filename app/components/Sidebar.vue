@@ -130,12 +130,21 @@ const isActiveBranch = (cat: any): boolean => {
 .custom-scrollbar::-webkit-scrollbar-track {
   background: transparent;
 }
+/* This whole component is mounted INSIDE .glass-card, which zine.css re-skins to
+   `background: var(--pop-panel)` — a surface that is dark in BOTH themes
+   (#201c19 light, #241934 dark). So every foreground here is the constant
+   --pop-on-dark, never --pop-ink: ink flips to near-white on paper and there is
+   no paper in this component.
+   The rose accents on the active pill keep their own literals — they are the
+   legacy "cosmic" magenta, a different hue from --pop-pink (which is a pastel
+   for cream paper and would wash the pill out), and they sit on that same
+   theme-invariant panel. */
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.1);
+  background: color-mix(in srgb, var(--pop-on-dark) 10%, transparent);
   border-radius: 10px;
 }
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.2);
+  background: color-mix(in srgb, var(--pop-on-dark) 20%, transparent);
 }
 
 .category-btn {
@@ -143,7 +152,7 @@ const isActiveBranch = (cat: any): boolean => {
     overflow: hidden;
     isolation: isolate;
     border: 1px solid transparent;
-    color: rgba(255, 255, 255, 0.62);
+    color: color-mix(in srgb, var(--pop-on-dark) 62%, transparent);
     transition:
         color 0.3s var(--ease-snappy),
         border-color 0.3s var(--ease-snappy),
@@ -151,23 +160,26 @@ const isActiveBranch = (cat: any): boolean => {
 }
 
 .category-btn:hover {
-    color: white;
-    border-color: rgba(255, 255, 255, 0.16);
-    background: rgba(255, 255, 255, 0.04);
+    color: var(--pop-on-dark);
+    border-color: color-mix(in srgb, var(--pop-on-dark) 16%, transparent);
+    background: color-mix(in srgb, var(--pop-on-dark) 4%, transparent);
 }
 
 .category-btn--active {
-    color: white;
-    border-color: rgba(179, 50, 76, 0.38);
-    box-shadow: 0 8px 28px rgba(179, 50, 76, 0.14);
+    --pill-rose: #b3324c;
+    color: var(--pop-on-dark);
+    border-color: color-mix(in srgb, var(--pill-rose) 38%, transparent);
+    box-shadow: 0 8px 28px color-mix(in srgb, var(--pill-rose) 14%, transparent);
 }
 
 .category-btn__active-bg {
+    --pill-rose: #b3324c;
+    --pill-magenta: #ec4899;
     position: absolute;
     inset: 2px;
     border-radius: 0.62rem;
-    background: linear-gradient(120deg, rgba(179, 50, 76, 0.3), rgba(236, 72, 153, 0.32));
-    border: 1px solid rgba(179, 50, 76, 0.32);
+    background: linear-gradient(120deg, color-mix(in srgb, var(--pill-rose) 30%, transparent), color-mix(in srgb, var(--pill-magenta) 32%, transparent));
+    border: 1px solid color-mix(in srgb, var(--pill-rose) 32%, transparent);
     pointer-events: none;
     z-index: 0;
 }

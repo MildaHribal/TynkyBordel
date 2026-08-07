@@ -304,30 +304,30 @@ const itemLink = (item: any): string | null => item?.productUrl || null
                 <!-- Order meta -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 border-t border-white/10 pt-4 mb-5">
                   <div>
-                    <div class="text-xs uppercase tracking-wider text-white/40 mb-1">Způsob platby</div>
+                    <div class="text-xs uppercase tracking-wider text-white/60 mb-1">Způsob platby</div>
                     <div class="text-sm text-white">{{ paymentLabel(order.paymentMethod) }}</div>
                   </div>
                   <div>
-                    <div class="text-xs uppercase tracking-wider text-white/40 mb-1">Stav platby</div>
+                    <div class="text-xs uppercase tracking-wider text-white/60 mb-1">Stav platby</div>
                     <div class="text-sm text-white">{{ paymentStatusLabel(order.paymentStatus) }}</div>
                   </div>
                   <div>
-                    <div class="text-xs uppercase tracking-wider text-white/40 mb-1">Doprava</div>
+                    <div class="text-xs uppercase tracking-wider text-white/60 mb-1">Doprava</div>
                     <div class="text-sm text-white">
                       {{ shippingLabel(order.shippingMethod) }}
                       <span v-if="order.packetaBranchName" class="text-white/50">· {{ order.packetaBranchName }}</span>
                     </div>
                   </div>
                   <div>
-                    <div class="text-xs uppercase tracking-wider text-white/40 mb-1">Doručovací adresa</div>
+                    <div class="text-xs uppercase tracking-wider text-white/60 mb-1">Doručovací adresa</div>
                     <div class="text-sm text-white whitespace-pre-line">{{ order.shippingAddress || '—' }}</div>
                   </div>
                   <div v-if="order.customerPhone">
-                    <div class="text-xs uppercase tracking-wider text-white/40 mb-1">Telefon</div>
+                    <div class="text-xs uppercase tracking-wider text-white/60 mb-1">Telefon</div>
                     <div class="text-sm text-white">{{ order.customerPhone }}</div>
                   </div>
                   <div v-if="order.variableSymbol">
-                    <div class="text-xs uppercase tracking-wider text-white/40 mb-1">Variabilní symbol</div>
+                    <div class="text-xs uppercase tracking-wider text-white/60 mb-1">Variabilní symbol</div>
                     <div class="text-sm text-white font-mono">{{ order.variableSymbol }}</div>
                   </div>
                 </div>
@@ -356,8 +356,8 @@ const itemLink = (item: any): string | null => item?.productUrl || null
                         class="text-sm truncate transition-colors"
                         :class="itemLink(item) ? 'text-white group-hover:text-primary-300' : 'text-white'"
                       >{{ item.title }}</div>
-                      <div class="text-xs text-white/40">{{ item.quantity }} × {{ item.price }} Kč</div>
-                      <div v-if="!itemLink(item)" class="text-[11px] text-white/30 mt-0.5">
+                      <div class="text-xs text-white/60">{{ item.quantity }} × {{ item.price }} Kč</div>
+                      <div v-if="!itemLink(item)" class="text-[11px] text-white/60 mt-0.5">
                         Originál je fuč — už není v prodeji
                       </div>
                     </div>
@@ -444,7 +444,7 @@ const itemLink = (item: any): string | null => item?.productUrl || null
                     <NuxtLink :to="`/product/${review.productSlug}`" class="text-white font-medium hover:text-primary-300 transition-colors">
                       {{ review.productName }}
                     </NuxtLink>
-                    <div class="text-xs text-white/40">{{ review.createdAt ? new Date(review.createdAt).toLocaleDateString('cs-CZ') : '' }}</div>
+                    <div class="text-xs text-white/60">{{ review.createdAt ? new Date(review.createdAt).toLocaleDateString('cs-CZ') : '' }}</div>
                   </div>
                   <div class="flex text-yellow-500 mb-2">
                     <Icon v-for="n in 5" :key="n" :name="n <= review.rating ? 'mdi:star' : 'mdi:star-outline'" height="16" />
@@ -477,10 +477,16 @@ const itemLink = (item: any): string | null => item?.productUrl || null
   to { opacity: 1; transform: translateY(0); }
 }
 .profile-head { margin-bottom: 2rem; }
+/* The header is the only part of this page that sits on the PAGE GROUND rather
+   than on a .glass-card-strong panel, so it is the only part that needs to
+   flip: hardcoded 60% ink measured 1.05:1 on the dark ground — invisible.
+   --pop-ink-mute is the token for exactly this role (muted text on paper) and
+   carries 0.64 rather than 0.60 in light, the alpha main.css settled on to
+   clear AA on cream. */
 .profile-sub {
   font-family: var(--font-mono, monospace);
   font-size: 0.86rem;
-  color: rgba(20, 35, 26, 0.6);
+  color: var(--pop-ink-mute, rgba(20, 35, 26, 0.64));
   margin-top: 0.6rem;
 }
 </style>

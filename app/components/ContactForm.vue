@@ -35,12 +35,12 @@ const handleSubmit = async () => {
       <!-- Left: Info -->
       <div class="contact-info">
         <h2 class="contact-title">
-          Napiš nám na<br />
-          <span class="contact-title-accent">domovskou planetu</span>
+          Napiš mi,<br />
+          <span class="contact-title-accent">klidně ve čtyři ráno</span>
         </h2>
         <p class="contact-desc">
-          Máš dotaz ohledně objednávky? Chceš originál na míru?
-          Napiš — odpovídám ráno u čaje.
+          Sháníš originál na míru? Nesedí barva, velikost, nálada?
+          Ozvi se — odepisuju, jak se probudím.
         </p>
 
         <ul class="contact-list">
@@ -106,12 +106,41 @@ const handleSubmit = async () => {
 </template>
 
 <style scoped>
+/* ── Local colours ─────────────────────────────────────────────────────────
+   Everything else here rides main.css's --pop-* tokens, which flip themselves
+   through light-dark(). These two have no shared equivalent:
+
+   --contact-accent        the italic "klidně ve čtyři ráno" and the e-mail link
+                           hover. The shared on-paper rose is --pop-pink-ink
+                           (#b34a72), a slightly different hue from this
+                           component's #b3324c, and light mode has to stay
+                           byte-identical — so the rose is lifted locally for
+                           dark instead, the same way --pop-pink-ink is.
+   --contact-submit-hover  the submit button's hover fill. The button's resting
+                           fill is var(--pop-ink), which inverts to near-white
+                           in dark, so "one step further from the resting
+                           fill" means darker in light and brighter in dark.
+   Guarded exactly like main.css: with no light-dark() the plain block below
+   stands and light mode is untouched. */
 .contact-card {
-  background: #ffffff;
-  border: 1px solid rgba(20, 35, 26, 0.1);
+  --contact-accent: #b3324c;
+  --contact-submit-hover: #21382a;
+}
+@supports (color: light-dark(#fff, #000)) {
+  .contact-card {
+    --contact-accent: light-dark(#b3324c, #F2A2B2);
+    --contact-submit-hover: light-dark(#21382a, #ffffff);
+  }
+}
+
+.contact-card {
+  background: var(--pop-sheet);
+  border: 1px solid var(--pop-line);
   border-radius: 1.5rem;
   padding: 2rem 1.5rem;
-  box-shadow: 0 12px 32px rgba(20, 35, 26, 0.08);
+  /* --pop-shadow-soft is the blurred zine shadow at 0.18; this card carries it
+     at 0.08, hence the mix rather than the bare token. */
+  box-shadow: 0 12px 32px color-mix(in srgb, var(--pop-shadow-soft) 44%, transparent);
 }
 @media (min-width: 768px) {
   .contact-card { padding: 3rem 2.5rem; }
@@ -145,7 +174,7 @@ const handleSubmit = async () => {
 .contact-title-accent {
   font-style: italic;
   font-weight: 500;
-  color: #b3324c;
+  color: var(--contact-accent);
 }
 
 .contact-desc {
@@ -154,7 +183,9 @@ const handleSubmit = async () => {
   font-weight: 500;
   font-size: 1.05rem;
   line-height: 1.55;
-  color: #1a0a30;
+  /* Was #1a0a30, a leftover near-black from the pre-zine cosmic palette. This
+     is body copy on paper, so it belongs to --pop-ink. */
+  color: var(--pop-ink);
   margin: 0 0 2rem;
   max-width: 42ch;
 }
@@ -176,8 +207,8 @@ const handleSubmit = async () => {
   width: 42px;
   height: 42px;
   border-radius: 9999px;
-  background: #F1EBDF;
-  border: 1px solid rgba(20, 35, 26, 0.1);
+  background: var(--pop-card-2);
+  border: 1px solid var(--pop-line);
   color: var(--pop-ink);
   display: inline-flex;
   align-items: center;
@@ -194,7 +225,7 @@ const handleSubmit = async () => {
   text-decoration: none;
   transition: color 0.2s ease;
 }
-.contact-link:hover { color: #b3324c; }
+.contact-link:hover { color: var(--contact-accent); }
 
 /* ── Form column ── */
 .contact-form {
@@ -218,13 +249,16 @@ const handleSubmit = async () => {
   font-size: 0.68rem;
   letter-spacing: 0.22em;
   text-transform: uppercase;
-  color: rgba(20, 35, 26, 0.6);
+  /* Was a flat 60% ink, which main.css measures at 4.37:1 on white — under AA.
+     --pop-ink-mute is the palette's muted-text token and exists at 0.64 for
+     exactly this reason (4.96:1), and it inverts for dark. */
+  color: var(--pop-ink-mute);
   margin-left: 0.2rem;
 }
 .form-input {
   width: 100%;
-  background: #F1EBDF;
-  border: 1px solid rgba(20, 35, 26, 0.15);
+  background: var(--pop-card-2);
+  border: 1px solid var(--pop-line);
   border-radius: 0.85rem;
   padding: 0.9rem 1rem;
   color: var(--pop-ink);
@@ -234,13 +268,16 @@ const handleSubmit = async () => {
   transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
 }
 .form-input::placeholder {
-  color: rgba(20, 35, 26, 0.4);
+  color: var(--pop-ink-faint);
 }
 .form-input:focus {
   outline: none;
   border-color: var(--pop-ink);
-  background: #ffffff;
-  box-shadow: 0 0 0 3px rgba(20, 35, 26, 0.1);
+  /* --pop-sheet and --pop-card-2 are the same violet in dark mode, so there the
+     focus state is carried by the border and the ring rather than by the fill —
+     which is how it already read in light mode. */
+  background: var(--pop-sheet);
+  box-shadow: 0 0 0 3px var(--pop-ink-wash-2);
 }
 .form-textarea { resize: vertical; min-height: 130px; line-height: 1.5; }
 
@@ -251,7 +288,10 @@ const handleSubmit = async () => {
   gap: 0.6rem;
   padding: 1rem 1.75rem;
   background: var(--pop-ink);
-  color: #ffffff;
+  /* --pop-sheet is #ffffff in light and #33244C in dark, i.e. it is the exact
+     inverse of --pop-ink in both themes — the label rides the fill instead of
+     going white-on-white. */
+  color: var(--pop-sheet);
   border: none;
   border-radius: 9999px;
   font-family: var(--font-body);
@@ -264,7 +304,7 @@ const handleSubmit = async () => {
   margin-top: 0.5rem;
 }
 .form-submit:hover:not(:disabled) {
-  background: #21382a;
+  background: var(--contact-submit-hover);
   transform: translateY(-2px);
 }
 .form-submit:disabled { opacity: 0.7; cursor: wait; }

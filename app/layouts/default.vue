@@ -77,7 +77,18 @@ import { BUSINESS } from "~~/shared/shop";
                   <Icon name="ic:baseline-tiktok" height="18" />
                   <span>TikTok</span>
                 </a>
+                <a href="https://linktr.ee/tynky_bordel" target="_blank" rel="noopener noreferrer" class="footer-social footer-social--linktree" aria-label="Linktree">
+                  <Icon name="simple-icons:linktree" height="18" />
+                  <span>Linktree</span>
+                </a>
               </div>
+            </div>
+
+            <div class="footer-col">
+              <h2 class="footer-heading">Kontakt</h2>
+              <ul class="footer-links">
+                <li><a href="mailto:info@tynkybordel.shop" class="footer-link">info@tynkybordel.shop</a></li>
+              </ul>
             </div>
           </div>
 
@@ -110,11 +121,18 @@ import { BUSINESS } from "~~/shared/shop";
      no wine token — NewsletterSignup.vue repeats this literal so the newsletter
      band and the footer read as one continuous block with no two-tone seam. */
   --footer-wine: #5A1F2E;
+  /* The footer's text cream. Local and deliberately theme-invariant for the
+     same reason as the wine itself: no --pop-* ink token fits, because they all
+     flip and this ground never does. It is the same literal NewsletterSignup
+     uses for .nl-title, so the two blocks read as one.
+     The hairlines/fills below instead go through --pop-on-dark, whose value IS
+     #F0E7D2 in both themes — same idea, and it already exists as a token. */
+  --footer-ink: #F1EBDF;
   /* Gutter lives on a variable so .site-footer-inner and the newsletter band
      (which pads itself by the same amount) line their content up exactly. */
   --footer-gutter: 1.25rem;
   background: var(--footer-wine);
-  color: #F1EBDF;
+  color: var(--footer-ink);
   padding: 0 0 2rem;
   position: relative;
 }
@@ -147,7 +165,7 @@ import { BUSINESS } from "~~/shared/shop";
   /* Warm cream hairlines instead of pure white: white over wine goes cool and
      dusty, and wine is lighter than the old near-black so it needs more alpha
      to stay as visible as before. */
-  border-bottom: 1px solid rgba(240, 231, 210, 0.16);
+  border-bottom: 1px solid color-mix(in srgb, var(--pop-on-dark) 16%, transparent);
 }
 @media (min-width: 900px) {
   .footer-brand-row {
@@ -183,20 +201,27 @@ import { BUSINESS } from "~~/shared/shop";
   font-weight: 400;
   font-size: 1.1rem;
   line-height: 1.5;
-  color: rgba(241, 235, 223, 0.75);
+  color: color-mix(in srgb, var(--footer-ink) 75%, transparent);
   max-width: 34ch;
   margin: 0;
 }
 
 /* Link columns */
+/* Four columns now (Nakupování · Podpora · Sleduj · Kontakt). Three of them are
+   short link lists but "Sleduj" is a stack of pill buttons and "Kontakt" holds a
+   full e-mail address, so four across only fits on a wide viewport: one column
+   on phones, two on tablets, four from 1000px. The gutters are unchanged. */
 .footer-columns {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr;
   gap: 2.5rem 2rem;
   padding: 3rem 0 2.5rem;
 }
-@media (min-width: 700px) {
-  .footer-columns { grid-template-columns: repeat(3, 1fr); }
+@media (min-width: 560px) {
+  .footer-columns { grid-template-columns: repeat(2, 1fr); }
+}
+@media (min-width: 1000px) {
+  .footer-columns { grid-template-columns: repeat(4, 1fr); }
 }
 
 .footer-heading {
@@ -205,7 +230,11 @@ import { BUSINESS } from "~~/shared/shop";
   font-size: 0.68rem;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: var(--pop-cream, #F0E7D2);
+  /* NOT --pop-cream: that token is the page ground and flips to near-black in
+     dark mode, which would have painted these headings almost invisible on the
+     wine. --pop-on-dark is the constant cream and its light value is the same
+     #F0E7D2 this used to resolve to. */
+  color: var(--pop-on-dark);
   margin: 0 0 1.25rem;
 }
 
@@ -221,7 +250,7 @@ import { BUSINESS } from "~~/shared/shop";
   font-family: var(--font-body);
   font-weight: 500;
   font-size: 0.95rem;
-  color: rgba(241, 235, 223, 0.85);
+  color: color-mix(in srgb, var(--footer-ink) 85%, transparent);
   text-decoration: none;
   transition: color 0.2s ease, transform 0.2s ease;
   display: inline-block;
@@ -242,10 +271,10 @@ import { BUSINESS } from "~~/shared/shop";
   align-items: center;
   gap: 0.6rem;
   padding: 0.55rem 0.85rem;
-  border: 1px solid rgba(240, 231, 210, 0.22);
+  border: 1px solid color-mix(in srgb, var(--pop-on-dark) 22%, transparent);
   border-radius: 9999px;
-  background: rgba(240, 231, 210, 0.06);
-  color: rgba(241, 235, 223, 0.9);
+  background: color-mix(in srgb, var(--pop-on-dark) 6%, transparent);
+  color: color-mix(in srgb, var(--footer-ink) 90%, transparent);
   font-family: var(--font-body);
   font-weight: 600;
   font-size: 0.82rem;
@@ -254,9 +283,11 @@ import { BUSINESS } from "~~/shared/shop";
   width: fit-content;
 }
 .footer-social:hover {
-  background: rgba(240, 231, 210, 0.14);
-  border-color: rgba(240, 231, 210, 0.45);
+  background: color-mix(in srgb, var(--pop-on-dark) 14%, transparent);
+  border-color: color-mix(in srgb, var(--pop-on-dark) 45%, transparent);
   transform: translateY(-2px);
+  /* Deliberate literal white: the brightest possible hover on a ground that is
+     dark in both themes. No token is "brighter than the cream". */
   color: #ffffff;
 }
 /* Brand-coloured hovers — the buttons light up in each app's own colours. */
@@ -272,6 +303,15 @@ import { BUSINESS } from "~~/shared/shop";
   color: #ffffff;
   box-shadow: 0 0 14px rgba(37, 244, 238, 0.45), 0 6px 18px rgba(254, 44, 85, 0.35);
 }
+/* Linktree's brand green is LIGHT, so unlike the two above the label on it has
+   to go dark — --pop-ink-on-accent is the token for exactly that (dark in both
+   themes), and it is what every pink/lime fill in the app already uses. */
+.footer-social--linktree:hover {
+  background: #43e55e;
+  border-color: #43e55e;
+  color: var(--pop-ink-on-accent);
+  box-shadow: 0 6px 18px rgba(67, 229, 94, 0.35);
+}
 
 /* Bottom bar */
 .footer-bottom {
@@ -279,7 +319,7 @@ import { BUSINESS } from "~~/shared/shop";
   flex-direction: column;
   gap: 1rem;
   padding-top: 2rem;
-  border-top: 1px solid rgba(240, 231, 210, 0.16);
+  border-top: 1px solid color-mix(in srgb, var(--pop-on-dark) 16%, transparent);
   align-items: center;
   justify-content: space-between;
 }
@@ -292,16 +332,16 @@ import { BUSINESS } from "~~/shared/shop";
   font-size: 0.78rem;
   /* Raised from .5: wine is a lighter backdrop than the old near-black, and
      .5 alpha dropped this small print under 4.5:1. */
-  color: rgba(241, 235, 223, 0.62);
+  color: color-mix(in srgb, var(--footer-ink) 62%, transparent);
 }
 .footer-payments {
   display: inline-flex;
   align-items: center;
   gap: 0.75rem;
   padding: 0.4rem 0.9rem;
-  border: 1px solid rgba(240, 231, 210, 0.18);
+  border: 1px solid color-mix(in srgb, var(--pop-on-dark) 18%, transparent);
   border-radius: 9999px;
-  background: rgba(240, 231, 210, 0.06);
+  background: color-mix(in srgb, var(--pop-on-dark) 6%, transparent);
 }
 .footer-payments-label {
   font-family: var(--font-body);
@@ -311,12 +351,13 @@ import { BUSINESS } from "~~/shared/shop";
   text-transform: uppercase;
   /* Same reason as .footer-copyright — tiny tracked-out caps need the extra
      alpha to clear 4.5:1 on wine. */
-  color: rgba(241, 235, 223, 0.62);
+  color: color-mix(in srgb, var(--footer-ink) 62%, transparent);
   margin-right: 0.2rem;
 }
 .footer-pay-icon {
-  color: rgba(241, 235, 223, 0.7);
+  color: color-mix(in srgb, var(--footer-ink) 70%, transparent);
   transition: color 0.2s ease;
 }
+/* Literal white for the same reason as .footer-social:hover. */
 .footer-pay-icon:hover { color: #ffffff; }
 </style>

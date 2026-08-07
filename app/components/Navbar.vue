@@ -138,7 +138,7 @@ onUnmounted(() => {
   <div class="navbar-shell">
     <!-- Left: Brand -->
     <NuxtLink to="/" class="brand-link" @click="isMobileMenuOpen = false">
-      <NuxtImg src="/hero/logo-mushroom.png" alt="" class="brand-art" width="40" height="40" format="webp" quality="85" loading="eager" />
+      <NuxtImg src="/hero/logo-mushroom.png" alt="" class="brand-art" width="40" height="40" format="webp" quality="86" loading="eager" />
       <span class="brand-text">Týnky Bordel</span>
     </NuxtLink>
 
@@ -202,6 +202,19 @@ onUnmounted(() => {
 
     <!-- Right: User + Cart (desktop) / Hamburger (mobile) -->
     <div class="navbar-right">
+      <!-- Linktree (desktop) — stejné „samolepkové" tlačítko jako profil a
+           košík, jen odkazuje ven; sedí hned vlevo od přepínače tématu. -->
+      <a
+        href="https://linktr.ee/tynky_bordel"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="nav-avatar-btn hidden md:flex"
+        title="Linktree"
+        aria-label="Linktree"
+      >
+        <Icon name="simple-icons:linktree" height="18" />
+      </a>
+
       <!-- Přepínač tématu (desktop) — hned vedle tlačítka profilu.
            Ikona se řídí CSS proměnnou --tb-dark, ne Vue stavem, takže je
            správná už v prvním snímku a nepřehraje si animaci při načtení. -->
@@ -227,7 +240,7 @@ onUnmounted(() => {
               <line x1="17.9" y1="6.1" x2="19.4" y2="4.6" />
             </g>
           </g>
-          <path class="theme-moon" d="M21 14.2A9.2 9.2 0 0 1 9.8 3a7.6 7.6 0 1 0 11.2 11.2Z" />
+          <path class="theme-moon" d="M15.55 4.83a8 8 0 1 0 0 14.34a7.2 7.2 0 0 1 0-14.34Z" />
         </svg>
       </button>
 
@@ -263,7 +276,7 @@ onUnmounted(() => {
               <line x1="17.9" y1="6.1" x2="19.4" y2="4.6" />
             </g>
           </g>
-          <path class="theme-moon" d="M21 14.2A9.2 9.2 0 0 1 9.8 3a7.6 7.6 0 1 0 11.2 11.2Z" />
+          <path class="theme-moon" d="M15.55 4.83a8 8 0 1 0 0 14.34a7.2 7.2 0 0 1 0-14.34Z" />
         </svg>
       </button>
 
@@ -372,6 +385,17 @@ onUnmounted(() => {
               <Icon name="lucide:user-round" height="20" />
               <span>About</span>
             </NuxtLink>
+            <a
+              href="https://linktr.ee/tynky_bordel"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="mobile-link"
+              aria-label="Linktree"
+              @click="isMobileMenuOpen = false"
+            >
+              <Icon name="simple-icons:linktree" height="20" />
+              <span>Linktree</span>
+            </a>
             <NuxtLink to="/cart" class="mobile-link" @click="isMobileMenuOpen = false">
               <Icon name="lucide:shopping-cart" height="20" />
               <span>Košík</span>
@@ -726,6 +750,12 @@ onUnmounted(() => {
   fill: none;
 }
 
+/* The crescent is a disc (centre 12,12 · r 8) with a second disc (centre 16.2,12
+   · r 7.2) subtracted — the cut is offset purely along X, so the moon opens to
+   the SIDE and reads as a C rather than having its bite taken out of the
+   bottom. It is still one closed contour of two arcs, not a disc covered by a
+   circle painted in the button's fill, so it survives any background. Both
+   circles are concentric on Y with the sun, so the scale below is centric. */
 .theme-moon {
   fill: currentColor;
   opacity: var(--tb-dark);
@@ -752,8 +782,14 @@ onUnmounted(() => {
   justify-content: center;
   font-size: 0.65rem;
   font-weight: 700;
-  color: #ffffff;
-  background: #b3324c;
+  /* The chip is a deep wine that is dark in BOTH themes, so its glyph is the
+     constant --pop-on-dark rather than --pop-ink (which flips to near-white and
+     would vanish). The wine itself has no token: --pop-danger is a *text*
+     colour and flips to a pale rose in dark mode, which is the opposite of what
+     a filled counter needs. */
+  --badge-wine: #b3324c;
+  color: var(--pop-on-dark);
+  background: var(--badge-wine);
   border-radius: 9999px;
   /* ring matches whatever surface the badge sits on */
   border: 2px solid var(--pop-sheet);
@@ -978,8 +1014,10 @@ onUnmounted(() => {
   justify-content: center;
   font-size: 0.7rem;
   font-weight: 700;
-  color: #ffffff;
-  background: #b3324c;
+  /* Same theme-invariant wine chip as .cart-badge-small. */
+  --badge-wine: #b3324c;
+  color: var(--pop-on-dark);
+  background: var(--badge-wine);
   border-radius: 9999px;
 }
 
@@ -1066,8 +1104,11 @@ onUnmounted(() => {
   justify-content: center;
   font-size: 0.65rem;
   font-weight: 700;
-  color: #ffffff;
-  background: #b3324c;
+  /* Same theme-invariant wine chip as .cart-badge-small. Teleported to <body>,
+     so it cannot inherit the property from the navbar and redeclares it. */
+  --badge-wine: #b3324c;
+  color: var(--pop-on-dark);
+  background: var(--badge-wine);
   border-radius: 9999px;
   border: 2px solid var(--pop-sheet);
 }

@@ -107,7 +107,7 @@ useHead(() => ({
   script: jsonLd.value.map(schema => ({ type: 'application/ld+json', innerHTML: JSON.stringify(schema) })),
 }))
 
-const ticker = ['Jeden kus od každého', 'Odesílám z Prahy do 2 dnů', '14 dní na vrácení', 'Ručně v Praze', 'Platba převodem i dobírkou']
+const ticker = ['odesílám do 2 dnů', 'handmade', 'platba převodem i dobírkou', 'made with passion']
 
 // Fast, controlled smooth scroll (~500ms regardless of distance) that overrides
 // the browser's distance-dependent native smooth scroll for in-hero anchors.
@@ -164,8 +164,7 @@ function scrollToKolekce(e: MouseEvent) {
               Vytvářím <span class="zhero-mark">absolutní</span> bangery.
             </h1>
             <p class="zhero-sub">
-              Obrazy, sochy z papírmašé, klíčenky. Všechno originál, všechno z ruky.
-              Platba převodem nebo dobírkou.
+              Obrazy, klíčenky, popelníky a další. Každý kousek vyráběný rukama.
             </p>
             <div class="zhero-actions">
               <NuxtLink to="#kolekce" class="zine-btn" @click="scrollToKolekce">
@@ -185,7 +184,7 @@ function scrollToKolekce(e: MouseEvent) {
                    and shipped a 720px file into a 145px slot on phones. -->
               <NuxtImg
                 :src="heroSrc(pic.image)" :alt="pic.title || ''"
-                width="220" height="220" format="webp" quality="78"
+                width="220" height="220" format="webp" quality="79"
                 sizes="160px sm:200px md:220px"
                 :loading="i === 0 ? 'eager' : 'lazy'"
                 :preload="i === 0 || undefined"
@@ -204,7 +203,14 @@ function scrollToKolekce(e: MouseEvent) {
       <!-- ═══ MARQUEE ═══ -->
       <div class="zine-marquee zine-marquee--pink" role="presentation">
         <div class="zine-marquee-track">
-          <template v-for="n in 2" :key="n">
+          <!-- The track is `inline-flex`, so it is exactly as wide as its
+               content, and zine.css scrolls it by a fixed translateX(-50%) —
+               which only loops seamlessly when the copies split evenly in two.
+               The new ticker is ~840px per copy, so two copies no longer fill a
+               desktop viewport and the strip ran out mid-cycle; four copies
+               (still an even split, so -50% is still exactly the seam) cover any
+               screen. Count must stay EVEN. -->
+          <template v-for="n in 4" :key="n">
             <template v-for="(t, i) in ticker" :key="`${n}-${i}`">
               <span class="zine-marquee-star">✦</span>
               <span class="zine-marquee-item">{{ t }}</span>
@@ -255,14 +261,14 @@ function scrollToKolekce(e: MouseEvent) {
           <div class="zabout-art">
             <NuxtImg
               src="/hero/tynka.webp" alt="Týnka — autorka"
-              width="300" height="300" format="webp" quality="80" loading="lazy"
+              width="300" height="300" format="webp" quality="81" loading="lazy"
               sizes="300px"
               class="zabout-img"
             />
           </div>
           <div class="zabout-copy">
             <span class="zine-eyebrow">✶ O mně</span>
-            <h2 class="zabout-title">Akustická děvka,<br />která musí furt něco tvořit</h2>
+            <h2 class="zabout-title">Vítej na mém e-shopu</h2>
             <div class="zabout-desc">
               <p>
                 Jsem <strong class="zabout-strong">Týnka</strong> a přes tvorbu pouštím do světa
@@ -287,7 +293,7 @@ function scrollToKolekce(e: MouseEvent) {
         <div class="ztiles">
           <div class="ztile">
             <span class="ztile-num">01</span>
-            <h3 class="ztile-title">Z Prahy do 2 dnů</h3>
+            <h3 class="ztile-title">Odesláno do 2 dnů</h3>
             <p class="ztile-desc">Zásilkovna Z-BOX i Balíkovna, 79 Kč.</p>
           </div>
           <div class="ztile">
@@ -297,11 +303,14 @@ function scrollToKolekce(e: MouseEvent) {
           </div>
           <div class="ztile">
             <span class="ztile-num">03</span>
-            <h3 class="ztile-title">14 dní na vrácení</h3>
-            <p class="ztile-desc">Nesedí? Vyměníme nebo vrátíme peníze.</p>
+            <h3 class="ztile-title">Každý kousek originál</h3>
+            <p class="ztile-desc">Žádná sériová výroba — co koupíš, to už nikdo jiný mít nebude.</p>
           </div>
         </div>
       </section>
+
+      <!-- No contact block here on purpose: the owner wants the form to live on
+           the product page only, so the homepage ends with the info tiles. -->
     </template>
   </div>
 </template>
@@ -341,12 +350,16 @@ function scrollToKolekce(e: MouseEvent) {
   margin: 0 0 1.4rem;
 }
 .zhero-mark {
-  color: var(--pop-ink);
+  /* Pink sticker: the fill stays LIGHT in dark mode, so the word on it and the
+     cut-out border around it must stay dark — --pop-ink flips to near-white and
+     the whole mark would go light-on-light. Same construction as .zine-sticker
+     and .zabout-mark. */
+  color: var(--pop-ink-on-accent);
   background: var(--pop-pink);
   padding: 0 0.18em;
-  border: 3px solid var(--pop-ink);
+  border: 3px solid var(--pop-ink-on-accent);
   border-radius: 6px;
-  box-shadow: 4px 4px 0 rgba(20, 35, 26, 0.9);
+  box-shadow: 4px 4px 0 var(--pop-shadow);
   display: inline-block;
   transform: rotate(-1.5deg);
 }
@@ -355,7 +368,10 @@ function scrollToKolekce(e: MouseEvent) {
   font-weight: 500;
   font-size: 1.05rem;
   line-height: 1.55;
-  color: rgba(20, 35, 26, 0.78);
+  /* Was a literal ink wash, i.e. dark green text that stayed dark green on the
+     violet dark-mode ground. No token carries this exact alpha, so it is mixed
+     off --pop-ink: identical in light, and it follows the theme. */
+  color: color-mix(in srgb, var(--pop-ink) 78%, transparent);
   max-width: 44ch;
   margin: 0 0 1.9rem;
 }
@@ -374,7 +390,7 @@ function scrollToKolekce(e: MouseEvent) {
 .zhero-dot {
   width: 9px; height: 9px; border-radius: 50%;
   background: var(--pop-lime); border: 1.5px solid var(--pop-ink);
-  box-shadow: 0 0 0 3px rgba(185, 225, 75, 0.35);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--pop-lime) 35%, transparent);
 }
 
 /* Collage */
@@ -389,10 +405,13 @@ function scrollToKolekce(e: MouseEvent) {
 .zpolaroid {
   position: absolute;
   width: clamp(140px, 40vw, 220px);
-  background: #fbf7ee;
+  /* The polaroid's paper frame — --pop-card is exactly this literal in light and
+     the raised-paper surface in dark, so the frame stays a "card" on both
+     grounds instead of a glaring white block on the violet one. */
+  background: var(--pop-card);
   padding: 8px 8px 26px;
   border: 2px solid var(--pop-ink);
-  box-shadow: 5px 6px 0 rgba(20, 35, 26, 0.85);
+  box-shadow: 5px 6px 0 var(--pop-shadow);
 }
 .zpolaroid-img { width: 100%; aspect-ratio: 1; object-fit: cover; display: block; background: var(--pop-plum); }
 .zpolaroid-tape { top: -12px; left: 50%; margin-left: -42px; transform: rotate(-4deg); }
@@ -423,7 +442,7 @@ function scrollToKolekce(e: MouseEvent) {
   cursor: pointer;
   transition: background 0.16s ease, color 0.16s ease, transform 0.12s ease;
 }
-.zfilter:hover { transform: translateY(-1px); background: rgba(20, 35, 26, 0.06); }
+.zfilter:hover { transform: translateY(-1px); background: var(--pop-ink-wash); }
 .zfilter.is-active { background: var(--pop-ink); color: var(--pop-cream); }
 
 /* ── Product grid ── */
@@ -437,7 +456,9 @@ function scrollToKolekce(e: MouseEvent) {
 .zempty {
   font-family: var(--font-mono);
   text-align: center;
-  color: rgba(20, 35, 26, 0.55);
+  /* --pop-ink-mute, not the old 0.55 ink wash: that wash was fixed dark green
+     (unreadable on the violet ground) and only measured ~3.9:1 even on cream. */
+  color: var(--pop-ink-mute);
   padding: 3rem 0;
 }
 
@@ -455,13 +476,13 @@ function scrollToKolekce(e: MouseEvent) {
   background: var(--pop-plum);
   border: 2px solid var(--pop-ink);
   border-radius: 16px;
-  box-shadow: 6px 6px 0 rgba(20, 35, 26, 0.85);
+  box-shadow: 6px 6px 0 var(--pop-shadow);
 }
 @media (min-width: 820px) { .zabout { grid-template-columns: 0.8fr 1.2fr; gap: 2.5rem; padding: 2.75rem; } }
 .zabout-art { display: flex; justify-content: center; }
 .zabout-img {
   width: 100%; max-width: 300px; border-radius: 12px;
-  border: 2px solid rgba(253, 247, 236, 0.28);
+  border: 2px solid color-mix(in srgb, var(--pop-on-dark) 28%, transparent);
 }
 .zabout-title {
   font-family: var(--font-zine);
@@ -469,8 +490,9 @@ function scrollToKolekce(e: MouseEvent) {
   font-size: clamp(1.5rem, 5vw, 2.5rem);
   line-height: 0.95;
   text-transform: uppercase;
-  /* 8.15:1 on the olive ground. */
-  color: #FDF7EC;
+  /* The olive panel is dark in BOTH themes, so this is the constant on-dark
+     cream (7.7:1 on the light olive, 6.7:1 on the lifted dark one). */
+  color: var(--pop-on-dark);
   margin: 0.7rem 0 1rem;
 }
 .zabout-desc {
@@ -480,7 +502,7 @@ function scrollToKolekce(e: MouseEvent) {
   /* Softer than the title but still 5.6:1 — the body copy has to clear AA,
      so this is as far down as the alpha can go on this green. Tokens only in
      the accents below, so dark mode re-tunes them by itself. */
-  color: rgba(240, 231, 210, 0.85);
+  color: color-mix(in srgb, var(--pop-on-dark) 85%, transparent);
   margin: 0 0 0.4rem;
   max-width: 52ch;
 }
@@ -516,7 +538,7 @@ function scrollToKolekce(e: MouseEvent) {
   border: 2px solid var(--pop-ink);
   border-radius: 12px;
   padding: 1.5rem 1.5rem 1.4rem;
-  box-shadow: 4px 5px 0 rgba(32, 8, 40, 0.55);
+  box-shadow: 4px 5px 0 var(--pop-shadow);
   transition: transform 0.16s ease, box-shadow 0.16s ease;
 }
 .ztile:hover { transform: translate(-1px, -1px); box-shadow: 7px 9px 0 var(--pop-pink, #E7488B); }
@@ -528,6 +550,14 @@ function scrollToKolekce(e: MouseEvent) {
      small. primary-700 is the same rose family at 5.83:1. */
   color: var(--color-primary-700, #97325c);
   letter-spacing: 0.1em;
+}
+/* …but primary-700 is a Tailwind theme colour: it does NOT flip, and the tile
+   ground does (--pop-cream becomes the near-black violet), which dropped this
+   number to ~2.5:1 in dark mode. Same two-branch idiom main.css uses for the
+   palette itself: the light branch keeps the exact colour above, the dark branch
+   takes the rose that is already tuned for a dark ground. */
+@supports (color: light-dark(#fff, #000)) {
+  .ztile-num { color: light-dark(#97325c, var(--pop-pink-ink)); }
 }
 .ztile-title {
   font-family: var(--font-zine);
@@ -542,7 +572,7 @@ function scrollToKolekce(e: MouseEvent) {
   font-family: var(--font-body);
   font-size: 0.9rem;
   line-height: 1.5;
-  color: rgba(20, 35, 26, 0.7);
+  color: var(--pop-ink-mute);
   margin: 0;
 }
 
@@ -551,6 +581,6 @@ function scrollToKolekce(e: MouseEvent) {
   font-size: 0.72rem;
   letter-spacing: 0.22em;
   text-transform: uppercase;
-  color: rgba(20, 35, 26, 0.55);
+  color: var(--pop-ink-mute);
 }
 </style>

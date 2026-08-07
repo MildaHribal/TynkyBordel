@@ -187,6 +187,13 @@ onUnmounted(() => {
   z-index: 110;
   background: rgba(20, 35, 26, 0.55);
 }
+/* The scrim has no shared token — it is the only full-viewport dimmer in the
+   app. On cream, 55% ink reads as a printed shadow; over the violet ground the
+   same wash barely separates the drawer from the page, so dark mode uses a
+   deeper, cooler ink at 66%. Guarded exactly like the palette in main.css. */
+@supports (color: light-dark(#fff, #000)) {
+  .cart-backdrop { background: light-dark(rgba(20, 35, 26, 0.55), rgba(9, 5, 17, 0.66)); }
+}
 
 .cart-drawer {
   position: fixed;
@@ -200,14 +207,30 @@ onUnmounted(() => {
   /* Warm paper + the same dotted print grid the page body uses, so the drawer
      reads as another sheet of the zine rather than a UI panel. */
   background-color: var(--pop-cream, #F0E7D2);
+  /* The dots and the printed edge are a hair different from the body's shared
+     --pop-dot-* / --pop-shadow-soft (11%/6% ink here vs 14%/7% violet there,
+     22% vs 18% for the edge), so they get local props: the light values stay
+     byte-identical to what shipped, and the dark values mirror how main.css
+     inverts the same textures — pale violet dots, a lilac riso edge, because a
+     near-black offset simply vanishes against the #1B1129 ground. */
+  --cart-dot-1: rgba(20, 35, 26, 0.11);
+  --cart-dot-2: rgba(20, 35, 26, 0.06);
+  --cart-edge: rgba(20, 35, 26, 0.22);
   background-image:
-    radial-gradient(rgba(20, 35, 26, 0.11) 1.3px, transparent 1.5px),
-    radial-gradient(rgba(20, 35, 26, 0.06) 1px, transparent 1.2px);
+    radial-gradient(var(--cart-dot-1) 1.3px, transparent 1.5px),
+    radial-gradient(var(--cart-dot-2) 1px, transparent 1.2px);
   background-size: 26px 26px, 52px 52px;
   background-position: 0 0, 13px 13px;
   border-left: 3px solid var(--pop-ink, #14231a);
   /* Flat second rule instead of a 50px blur — a printed edge, and free. */
-  box-shadow: -7px 0 0 rgba(20, 35, 26, 0.22);
+  box-shadow: -7px 0 0 var(--cart-edge);
+}
+@supports (color: light-dark(#fff, #000)) {
+  .cart-drawer {
+    --cart-dot-1: light-dark(rgba(20, 35, 26, 0.11), rgba(216, 196, 255, 0.09));
+    --cart-dot-2: light-dark(rgba(20, 35, 26, 0.06), rgba(216, 196, 255, 0.05));
+    --cart-edge:  light-dark(rgba(20, 35, 26, 0.22), rgba(198, 166, 255, 0.30));
+  }
 }
 .cart-drawer:focus { outline: none; }
 
@@ -231,8 +254,9 @@ onUnmounted(() => {
   line-height: 1;
   letter-spacing: -0.01em;
   text-transform: uppercase;
-  /* 8.15:1 on the olive ground (same pairing as the homepage about block). */
-  color: #FDF7EC;
+  /* Text on the olive bar, which is dark in BOTH themes → --pop-on-dark.
+     7.29:1 on light olive, 6.55:1 on the lifted dark olive. */
+  color: var(--pop-on-dark, #F0E7D2);
 }
 .cart-head-count {
   font-family: var(--font-mono);
@@ -240,12 +264,14 @@ onUnmounted(() => {
   font-size: 0.7rem;
   letter-spacing: 0.06em;
   background: var(--pop-lime, #B9E14B);
-  color: var(--pop-ink, #14231a);
-  border: 2px solid var(--pop-ink, #14231a);
+  /* Lime stays light in both themes, so its ink and border must stay dark —
+     --pop-ink would turn near-white here and vanish. Same pairing as .zine-price. */
+  color: var(--pop-ink-on-accent, #14231a);
+  border: 2px solid var(--pop-ink-on-accent, #14231a);
   border-radius: 5px;
   padding: 0.05rem 0.4rem;
   transform: rotate(-4deg);
-  box-shadow: 2px 2px 0 rgba(20, 35, 26, 0.9);
+  box-shadow: 2px 2px 0 var(--pop-shadow);
 }
 .cart-close {
   flex-shrink: 0;
@@ -259,11 +285,13 @@ onUnmounted(() => {
   background: var(--pop-cream, #F0E7D2);
   color: var(--pop-ink, #14231a);
   cursor: pointer;
-  box-shadow: 3px 3px 0 rgba(20, 35, 26, 0.9);
+  box-shadow: 3px 3px 0 var(--pop-shadow);
   transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.2s ease;
 }
-.cart-close:hover { background: var(--pop-pink, #E585AA); }
-.cart-close:active { transform: translate(3px, 3px); box-shadow: 1px 1px 0 rgba(20, 35, 26, 0.9); }
+/* Hovering swaps the fill for pink, which stays light in both themes — the icon
+   has to swap to the constant dark ink with it. */
+.cart-close:hover { background: var(--pop-pink, #E585AA); color: var(--pop-ink-on-accent, #14231a); }
+.cart-close:active { transform: translate(3px, 3px); box-shadow: 1px 1px 0 var(--pop-shadow); }
 
 /* Tape strip pinning the header to the sheet. */
 .cart-tape {
@@ -363,7 +391,7 @@ onUnmounted(() => {
   background: var(--pop-cream, #F0E7D2);
   border: 2px solid var(--pop-ink, #14231a);
   border-radius: 8px;
-  box-shadow: 2px 2px 0 rgba(20, 35, 26, 0.9);
+  box-shadow: 2px 2px 0 var(--pop-shadow);
   overflow: hidden;
 }
 .cart-qty-btn {
@@ -378,8 +406,10 @@ onUnmounted(() => {
   justify-content: center;
   transition: background 0.15s ease;
 }
-.cart-qty-btn:hover:not(:disabled) { background: var(--pop-lime, #B9E14B); }
-.cart-qty-btn:active:not(:disabled) { background: var(--pop-pink, #E585AA); }
+/* Lime / pink fills stay light in both themes → the glyph takes the constant
+   dark ink, not --pop-ink (which is near-white in dark mode). */
+.cart-qty-btn:hover:not(:disabled) { background: var(--pop-lime, #B9E14B); color: var(--pop-ink-on-accent, #14231a); }
+.cart-qty-btn:active:not(:disabled) { background: var(--pop-pink, #E585AA); color: var(--pop-ink-on-accent, #14231a); }
 .cart-qty-btn:disabled { opacity: 0.3; cursor: not-allowed; }
 .cart-qty-val {
   min-width: 24px;
@@ -403,16 +433,17 @@ onUnmounted(() => {
   justify-content: center;
   width: 31px;
   height: 31px;
-  border: 2px solid var(--pop-ink, #14231a);
+  border: 2px solid var(--pop-ink-on-accent, #14231a);
   border-radius: 8px;
   background: var(--pop-blush, #F7D3E0);
-  color: var(--pop-ink, #14231a);
+  /* Blush (and the pink hover) stay light in both themes → constant dark ink. */
+  color: var(--pop-ink-on-accent, #14231a);
   cursor: pointer;
-  box-shadow: 2px 2px 0 rgba(20, 35, 26, 0.9);
+  box-shadow: 2px 2px 0 var(--pop-shadow);
   transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.2s ease;
 }
 .cart-remove:hover { background: var(--pop-pink, #E585AA); }
-.cart-remove:active { transform: translate(2px, 2px); box-shadow: 0 0 0 rgba(20, 35, 26, 0.9); }
+.cart-remove:active { transform: translate(2px, 2px); box-shadow: 0 0 0 var(--pop-shadow); }
 
 /* ── Footer ──────────────────────────────────────────────────────────────── */
 .cart-foot {
@@ -442,7 +473,7 @@ onUnmounted(() => {
   font-size: 1.05rem;
   padding: 0.25rem 0.6rem;
   transform: rotate(-1.5deg);
-  box-shadow: 3px 3px 0 rgba(20, 35, 26, 0.9);
+  box-shadow: 3px 3px 0 var(--pop-shadow);
 }
 .cart-checkout { width: 100%; }
 .cart-view-link {
@@ -457,8 +488,14 @@ onUnmounted(() => {
   text-underline-offset: 3px;
 }
 /* --pop-pink-ink is only 4.12:1 on cream — too thin for a 0.68rem label, so the
-   hover goes one rose step deeper (primary-700, already in main.css) for 5.83:1. */
+   hover goes one rose step deeper (primary-700, already in main.css) for 5.83:1.
+   That deep rose is unreadable on the #1B1129 ground, and no shared token holds
+   "rose that works on paper in both themes" (--pop-pink-ink is tuned per theme
+   but too pale here in light), so the dark side takes the light-mode rose. */
 .cart-view-link:hover { color: var(--color-primary-700, #97325c); }
+@supports (color: light-dark(#fff, #000)) {
+  .cart-view-link:hover { color: light-dark(#97325c, #F5A3C2); }
+}
 
 /* ── Transitions ─────────────────────────────────────────────────────────── */
 .cart-fade-enter-active,

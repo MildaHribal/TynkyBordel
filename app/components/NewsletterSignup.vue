@@ -70,6 +70,11 @@ const submit = async () => {
 .nl {
   width: 100%;
   max-width: 420px;
+
+  /* Local, deliberately theme-invariant paper. No shared token fits: every
+     --pop-* surface flips dark, and this one must not, because the wine behind
+     it is already dark in both themes. */
+  --nl-paper: #fbf7ee;
 }
 
 .sr-only {
@@ -111,14 +116,19 @@ const submit = async () => {
   gap: 0.4rem;
 }
 
+/* The input keeps a paper-light fill in BOTH themes: it sits on the wine, which
+   is dark in both, so flipping it to a dark surface would make the field vanish
+   into the footer. Its ink therefore has to be --pop-ink-on-accent (constant
+   dark) — plain --pop-ink flips to near-white and the typed e-mail would be
+   invisible in dark mode. */
 .nl-input {
   flex: 1;
   min-width: 0;
   padding: 0.5rem 0.7rem;
   border-radius: 7px;
-  background: #fbf7ee;
-  border: 2px solid var(--pop-ink, #14231a);
-  color: var(--pop-ink, #14231a);
+  background: var(--nl-paper);
+  border: 2px solid var(--pop-ink-on-accent, #14231a);
+  color: var(--pop-ink-on-accent, #14231a);
   font-family: var(--font-mono, monospace);
   font-size: 0.82rem;
   transition: box-shadow 0.2s ease;
@@ -135,10 +145,12 @@ const submit = async () => {
   gap: 0.35rem;
   padding: 0.5rem 0.8rem;
   border-radius: 7px;
-  border: 2px solid var(--pop-ink, #14231a);
+  /* Lime stays light in dark mode, so the glyph on it must stay dark ink —
+     --pop-ink would flip to near-white and disappear on the lime. */
+  border: 2px solid var(--pop-ink-on-accent, #14231a);
   cursor: pointer;
   background: var(--pop-lime, #B9E14B);
-  color: var(--pop-ink, #14231a);
+  color: var(--pop-ink-on-accent, #14231a);
   font-family: var(--font-mono, monospace);
   font-weight: 700;
   font-size: 0.68rem;
@@ -151,7 +163,7 @@ const submit = async () => {
 .nl-btn:hover:not(:disabled) { transform: translate(-1px, -1px); box-shadow: 4px 4px 0 rgba(20, 35, 26, 0.55); }
 .nl-btn:active:not(:disabled) { transform: translate(2px, 2px); box-shadow: 1px 1px 0 rgba(20, 35, 26, 0.55); }
 .nl-btn:disabled { opacity: 0.72; cursor: default; }
-.nl-btn:focus-visible { outline: 2px solid #fbf7ee; outline-offset: 2px; }
+.nl-btn:focus-visible { outline: 2px solid var(--nl-paper); outline-offset: 2px; }
 
 .nl-done {
   display: inline-flex;

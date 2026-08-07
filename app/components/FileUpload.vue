@@ -58,8 +58,11 @@ const uploadImage = async (event: Event) => {
   align-items: center;
   gap: 0.5rem;
   padding: 0.5rem 1rem;
-  background: rgba(109, 201, 149, 0.1);
-  color: #6dc995;
+  /* Was a fixed mint (#6dc995 on a 10% mint wash): 2.0:1 on the paper card in
+     light mode, and it did not follow the theme at all. The lime family is the
+     palette's "go" accent and its -ink variant is re-tuned per theme. */
+  background: color-mix(in srgb, var(--pop-lime) 14%, transparent);
+  color: var(--pop-lime-ink);
   border-radius: 0.375rem;
   cursor: pointer;
   font-size: 0.85rem;
@@ -68,7 +71,7 @@ const uploadImage = async (event: Event) => {
 }
 
 .upload-btn:hover:not(.disabled) {
-  background: rgba(109, 201, 149, 0.2);
+  background: color-mix(in srgb, var(--pop-lime) 24%, transparent);
 }
 
 .upload-btn.disabled {
@@ -81,7 +84,7 @@ const uploadImage = async (event: Event) => {
 }
 
 .error-text {
-  color: #f87171;
+  color: var(--pop-danger);
   font-size: 0.8rem;
 }
 </style>

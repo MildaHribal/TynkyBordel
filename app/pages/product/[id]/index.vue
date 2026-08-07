@@ -744,6 +744,35 @@ const submitReview = async () => {
    nothing. Plain tokens here — no escaping is needed inside quotes.
    ══════════════════════════════════════════════════════════════════════════ */
 
+/* ── 0. Two local colours the shared palette has no exact match for ─────
+   Everything else on this page goes through main.css's --pop-* tokens, which
+   flip themselves via light-dark(). These two do not exist there:
+
+   --pdp-on-olive  The paper white for every foreground on the olive panels.
+                   It is deliberately NOT --pop-on-dark (#F0E7D2): this page
+                   was tuned at the brighter #FDF7EC and every contrast note
+                   below is measured against it. The olive panels are dark in
+                   BOTH themes, so there is nothing to flip — one constant.
+   --pdp-ok        The "Skladem" green. It lands on the cream sticker, which
+                   IS the page ground and therefore flips to near-black in
+                   dark, so the green has to flip with it. --pop-danger
+                   already covers the red half of the pill; there is no green
+                   equivalent (--pop-green is a single constant that only
+                   works on a dark ground), so the light side keeps this
+                   file's on-cream green and the dark side takes --pop-green's
+                   value, which is what that constant was picked for.
+   Guarded exactly like main.css: without light-dark() the plain block stands
+   and the light theme is untouched. */
+.product-detail {
+  --pdp-on-olive: #FDF7EC;
+  --pdp-ok: #1b6b33;
+}
+@supports (color: light-dark(#fff, #000)) {
+  .product-detail {
+    --pdp-ok: light-dark(#1b6b33, #A8DF8E);
+  }
+}
+
 /* ── 1. Page ground: cream paper ──────────────────────────────────────── */
 .product-detail :is(h1, h2, h3) {
   color: var(--pop-ink, #14231a) !important;
@@ -756,7 +785,7 @@ const submitReview = async () => {
    clear AA for normal text, not just large. */
 .product-detail [class~="text-white/40"],
 .product-detail [class~="text-white/50"] {
-  color: rgba(20, 35, 26, 0.68) !important;
+  color: color-mix(in srgb, var(--pop-ink) 68%, transparent) !important;
 }
 /* Tailwind's hover variant is the token `hover:text-white`, which no
    [class~="text-white"] selector catches — so the back link used to flip to
@@ -797,7 +826,7 @@ const submitReview = async () => {
   background: var(--pop-plum, #3b5222);
   border: 2px solid var(--pop-ink, #14231a);
   border-radius: 16px;
-  box-shadow: 6px 6px 0 rgba(20, 35, 26, 0.85);
+  box-shadow: 6px 6px 0 var(--pop-shadow);
 }
 /* Error / not-found keep the near-black zine panel so a failed load doesn't
    look like a product. */
@@ -811,7 +840,7 @@ const submitReview = async () => {
 }
 @media (min-width: 1024px) {
   .pdp-gallery {
-    border-right: 2px solid rgba(253, 247, 236, 0.28);
+    border-right: 2px solid color-mix(in srgb, var(--pdp-on-olive) 28%, transparent);
   }
 }
 
@@ -819,26 +848,26 @@ const submitReview = async () => {
    Values are the ones already contrast-checked for the olive "about" panel
    on the homepage, so the two pages agree. */
 .product-detail .pdp-panel :is(h1, h2, h3) {
-  color: #FDF7EC !important; /* 8.15:1 on olive */
+  color: var(--pdp-on-olive) !important; /* 8.15:1 on olive */
 }
 .product-detail .pdp-panel [class~="text-white"],
 .product-detail .pdp-panel [class*="text-white/"] {
-  color: #FDF7EC !important;
+  color: var(--pdp-on-olive) !important;
 }
 .product-detail .pdp-panel [class~="text-white/40"],
 .product-detail .pdp-panel [class~="text-white/50"],
 .product-detail .pdp-panel [class~="text-white/70"] {
-  color: rgba(240, 231, 210, 0.85) !important; /* 5.63:1 on olive */
+  color: color-mix(in srgb, var(--pop-on-dark) 85%, transparent) !important; /* 5.63:1 on olive */
 }
 /* These two only ever appear over the black photo frame (missing-image and
    thumbnail-error icons); 0.2/0.3 white would vanish, 0.45 cream is 4.20:1. */
 .product-detail .pdp-panel [class~="text-white/20"],
 .product-detail .pdp-panel [class~="text-white/30"] {
-  color: rgba(253, 247, 236, 0.45) !important;
+  color: color-mix(in srgb, var(--pdp-on-olive) 45%, transparent) !important;
 }
 .product-detail .pdp-panel .neon-text,
 .product-detail .pdp-panel .neon-text-rainbow {
-  color: #FDF7EC !important;
+  color: var(--pdp-on-olive) !important;
   text-shadow: none !important;
 }
 /* Price → the same acid lime the card uses for its price. 5.77:1 on olive. */
@@ -850,7 +879,7 @@ const submitReview = async () => {
 /* Divider hairlines: white/10 disappears on olive, cream/0.28 is the same
    hairline the homepage olive panel uses for its image border. */
 .product-detail .pdp-panel [class*="border-white/"] {
-  border-color: rgba(253, 247, 236, 0.28) !important;
+  border-color: color-mix(in srgb, var(--pdp-on-olive) 28%, transparent) !important;
 }
 /* Description's accent bar — solid pink reads as a deliberate rule (3.42:1),
    the old 30%-alpha primary was invisible on this ground. */
@@ -859,7 +888,7 @@ const submitReview = async () => {
 }
 /* Loading-skeleton blocks. */
 .product-detail .pdp-panel [class*="bg-white/"] {
-  background: rgba(253, 247, 236, 0.14) !important;
+  background: color-mix(in srgb, var(--pdp-on-olive) 14%, transparent) !important;
 }
 /* Scrims that sit over a photo, so they stay genuinely dark. */
 .product-detail .pdp-panel [class*="bg-black/"] {
@@ -874,13 +903,16 @@ const submitReview = async () => {
    11.94:1 and it works on both the olive panel and the black photo. */
 .product-detail .pdp-panel .cosmic-badge {
   background: var(--pop-blush, #F7D3E0) !important;
-  color: var(--pop-ink, #14231a) !important;
-  border: 2px solid var(--pop-ink, #14231a) !important;
+  color: var(--pop-ink-on-accent, #14231a) !important;
+  border: 2px solid var(--pop-ink-on-accent, #14231a) !important;
   font-family: var(--font-mono, monospace) !important;
   text-shadow: none !important;
 }
 
-/* ── 4. Photo frames — black, exactly like ProductCard .card-image ────── */
+/* ── 4. Photo frames — black, exactly like ProductCard .card-image ──────
+   Literal #000000 on purpose, in both themes: the product shots are lit on a
+   black seamless and the frame is the photo continuing past its own edge. A
+   token here would make the frame drift away from the photograph. */
 .pdp-frame {
   background: #000000;
   border: 2px solid var(--pop-ink, #14231a);
@@ -899,11 +931,11 @@ const submitReview = async () => {
   .pdp-thumb { border-radius: 0.6rem; }
 }
 .pdp-thumb--off {
-  border-color: rgba(253, 247, 236, 0.28);
+  border-color: color-mix(in srgb, var(--pdp-on-olive) 28%, transparent);
   opacity: 0.62;
 }
 .pdp-thumb--off:hover {
-  border-color: rgba(253, 247, 236, 0.6);
+  border-color: color-mix(in srgb, var(--pdp-on-olive) 60%, transparent);
   opacity: 1;
 }
 /* Lime, not pink, for the selected thumbnail: it sits on the raised olive
@@ -911,7 +943,7 @@ const submitReview = async () => {
 .pdp-thumb--on {
   border-color: var(--pop-lime, #B9E14B);
   opacity: 1;
-  box-shadow: 0 0 0 2px rgba(185, 225, 75, 0.35);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--pop-lime) 35%, transparent);
 }
 
 /* ── 5. Cream "paper stickers" on the olive ───────────────────────────── */
@@ -919,7 +951,7 @@ const submitReview = async () => {
   background: var(--pop-cream, #F0E7D2);
   border: 2px solid var(--pop-ink, #14231a);
   border-radius: 0.7rem;
-  box-shadow: 3px 3px 0 rgba(20, 35, 26, 0.55);
+  box-shadow: 3px 3px 0 color-mix(in srgb, var(--pop-shadow) 65%, transparent);
 }
 .pdp-chip--stepper {
   border-radius: 0.8rem;
@@ -927,22 +959,22 @@ const submitReview = async () => {
 /* Back to ink inside the sticker — these win over the on-dark block above on
    specificity (4 classes vs 3), so order here is not load-bearing. */
 .product-detail .pdp-panel .pdp-chip [class~="text-green-300"] {
-  color: #1b6b33 !important; /* 5.34:1 on cream; the old #1f7a3a was 4.37:1 */
+  color: var(--pdp-ok) !important; /* 5.34:1 on cream; the old #1f7a3a was 4.37:1 */
 }
 .product-detail .pdp-panel .pdp-chip [class~="text-red-300"] {
-  color: #8a2a2a !important; /* 6.98:1 */
+  color: var(--pop-danger) !important; /* 6.98:1 */
 }
 /* The status dot inherits the same value so the pill reads as one object. */
 .product-detail .pdp-panel .pdp-chip [class~="bg-green-400"] {
-  background: #1b6b33 !important;
-  color: #1b6b33 !important;
+  background: var(--pdp-ok) !important;
+  color: var(--pdp-ok) !important;
 }
 .product-detail .pdp-panel .pdp-chip [class~="bg-red-500"] {
-  background: #8a2a2a !important;
-  color: #8a2a2a !important;
+  background: var(--pop-danger) !important;
+  color: var(--pop-danger) !important;
 }
 .pdp-step {
-  color: rgba(20, 35, 26, 0.72); /* 5.84:1 on cream */
+  color: color-mix(in srgb, var(--pop-ink) 72%, transparent); /* 5.84:1 on cream */
 }
 .pdp-step:hover {
   color: var(--pop-ink, #14231a);
@@ -954,25 +986,28 @@ const submitReview = async () => {
 
 /* Favourites toggle sits directly on the olive, not on a sticker. */
 .pdp-fav {
-  border: 2px solid rgba(253, 247, 236, 0.28);
+  border: 2px solid color-mix(in srgb, var(--pdp-on-olive) 28%, transparent);
   border-radius: 0.7rem;
 }
 .pdp-fav--off {
-  color: rgba(240, 231, 210, 0.85); /* 5.63:1 */
+  color: color-mix(in srgb, var(--pop-on-dark) 85%, transparent); /* 5.63:1 */
 }
 .pdp-fav--off:hover {
   color: var(--pop-pink, #E585AA); /* 3.42:1 — icon, so the 3:1 bar applies */
   border-color: var(--pop-pink, #E585AA);
 }
+/* Pink is a FILL that stays light in both themes, so its foreground and its
+   outline take --pop-ink-on-accent (dark in both), not --pop-ink (which
+   inverts to near-white and would leave a light heart on a light button). */
 .pdp-fav--on {
   background: var(--pop-pink, #E585AA);
-  border-color: var(--pop-ink, #14231a);
-  color: var(--pop-ink, #14231a); /* 6.43:1 */
+  border-color: var(--pop-ink-on-accent, #14231a);
+  color: var(--pop-ink-on-accent, #14231a); /* 6.43:1 */
 }
 
 /* ── 6. Reviews ────────────────────────────────────────────────────────── */
 .pdp-reviews-title {
-  border-bottom: 2px solid rgba(253, 247, 236, 0.28);
+  border-bottom: 2px solid color-mix(in srgb, var(--pdp-on-olive) 28%, transparent);
 }
 /* The write-a-review block is a paper form pinned to the olive board. Cream
    also gives the .input-cosmic field (which zine.css paints #fbf7ee) a ground
@@ -981,7 +1016,7 @@ const submitReview = async () => {
   background: var(--pop-cream, #F0E7D2);
   border: 2px solid var(--pop-ink, #14231a);
   border-radius: 12px;
-  box-shadow: 4px 5px 0 rgba(20, 35, 26, 0.55);
+  box-shadow: 4px 5px 0 color-mix(in srgb, var(--pop-shadow) 65%, transparent);
 }
 .product-detail .pdp-panel .pdp-form .pdp-form-title {
   color: var(--pop-ink, #14231a) !important; /* 13.28:1 */
@@ -990,7 +1025,7 @@ const submitReview = async () => {
   letter-spacing: 0.08em;
 }
 .pdp-label {
-  color: rgba(20, 35, 26, 0.72); /* 5.84:1 */
+  color: color-mix(in srgb, var(--pop-ink) 72%, transparent); /* 5.84:1 */
   font-family: var(--font-mono, monospace);
   text-transform: uppercase;
   letter-spacing: 0.06em;
@@ -998,39 +1033,41 @@ const submitReview = async () => {
 /* zine.css ships the shared placeholder at 40% ink, which is 2.42:1 on the
    cream field — fine as a hint on a dark panel, not on this one. */
 .product-detail .pdp-textarea::placeholder {
-  color: rgba(20, 35, 26, 0.62) !important; /* 4.54:1 */
+  color: color-mix(in srgb, var(--pop-ink) 62%, transparent) !important; /* 4.54:1 */
 }
 
 /* Stars: one family (lime) on both grounds, so the form and the list agree.
    Bright lime on the dark surfaces, lime-ink on the cream form. */
 .pdp-star--on      { color: var(--pop-lime, #B9E14B); }      /* 5.77 olive / 4.45 plum-2 */
-.pdp-star--off     { color: rgba(253, 247, 236, 0.6); }      /* 3.41:1 on plum-2 */
+.pdp-star--off     { color: color-mix(in srgb, var(--pdp-on-olive) 60%, transparent); }      /* 3.41:1 on plum-2 */
 .pdp-star--ink-on  { color: var(--pop-lime-ink, #4d6b0e); }  /* 4.98:1 on cream */
-.pdp-star--ink-off { color: rgba(20, 35, 26, 0.6); }         /* 4.06:1 on cream */
+.pdp-star--ink-off { color: color-mix(in srgb, var(--pop-ink) 60%, transparent); } /* 4.06:1 on cream */
 
 .pdp-review {
   background: var(--pop-plum-2, #4c6330);
-  border: 2px solid rgba(253, 247, 236, 0.28);
+  border: 2px solid color-mix(in srgb, var(--pdp-on-olive) 28%, transparent);
   border-radius: 12px;
 }
 .pdp-review--ghost {
-  background: rgba(253, 247, 236, 0.1);
+  background: color-mix(in srgb, var(--pdp-on-olive) 10%, transparent);
   border-style: dashed;
 }
 .pdp-review-author {
-  color: #FDF7EC; /* 6.28:1 on plum-2 */
+  color: var(--pdp-on-olive); /* 6.28:1 on plum-2 */
 }
 /* The homepage olive panel uses cream at 0.85, but plum-2 is a lighter ground
-   and 0.85 drops to 4.45:1 — just under AA. 0.92 puts it back at 4.90:1. */
+   and 0.85 drops to 4.45:1 — just under AA. This used 0.92 (4.90:1), which is
+   fine in light, but dark mode lifts plum-2 from #4c6330 to #4E6B2B and 0.92
+   falls back to 4.45:1. Solid --pop-on-dark clears both: 5.44:1 / 4.93:1. */
 .pdp-review-body,
 .pdp-review-date {
-  color: rgba(240, 231, 210, 0.92);
+  color: var(--pop-on-dark);
 }
 .pdp-review-date {
   font-family: var(--font-mono, monospace);
 }
 .pdp-review-empty {
-  color: rgba(240, 231, 210, 0.85); /* 5.63:1 — this one sits on plain olive */
+  color: color-mix(in srgb, var(--pop-on-dark) 85%, transparent); /* 5.63:1 — this one sits on plain olive */
   font-family: var(--font-mono, monospace);
 }
 
@@ -1095,25 +1132,31 @@ const submitReview = async () => {
   border-radius: 12px;
   transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.2s ease;
 }
+/* Both states are accent FILLS (pink / lime) that stay light in both themes,
+   so the label is --pop-ink-on-accent. --pop-ink here would flip to near-white
+   and the button would read as a blank pink slab. */
 .pdp-buy--go {
   background: var(--pop-pink, #E585AA);
-  color: var(--pop-ink, #14231a);
+  color: var(--pop-ink-on-accent, #14231a);
   box-shadow: 5px 5px 0 var(--pop-pink-ink, #b34a72);
 }
 .pdp-buy--go:hover { transform: translate(-1px, -1px); box-shadow: 6px 6px 0 var(--pop-pink-ink, #b5185f); }
 .pdp-buy--go:active { transform: translate(3px, 3px); box-shadow: 2px 2px 0 var(--pop-pink-ink, #b5185f); }
 .pdp-buy--added {
   background: var(--pop-lime, #B9E14B);
-  color: var(--pop-ink, #14231a);
+  color: var(--pop-ink-on-accent, #14231a);
   box-shadow: 5px 5px 0 var(--pop-lime-ink, #4d6b0e);
 }
 /* Disabled state used to be 6%-white on 35%-white, which was invisible on
    every ground. A darkened patch of the panel's own olive reads as "switched
    off" while still carrying its label at 5.52:1. */
 .pdp-buy--off {
-  background: rgba(20, 35, 26, 0.35);
-  color: rgba(240, 231, 210, 0.72);
-  border-color: rgba(253, 247, 236, 0.25);
+  /* --pop-ink-on-accent is the palette's "stays dark in both themes" ink, which
+     is exactly what a darkening scrim needs — --pop-ink would invert and bleach
+     the button in dark mode. */
+  background: color-mix(in srgb, var(--pop-ink-on-accent) 35%, transparent);
+  color: color-mix(in srgb, var(--pop-on-dark) 72%, transparent);
+  border-color: color-mix(in srgb, var(--pdp-on-olive) 25%, transparent);
   box-shadow: none;
   cursor: not-allowed;
 }

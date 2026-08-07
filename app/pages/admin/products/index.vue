@@ -611,7 +611,7 @@ function getImageSrc(image: string) {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  color: rgba(42, 19, 64, 0.5);
+  color: var(--adx-vink-50);
   font-style: italic;
   font-family: var(--font-body);
   padding: 2rem 0;
@@ -625,10 +625,10 @@ function getImageSrc(image: string) {
   align-items: center;
   gap: 0.5rem;
   padding: 0.45rem 0.8rem;
-  background: rgba(179, 50, 76, 0.08);
-  border: 1px solid rgba(179, 50, 76, 0.25);
+  background: var(--adx-accent-08);
+  border: 1px solid var(--adx-accent-25);
   border-radius: 8px;
-  color: #2a1340;
+  color: var(--adx-vink);
   font-weight: 600;
   font-size: 0.85rem;
   margin-bottom: 0.65rem;
@@ -638,16 +638,16 @@ function getImageSrc(image: string) {
   background: transparent;
   border: none;
   cursor: pointer;
-  color: rgba(42, 19, 64, 0.55);
+  color: var(--adx-vink-55);
   padding: 0.15rem;
   border-radius: 4px;
   display: inline-flex;
 }
-.cat-clear:hover { background: rgba(42, 19, 64, 0.1); color: #b3324c; }
+.cat-clear:hover { background: var(--adx-vink-10); color: var(--adx-accent); }
 
 .picker {
-  background: #FAF1F4;
-  border: 1px solid rgba(42, 19, 64, 0.1);
+  background: var(--adx-surface-2);
+  border: 1px solid var(--adx-vink-10);
   border-radius: 10px;
   overflow: hidden;
 }
@@ -656,19 +656,19 @@ function getImageSrc(image: string) {
   align-items: center;
   gap: 0.4rem;
   padding: 0.55rem 0.85rem;
-  border-bottom: 1px solid rgba(42, 19, 64, 0.08);
-  background: rgba(255, 255, 255, 0.45);
+  border-bottom: 1px solid var(--adx-vink-08);
+  background: var(--adx-veil-45);
   font-size: 0.8rem;
 }
 .crumb {
   background: transparent;
   border: none;
   cursor: pointer;
-  color: rgba(42, 19, 64, 0.6);
+  color: var(--adx-vink-60);
   padding: 0;
 }
-.crumb:hover { color: #2a1340; }
-.crumb-sep { color: rgba(42, 19, 64, 0.3); }
+.crumb:hover { color: var(--adx-vink); }
+.crumb-sep { color: var(--adx-vink-30); }
 
 .picker-row { display: flex; gap: 4px; align-items: stretch; }
 .picker-row .picker-btn { flex: 1; }
@@ -677,15 +677,17 @@ function getImageSrc(image: string) {
   align-items: center;
   justify-content: center;
   width: 30px;
-  border: 1px solid rgba(179, 50, 76, 0.35);
+  border: 1px solid var(--adx-accent-35);
   border-radius: 8px;
   background: transparent;
-  color: #b3324c;
+  color: var(--adx-accent);
   cursor: pointer;
   transition: background 0.15s ease, color 0.15s ease;
 }
-.picker-del:hover { background: rgba(179, 50, 76, 0.08); }
-.picker-del.is-armed { background: #b3324c; color: #fff; }
+.picker-del:hover { background: var(--adx-accent-08); }
+/* Armed = a solid rose fill, which stays saturated in both themes, so its
+   glyph is the constant white --adx-on-accent and not the flipping ink. */
+.picker-del.is-armed { background: var(--adx-accent-fill); color: var(--adx-on-accent); }
 
 .picker-grid {
   padding: 0.45rem;
@@ -700,22 +702,22 @@ function getImageSrc(image: string) {
   align-items: center;
   justify-content: space-between;
   padding: 0.6rem 0.85rem;
-  background: #fff;
-  border: 1px solid rgba(42, 19, 64, 0.08);
+  background: var(--adx-raised);
+  border: 1px solid var(--adx-vink-08);
   border-radius: 7px;
   cursor: pointer;
   font-family: inherit;
   font-size: 0.85rem;
-  color: #2a1340;
+  color: var(--adx-vink);
   text-align: left;
   font-weight: 500;
 }
-.picker-btn:hover { border-color: rgba(179, 50, 76, 0.4); background: rgba(179, 50, 76, 0.04); }
+.picker-btn:hover { border-color: var(--adx-accent-40); background: var(--adx-accent-04); }
 .picker-empty {
   grid-column: span 2;
   padding: 1.5rem;
   text-align: center;
-  color: rgba(42, 19, 64, 0.5);
+  color: var(--adx-vink-50);
   font-style: italic;
   font-family: var(--font-body);
 }
@@ -726,21 +728,21 @@ function getImageSrc(image: string) {
   justify-content: center;
   gap: 0.5rem;
   padding: 0.55rem 1rem;
-  background: #2a1340;
-  color: #fff;
+  background: var(--adx-vink-fill);
+  color: var(--adx-on-vink-fill);
   border: none;
   cursor: pointer;
   font-family: inherit;
   font-size: 0.85rem;
   font-weight: 600;
 }
-.picker-confirm:hover { background: #3a1f55; }
+.picker-confirm:hover { background: var(--adx-vink-fill-hover); }
 
 /* Inline new-category creator */
 .new-cat {
-  border-top: 1px solid rgba(42, 19, 64, 0.08);
+  border-top: 1px solid var(--adx-vink-08);
   padding: 0.5rem;
-  background: rgba(255, 255, 255, 0.45);
+  background: var(--adx-veil-45);
 }
 .new-cat-toggle {
   width: 100%;
@@ -750,20 +752,20 @@ function getImageSrc(image: string) {
   gap: 0.4rem;
   padding: 0.5rem 0.85rem;
   background: transparent;
-  border: 1.5px dashed rgba(179, 50, 76, 0.35);
+  border: 1.5px dashed var(--adx-accent-35);
   border-radius: 7px;
   cursor: pointer;
   font-family: inherit;
   font-size: 0.82rem;
   font-weight: 600;
-  color: #b3324c;
+  color: var(--adx-accent);
   transition: all 0.15s ease;
 }
-.new-cat-toggle:hover { background: rgba(179, 50, 76, 0.06); border-color: #b3324c; }
+.new-cat-toggle:hover { background: var(--adx-accent-06); border-color: var(--adx-accent); }
 .new-cat-label {
   font-size: 0.75rem;
   font-weight: 600;
-  color: rgba(42, 19, 64, 0.6);
+  color: var(--adx-vink-60);
   margin-bottom: 0.4rem;
 }
 .new-cat-row {
@@ -780,7 +782,7 @@ function getImageSrc(image: string) {
   margin: 0 0 0.5rem;
   font-size: 0.78rem;
   line-height: 1.4;
-  color: rgba(42, 19, 64, 0.55);
+  color: var(--adx-vink-55);
   font-style: italic;
 }
 .images-grid {
@@ -796,9 +798,9 @@ function getImageSrc(image: string) {
   overflow: hidden;
   border: 2px solid transparent;
   cursor: pointer;
-  background: #FAF1F4;
+  background: var(--adx-surface-2);
 }
-.image-tile.is-thumb { border-color: #b3324c; }
+.image-tile.is-thumb { border-color: var(--adx-accent); }
 .image-tile img { width: 100%; height: 100%; object-fit: cover; }
 .thumb-tag {
   position: absolute;
@@ -808,8 +810,8 @@ function getImageSrc(image: string) {
   align-items: center;
   gap: 0.2rem;
   padding: 0.12rem 0.4rem;
-  background: rgba(255, 255, 255, 0.92);
-  color: #b3324c;
+  background: var(--adx-veil-92);
+  color: var(--adx-accent);
   font-size: 0.65rem;
   font-weight: 700;
   border-radius: 999px;
@@ -821,15 +823,15 @@ function getImageSrc(image: string) {
   width: 22px;
   height: 22px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.9);
+  background: var(--adx-veil-90);
   border: none;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  color: #b3324c;
+  color: var(--adx-accent);
 }
-.image-remove:hover { background: #b3324c; color: #fff; }
+.image-remove:hover { background: var(--adx-accent-fill); color: var(--adx-on-accent); }
 /* Top-left: bottom-left is the "Náhled" tag and top-right the remove button. */
 .image-edit {
   position: absolute;
@@ -840,15 +842,15 @@ function getImageSrc(image: string) {
   gap: 0.2rem;
   padding: 0.14rem 0.4rem;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.9);
+  background: var(--adx-veil-90);
   border: none;
   cursor: pointer;
   font-family: inherit;
   font-size: 0.63rem;
   font-weight: 700;
-  color: #b3324c;
+  color: var(--adx-accent);
 }
-.image-edit:hover:not(:disabled) { background: #b3324c; color: #fff; }
+.image-edit:hover:not(:disabled) { background: var(--adx-accent-fill); color: var(--adx-on-accent); }
 .image-edit:disabled { opacity: 0.6; cursor: default; }
 
 .upload-zone {
@@ -856,21 +858,21 @@ function getImageSrc(image: string) {
   align-items: center;
   gap: 0.6rem;
   padding: 0.8rem 1.1rem;
-  border: 1.5px dashed rgba(42, 19, 64, 0.18);
+  border: 1.5px dashed var(--adx-vink-18);
   border-radius: 10px;
   cursor: pointer;
-  color: rgba(42, 19, 64, 0.65);
+  color: var(--adx-vink-65);
   font-size: 0.88rem;
   font-weight: 500;
-  background: #FAF1F4;
+  background: var(--adx-surface-2);
   transition: all 0.18s ease;
 }
-.upload-zone:hover { border-color: #b3324c; color: #b3324c; background: rgba(179, 50, 76, 0.05); }
-.upload-hint { font-size: 0.72rem; color: rgba(42, 19, 64, 0.5); margin-left: auto; }
+.upload-zone:hover { border-color: var(--adx-accent); color: var(--adx-accent); background: var(--adx-accent-05); }
+.upload-hint { font-size: 0.72rem; color: var(--adx-vink-50); margin-left: auto; }
 .upload-input { display: none; }
 .upload-error {
   margin-top: 0.5rem;
-  color: #b3324c;
+  color: var(--adx-accent);
   font-size: 0.82rem;
   font-style: italic;
 }

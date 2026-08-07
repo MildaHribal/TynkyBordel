@@ -62,8 +62,8 @@ const handleGoogleLogin = async () => {
     <div class="w-full max-w-md">
       <!-- Header -->
       <div class="text-center mb-8 md:mb-10">
-        <h2 class="text-2xl md:text-3xl font-extrabold text-white neon-text">Přihlášení</h2>
-        <p class="mt-2 text-white/70 text-sm md:text-base">Vstupte do kosmické dimenze</p>
+        <h2 class="text-2xl md:text-3xl font-extrabold auth-title neon-text">Přihlášení</h2>
+        <p class="mt-2 auth-lede text-sm md:text-base">Vstupte do kosmické dimenze</p>
       </div>
 
       <!-- Form Card -->
@@ -121,7 +121,7 @@ const handleGoogleLogin = async () => {
         <div class="relative my-8">
           <div class="cosmic-divider"></div>
           <div class="absolute inset-0 flex items-center justify-center">
-            <span class="px-4 text-sm text-white/70 bg-[#0d0020]">nebo pokračujte přes</span>
+            <span class="px-4 text-sm text-white/70 auth-divider-label">nebo pokračujte přes</span>
           </div>
         </div>
 
@@ -138,9 +138,9 @@ const handleGoogleLogin = async () => {
       </div>
 
       <!-- Footer link -->
-      <p class="mt-8 text-center text-sm text-white/75">
+      <p class="mt-8 text-center text-sm auth-foot">
         Nemáte účet?
-        <NuxtLink to="/user/register" class="font-semibold text-primary-300 hover:text-primary-200 transition-colors">
+        <NuxtLink to="/user/register" class="font-semibold auth-foot-link transition-colors">
           Zaregistrujte se ☮
         </NuxtLink>
       </p>
@@ -153,7 +153,31 @@ const handleGoogleLogin = async () => {
   font-size: 1rem;
   padding: 0.85rem 1rem;
 }
+/* zine.css already forces this token with !important, so the fixed white that
+   used to be here never actually painted. Spelled out so the two agree. */
 .input-cosmic::placeholder {
-  color: rgba(255, 255, 255, 0.45);
+  color: var(--pop-ink-faint);
 }
+
+/* ── Text that lands on the PAGE, not on the dark form card ──────────────
+   .glass-card-strong is --pop-panel, dark in BOTH themes, so the white-ish
+   labels inside it are correct. Everything OUTSIDE it — this heading block and
+   the footer line — sits on the page ground, which is cream in light mode, and
+   fixed white text was invisible there. These follow the theme instead. */
+.auth-title { color: var(--pop-ink); }
+.auth-lede,
+.auth-foot { color: var(--pop-ink-mute); }
+
+/* The rose link has to clear AA on BOTH grounds: --pop-pink-ink is only 4.12:1
+   on cream, and Tailwind's primary-300/700 do not flip at all. Two branches,
+   the same idiom main.css uses for the palette itself. */
+.auth-foot-link { color: var(--color-primary-700, #97325c); }
+@supports (color: light-dark(#fff, #000)) {
+  .auth-foot-link { color: light-dark(#97325c, var(--pop-pink-ink)); }
+}
+.auth-foot-link:hover { color: var(--pop-ink); }
+
+/* Masks the divider rule behind the label, so it has to be exactly the card's
+   own fill — it used to be a fixed near-black that only matched by accident. */
+.auth-divider-label { background: var(--pop-panel); }
 </style>

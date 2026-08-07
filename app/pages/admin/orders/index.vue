@@ -263,7 +263,7 @@ const selectedOrder = ref<any>(null)
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  color: rgba(42, 19, 64, 0.5);
+  color: var(--adx-vink-50);
   font-style: italic;
   font-family: var(--font-body);
   padding: 2rem 0;
@@ -273,8 +273,8 @@ const selectedOrder = ref<any>(null)
    controls read as distinct at a glance. */
 .actions-cell :deep(.payment-select),
 .actions-cell .payment-select {
-  border-color: rgba(255, 92, 138, 0.4);
-  color: #b3305f;
+  border-color: var(--adx-hotpink-40);
+  color: var(--adx-accent-2);
 }
 .spin { animation: spin 0.8s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
@@ -290,12 +290,12 @@ const selectedOrder = ref<any>(null)
   font-size: 0.66rem;
   letter-spacing: 0.2em;
   text-transform: uppercase;
-  color: rgba(42, 19, 64, 0.55);
+  color: var(--adx-vink-55);
   margin-bottom: 0.3rem;
   font-weight: 600;
 }
-.detail-value { font-size: 0.95rem; color: #2a1340; line-height: 1.35; }
-.detail-sub { font-size: 0.82rem; color: rgba(42, 19, 64, 0.55); margin-top: 0.15rem; }
+.detail-value { font-size: 0.95rem; color: var(--adx-vink); line-height: 1.35; }
+.detail-sub { font-size: 0.82rem; color: var(--adx-vink-55); margin-top: 0.15rem; }
 
 .detail-section { margin-top: 1.25rem; }
 .items-list { display: flex; flex-direction: column; gap: 0.4rem; margin-top: 0.5rem; }
@@ -304,14 +304,14 @@ const selectedOrder = ref<any>(null)
   align-items: center;
   gap: 0.7rem;
   padding: 0.55rem 0.7rem;
-  background: rgba(42, 19, 64, 0.04);
+  background: var(--adx-vink-04);
   border-radius: 9px;
-  border: 1px solid rgba(42, 19, 64, 0.06);
+  border: 1px solid var(--adx-vink-06);
 }
 .line-thumb {
   width: 36px;
   height: 36px;
-  background: rgba(42, 19, 64, 0.04);
+  background: var(--adx-vink-04);
   border-radius: 6px;
   overflow: hidden;
   flex-shrink: 0;
@@ -319,7 +319,7 @@ const selectedOrder = ref<any>(null)
 .line-thumb img { width: 100%; height: 100%; object-fit: cover; }
 .line-info { flex: 1; }
 .line-name { font-size: 0.9rem; font-weight: 600; }
-.line-qty { font-size: 0.78rem; color: rgba(42, 19, 64, 0.55); }
+.line-qty { font-size: 0.78rem; color: var(--adx-vink-55); }
 .line-price { font-family: var(--font-mono); font-size: 0.95rem; }
 
 .total-row {
@@ -327,15 +327,15 @@ const selectedOrder = ref<any>(null)
   justify-content: space-between;
   align-items: center;
   padding: 0.85rem 1rem;
-  border-top: 1px solid rgba(42, 19, 64, 0.08);
+  border-top: 1px solid var(--adx-vink-08);
   margin-top: 1rem;
   font-size: 0.9rem;
-  color: rgba(42, 19, 64, 0.7);
+  color: var(--adx-vink-70);
   font-weight: 600;
 }
 .total-amount {
   font-family: var(--font-mono);
   font-size: 1.4rem;
-  color: #2a1340;
+  color: var(--adx-vink);
 }
 </style>

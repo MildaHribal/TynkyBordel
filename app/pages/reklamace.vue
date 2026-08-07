@@ -48,7 +48,7 @@ async function copyTemplate() {
   <div class="max-w-4xl mx-auto px-4 md:px-8 py-12 md:py-20 text-white/80 leading-relaxed">
     <div class="mb-10 text-center">
       <h1 class="text-3xl md:text-5xl font-black text-white mb-4 neon-text-rainbow uppercase">Reklamace &amp; Doprava 📦</h1>
-      <p class="text-white/40 italic">Vracení, výměna a doprava zboží</p>
+      <p class="page-lede italic">Vracení, výměna a doprava zboží</p>
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
@@ -120,7 +120,7 @@ async function copyTemplate() {
         <pre class="p-5 bg-black/30 border border-white/10 rounded-xl text-xs md:text-sm text-white/70 overflow-x-auto whitespace-pre-wrap">{{ withdrawalTemplate }}</pre>
         <button
           type="button"
-          class="mt-4 px-6 py-3 rounded-full text-xs font-bold uppercase tracking-wider bg-white text-[#1a0f28] hover:bg-white/90 transition inline-flex items-center gap-2"
+          class="mt-4 px-6 py-3 rounded-full text-xs font-bold uppercase tracking-wider bg-white on-light-fill hover:bg-white/90 transition inline-flex items-center gap-2"
           @click="copyTemplate"
         >
           <Icon :name="copied ? 'mdi:check' : 'mdi:content-copy'" height="16" />
@@ -175,3 +175,17 @@ async function copyTemplate() {
     </div>
   </div>
 </template>
+
+<style scoped>
+/* Everything on this page except the header block sits inside .glass-card /
+   .glass-card-strong, which zine.css re-skins to --pop-panel — a surface that
+   is dark in BOTH themes, so the white-ish Tailwind utilities inside the cards
+   are correct there and are left alone.
+   This lede is the exception: it lands on the page ground, cream in light mode,
+   where the fixed `text-white/40` was effectively invisible. */
+.page-lede { color: var(--pop-ink-mute); }
+
+/* Label on a fill that stays LIGHT in both themes (bg-white), so the ink on it
+   must stay dark — --pop-ink would flip to near-white and disappear. */
+.on-light-fill { color: var(--pop-ink-on-accent); }
+</style>

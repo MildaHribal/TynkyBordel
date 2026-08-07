@@ -15,10 +15,16 @@
  * drops every old cache on activate, so stale assets can't pile up.
  */
 // Bump on any deploy that changes an asset's *bytes* without changing its URL.
+// v5: a `cache: {…}` route rule on /_ipx/** made Nitro JSON-serialise IPX's
+// Buffer, so image responses came back as {"type":"Buffer","data":[…]} under an
+// image/webp content-type. Because /_ipx/ is on the IMMUTABLE list below, every
+// visitor's asset cache stored those broken bytes CACHE-FIRST and would have
+// served them forever — the route rule is gone, but only a version bump evicts
+// what clients already hold.
 // v4: public/ images were recompressed in place (scripts/optimize-images.mjs) and
 // /bg/ was removed — v3 clients would otherwise serve the old, larger copies from
 // the cache-first asset cache forever.
-const VERSION = 'v4'
+const VERSION = 'v5'
 const ASSET_CACHE = `tynky-assets-${VERSION}`
 const PAGE_CACHE = `tynky-pages-${VERSION}`
 

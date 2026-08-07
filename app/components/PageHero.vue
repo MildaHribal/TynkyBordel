@@ -37,9 +37,14 @@
   margin: 0 auto;
   border-radius: 1.5rem;
   overflow: hidden;
-  box-shadow: 0 12px 40px rgba(20, 35, 26, 0.14);
-  border: 1px solid rgba(20, 35, 26, 0.08);
-  background: #1a0f28;
+  box-shadow: 0 12px 40px var(--pop-shadow-soft);
+  border: 1px solid var(--pop-line);
+  /* The mat behind the artwork, visible only in the letterbox slivers while the
+     image decodes. Deliberately theme-invariant: it belongs to the illustration
+     (which is a fixed-colour PNG), not to the page, so no --pop-* surface fits —
+     a flipping token would show a cream flash around a dark picture. */
+  --hero-mat: #1a0f28;
+  background: var(--hero-mat);
   aspect-ratio: 24 / 9;
 }
 

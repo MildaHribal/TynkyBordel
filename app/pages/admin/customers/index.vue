@@ -93,7 +93,7 @@ const totalRevenue = computed(() =>
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  color: rgba(42, 19, 64, 0.5);
+  color: var(--adx-vink-50);
   font-style: italic;
   font-family: var(--font-body);
   padding: 2rem 0;

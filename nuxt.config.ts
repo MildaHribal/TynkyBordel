@@ -153,8 +153,28 @@ export default defineNuxtConfig({
 
     image: {
         provider: 'ipx',
-        format: ['avif', 'webp'],
-        quality: 78,
+        // WebP only, deliberately. AVIF is normally the smaller format, but ONLY
+        // when it is encoded from an original. Every source here is already a
+        // lossy WebP (the hero art and every admin upload are converted on the
+        // way in), so IPX would be re-encoding lossy→lossy — and measured on
+        // this machine that is 21× slower AND 56% BIGGER:
+        //
+        //   polaroid-1 @1024   webp  121 ms / 134 KB    avif 2962 ms / 197 KB
+        //   tynka      @ 640   webp   45 ms /  56 KB    avif 1284 ms /  94 KB
+        //   product    @ 320   webp   12 ms / 2.6 KB    avif  115 ms / 4.0 KB
+        //
+        // Because <picture> asks for AVIF first, every uncached variant on a
+        // page cost a second or more of sharp CPU, and they queue behind each
+        // other — which is exactly why a hard refresh crawled.
+        format: ['webp'],
+        // Every quality value in the app was nudged by +1 (78→79, 80→81, 72→73,
+        // 74→75, 85→86, and the hero preset 82→83) as a deliberate cache-bust.
+        // The broken `cache:` route rule below had already poisoned Cloudflare
+        // and every visitor's service-worker cache with JSON-instead-of-image
+        // bytes, and those caches key on the URL — which contains the quality.
+        // Changing it retires every poisoned key without needing a Cloudflare
+        // purge. The visual difference at ±1 quality is nil.
+        quality: 79,
         // Serve 1x — avoids shipping 2× pixels to retina phones (big byte saving,
         // negligible visual difference for these photos). Bumps the perf score.
         densities: [1],
@@ -169,7 +189,7 @@ export default defineNuxtConfig({
         },
         presets: {
             thumb: { modifiers: { width: 360, height: 360, fit: 'cover' } },
-            hero:  { modifiers: { width: 1400, quality: 82 } },
+            hero:  { modifiers: { width: 1400, quality: 83 } },
         },
         // IPX maxAge: assets are content-hashed, so cache for 1 year. The default
         // 60s means the server re-encodes the same image on every request after
@@ -243,23 +263,41 @@ export default defineNuxtConfig({
 
         // ── Asset caching ──
         // Long-lived caching for immutable/content-stable assets.
-        '/hero/**':     { headers: { 'cache-control': 'public, max-age=31536000, immutable' } },
+        // NOTE: /hero/** is NOT here — it is declared further down with a 7-day
+        // TTL. These filenames carry no content hash, so `immutable` would be a
+        // lie: re-shooting the art under the same name could never reach anyone
+        // who had already visited. This key used to be duplicated, and the
+        // later one silently won.
         '/_fonts/**':   { headers: { 'cache-control': 'public, max-age=31536000, immutable' } },
         '/_nuxt/**':    { headers: { 'cache-control': 'public, max-age=31536000, immutable' } },
-        // Derived/uploaded images: long but not immutable (a product image can be
+        // Derived images: long-lived but NOT immutable (a product image can be
         // re-uploaded under the same name), so 30 days is the safe sweet spot.
-        // IPX re-encodes with sharp on EVERY request — it keeps no cache of its
-        // own, so a hard refresh (which bypasses the browser cache) made the
-        // server rebuild every single variant on the page again. Measured: the
-        // homepage's 56 variants cost the same 1.2s on the second pass as on the
-        // first, and on a small VPS that is tens of seconds of queued CPU work.
-        // `cache` puts Nitro's storage in front of the handler so each variant is
-        // encoded once and then served from disk.
+        //
+        // ⚠️ NEVER put `cache: {...}` on this route. Nitro's response cache
+        // serialises the handler's return value as JSON, and IPX returns a
+        // Buffer. A Buffer JSON-serialises to {"type":"Buffer","data":[82,73,…]},
+        // so the FIRST request (cache miss) returned a real image while every
+        // request after it (cache hit) returned that JSON text — still labelled
+        // `content-type: image/webp`. Browsers cannot decode it, so every photo
+        // on the site vanished on the second page load, and Cloudflare then
+        // cached the broken bytes for everyone. Verified on production: the
+        // 600×600 tynka variant came back as 204337 bytes of JSON whose `data`
+        // array decodes to the correct 57160-byte WebP.
+        //
+        // Caching happens in the browser and at Cloudflare via the header below
+        // instead. That is also cheap now: IPX only emits WebP (AVIF was dropped
+        // — see the `image` block), so a cold variant costs 12–120 ms of sharp,
+        // not the 1.2–3.0 s AVIF used to.
         '/_ipx/**': {
-            cache: { maxAge: 2592000, swr: true },
-            headers: { 'cache-control': 'public, max-age=2592000' },
+            headers: { 'cache-control': 'public, max-age=2592000, stale-while-revalidate=86400' },
         },
         '/uploads/**':  { headers: { 'cache-control': 'public, max-age=2592000' } },
+        // The service workers are the mechanism that evicts every other stale
+        // cache, so they must never be stale themselves. Without this a browser
+        // may hold /sw.js for up to 24 h, which is exactly how long a bad asset
+        // cache would have outlived its own fix.
+        '/sw.js':        { headers: { 'cache-control': 'no-cache' } },
+        '/admin-sw.js':  { headers: { 'cache-control': 'no-cache' } },
         // Self-hosted fonts carry a content hash in the filename (see
         // scripts/build-fonts.py), so a given URL's bytes can never change —
         // that is exactly what `immutable` is for. They were being served with

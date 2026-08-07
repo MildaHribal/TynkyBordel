@@ -41,7 +41,7 @@ const handleSubmit = async () => {
       <div class="text-center mb-8 md:mb-10">
         <div class="text-4xl md:text-5xl mb-3 md:mb-4">🔐</div>
         <h2 class="text-2xl md:text-3xl font-extrabold text-white neon-text-pink">Zapomenuté heslo</h2>
-        <p class="mt-2 text-white/70 text-sm md:text-base">Pošleme ti odkaz pro nastavení nového hesla</p>
+        <p class="mt-2 auth-lede text-sm md:text-base">Pošleme ti odkaz pro nastavení nového hesla</p>
       </div>
 
       <div class="glass-card-strong p-5 md:p-8 gradient-border">
@@ -87,9 +87,9 @@ const handleSubmit = async () => {
         </form>
       </div>
 
-      <p class="mt-8 text-center text-sm text-white/75">
+      <p class="mt-8 text-center text-sm auth-foot">
         Vzpomněl/a sis?
-        <NuxtLink to="/user/login" class="font-semibold text-primary-300 hover:text-primary-200 transition-colors">
+        <NuxtLink to="/user/login" class="font-semibold auth-foot-link transition-colors">
           Přihlaste se ✨
         </NuxtLink>
       </p>
@@ -102,7 +102,25 @@ const handleSubmit = async () => {
   font-size: 1rem;
   padding: 0.85rem 1rem;
 }
+/* zine.css already forces this token with !important, so the fixed white that
+   used to be here never actually painted. Spelled out so the two agree. */
 .input-cosmic::placeholder {
-  color: rgba(255, 255, 255, 0.45);
+  color: var(--pop-ink-faint);
 }
+
+/* ── Text that lands on the PAGE, not on the dark form card ──────────────
+   .glass-card-strong is --pop-panel, dark in BOTH themes, so the white-ish text
+   inside it is correct. This lede and the footer line sit OUTSIDE it, on the
+   page ground, which is cream in light mode — fixed white was invisible there. */
+.auth-lede,
+.auth-foot { color: var(--pop-ink-mute); }
+
+/* The rose link has to clear AA on BOTH grounds: --pop-pink-ink is only 4.12:1
+   on cream, and Tailwind's primary-300/700 do not flip at all. Two branches,
+   the same idiom main.css uses for the palette itself. */
+.auth-foot-link { color: var(--color-primary-700, #97325c); }
+@supports (color: light-dark(#fff, #000)) {
+  .auth-foot-link { color: light-dark(#97325c, var(--pop-pink-ink)); }
+}
+.auth-foot-link:hover { color: var(--pop-ink); }
 </style>

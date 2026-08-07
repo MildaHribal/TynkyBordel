@@ -85,7 +85,7 @@ const purposes = [
   <div class="max-w-4xl mx-auto px-4 md:px-8 py-12 md:py-20 text-white/80 leading-relaxed">
     <div class="mb-12 text-center">
       <h1 class="text-3xl md:text-5xl font-black text-white mb-4 neon-text-rainbow uppercase">GDPR &amp; Soukromí 🔒</h1>
-      <p class="text-white/40 italic">Ochrana vašich osobních údajů je pro nás prioritou</p>
+      <p class="page-lede italic">Ochrana vašich osobních údajů je pro nás prioritou</p>
     </div>
 
     <div class="glass-card-strong p-6 md:p-10 space-y-12">
@@ -175,7 +175,7 @@ const purposes = [
             <button type="button" class="px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wider border border-white/20 text-white/80 hover:bg-white/10 transition" @click="reject">
               Jen nezbytné
             </button>
-            <button type="button" class="px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wider bg-white text-[#1a0f28] hover:bg-white/90 transition" @click="accept">
+            <button type="button" class="px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wider bg-white on-light-fill hover:bg-white/90 transition" @click="accept">
               Povolit analytiku
             </button>
           </div>
@@ -218,3 +218,17 @@ const purposes = [
     </div>
   </div>
 </template>
+
+<style scoped>
+/* Everything on this page except the header block sits inside
+   .glass-card-strong, which zine.css re-skins to --pop-panel — a surface that is
+   dark in BOTH themes, so the white-ish Tailwind utilities inside the card are
+   correct there and are left alone.
+   This lede is the exception: it lands on the page ground, cream in light mode,
+   where the fixed `text-white/40` was effectively invisible. */
+.page-lede { color: var(--pop-ink-mute); }
+
+/* Label on a fill that stays LIGHT in both themes (bg-white), so the ink on it
+   must stay dark — --pop-ink would flip to near-white and disappear. */
+.on-light-fill { color: var(--pop-ink-on-accent); }
+</style>
