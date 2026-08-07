@@ -1,6 +1,6 @@
 import { db } from '../../utils/db';
 import { products, categories } from '../../database/schema';
-import { and, eq, ilike, or, sql, desc } from 'drizzle-orm';
+import { and, eq, ilike, or, sql, desc, gt } from 'drizzle-orm';
 
 export default defineEventHandler(async (event) => {
   const query = getQuery(event);
@@ -11,6 +11,9 @@ export default defineEventHandler(async (event) => {
   const category = typeof query.category === 'string' ? query.category.trim() : '';
 
   const conditions = [];
+  // Public storefront: hide sold-out products (stock reached 0). Admin has its
+  // own endpoints, so out-of-stock items stay visible/editable there.
+  conditions.push(gt(products.stock, 0));
   if (search) {
     conditions.push(or(
       ilike(products.name, `%${search}%`),

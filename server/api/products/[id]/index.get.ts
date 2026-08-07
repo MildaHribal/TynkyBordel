@@ -45,5 +45,14 @@ export default defineEventHandler(async (event) => {
     });
   }
 
+  // Public detail: a sold-out product (stock reached 0) is hidden from the
+  // storefront, so a direct link 404s. Admin uses its own endpoints.
+  if ((result[0].stock ?? 0) <= 0) {
+    throw createError({
+      statusCode: 404,
+      statusMessage: 'Product not found',
+    });
+  }
+
   return result[0];
 });
