@@ -36,9 +36,15 @@ export default defineNuxtConfig({
     experimental: {
         defaults: {
             nuxtLink: {
-                prefetch: false,
+                // Prefetch a link's route chunk + data as soon as it scrolls into
+                // view, so tapping it navigates instantly (chunks are ~1 KB each).
+                prefetch: true,
+                prefetchOn: { visibility: true },
             }
         },
+        // Split the payload into a separate cacheable file (and let the SW cache
+        // it) so repeat/back navigations don't re-embed data in the HTML.
+        payloadExtraction: true,
         restoreState: true,
         viewTransition: false,
     },
@@ -89,17 +95,23 @@ export default defineNuxtConfig({
             weights: [400, 600, 700],
             styles: ['normal'],
             subsets: ['latin', 'latin-ext'],
+            // Don't preload by default — only the three above-the-fold families
+            // below opt in, so we emit a handful of <link rel=preload> not 60+.
+            preload: false,
         },
         // Declared explicitly so families referenced via CSS var() (e.g.
         // font-family: var(--psy-display)) are always fetched, with weights/styles
-        // pinned to only what the design actually uses.
+        // pinned to only what the design actually uses. `preload: true` on the
+        // three fonts painted above the fold (body, hero heading, price/label
+        // mono) emits <link rel="preload"> so they arrive before first paint and
+        // the text doesn't flash the fallback.
         families: [
-            { name: 'Manrope', provider: 'google', weights: [400, 600, 700] },              // body / UI
+            { name: 'Manrope', provider: 'google', weights: [400, 600, 700], preload: true },  // body / UI — above fold
             { name: 'Fraunces', provider: 'google', weights: [400, 600], styles: ['normal', 'italic'] }, // serif, italic tagline
             { name: 'Petrona', provider: 'google', weights: [400], styles: ['normal', 'italic'] },       // italic card titles
             { name: 'Gloock', provider: 'google', weights: [400] },                          // display headings
             { name: 'Maname', provider: 'google', weights: [400] },
-            { name: 'Bricolage Grotesque', provider: 'google', weights: [600, 700, 800] },   // zine display headings
+            { name: 'Bricolage Grotesque', provider: 'google', weights: [600, 700, 800], preload: true },   // zine hero heading — LCP text
             { name: 'Space Mono', provider: 'google', weights: [400, 700], styles: ['normal', 'italic'] }, // labels / prices / meta
             { name: 'Berkshire Swash', provider: 'google', weights: [400] },
             { name: 'Caprasimo', provider: 'google', weights: [400] },                       // navbar brand
