@@ -2,10 +2,14 @@
 import { useCartStore } from "~/stores/cart";
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
 import { useAuth } from '~/composables/useAuth';
+import { useTheme } from '~/composables/useTheme';
 
 
 const cart = useCartStore();
 const { currentUser, signOut } = useAuth();
+// Světlý/tmavý režim. Samotné přebarvení stránky (i ikonku slunce↔měsíc) řeší
+// CSS — odtud jde jen klik a stav pro čtečky. Detaily v composables/useTheme.ts.
+const { isDark: isDarkTheme, label: themeLabel, toggle: toggleTheme } = useTheme();
 const toast = useCosmicToast();
 const router = useRouter();
 
@@ -200,6 +204,33 @@ onUnmounted(() => {
 
     <!-- Right: User + Cart (desktop) / Hamburger (mobile) -->
     <div class="navbar-right">
+      <!-- Přepínač tématu (desktop) — hned vedle tlačítka profilu.
+           Ikona se řídí CSS proměnnou --tb-dark, ne Vue stavem, takže je
+           správná už v prvním snímku a nepřehraje si animaci při načtení. -->
+      <button
+        type="button"
+        class="nav-avatar-btn theme-toggle hidden md:flex"
+        :aria-label="themeLabel"
+        :title="themeLabel"
+        :aria-pressed="isDarkTheme"
+        @click="toggleTheme"
+      >
+        <svg class="theme-icon" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false">
+          <g class="theme-icon-rays">
+            <line x1="12" y1="1.3" x2="12" y2="3.4" />
+            <line x1="12" y1="20.6" x2="12" y2="22.7" />
+            <line x1="1.3" y1="12" x2="3.4" y2="12" />
+            <line x1="20.6" y1="12" x2="22.7" y2="12" />
+            <line x1="4.6" y1="4.6" x2="6.1" y2="6.1" />
+            <line x1="17.9" y1="17.9" x2="19.4" y2="19.4" />
+            <line x1="4.6" y1="19.4" x2="6.1" y2="17.9" />
+            <line x1="17.9" y1="6.1" x2="19.4" y2="4.6" />
+          </g>
+          <circle class="theme-icon-disc" cx="12" cy="12" r="5.4" />
+          <circle class="theme-icon-bite" cx="12" cy="12" r="6" />
+        </svg>
+      </button>
+
       <NuxtLink to="/user" class="nav-avatar-btn hidden md:flex" title="Můj profil" aria-label="Můj profil">
         <Icon name="mdi:account" height="20" />
       </NuxtLink>
@@ -207,6 +238,31 @@ onUnmounted(() => {
       <button type="button" data-cart-anchor="true" class="nav-avatar-btn relative hidden md:flex" title="Košík" aria-label="Košík" @click="cart.openDrawer()">
         <Icon name="mdi:cart" height="20" />
         <span v-if="cart.itemCount > 0" class="cart-badge-small">{{ cart.itemCount }}</span>
+      </button>
+
+      <!-- Přepínač tématu (telefony) — stejná sada tlačítek jako košík/menu. -->
+      <button
+        type="button"
+        class="mobile-icon-btn theme-toggle md:hidden"
+        :aria-label="themeLabel"
+        :title="themeLabel"
+        :aria-pressed="isDarkTheme"
+        @click="toggleTheme"
+      >
+        <svg class="theme-icon" viewBox="0 0 24 24" width="21" height="21" aria-hidden="true" focusable="false">
+          <g class="theme-icon-rays">
+            <line x1="12" y1="1.3" x2="12" y2="3.4" />
+            <line x1="12" y1="20.6" x2="12" y2="22.7" />
+            <line x1="1.3" y1="12" x2="3.4" y2="12" />
+            <line x1="20.6" y1="12" x2="22.7" y2="12" />
+            <line x1="4.6" y1="4.6" x2="6.1" y2="6.1" />
+            <line x1="17.9" y1="17.9" x2="19.4" y2="19.4" />
+            <line x1="4.6" y1="19.4" x2="6.1" y2="17.9" />
+            <line x1="17.9" y1="6.1" x2="19.4" y2="4.6" />
+          </g>
+          <circle class="theme-icon-disc" cx="12" cy="12" r="5.4" />
+          <circle class="theme-icon-bite" cx="12" cy="12" r="6" />
+        </svg>
       </button>
 
       <!-- Cart (phones) — quick access to the drawer -->
@@ -417,7 +473,7 @@ onUnmounted(() => {
   text-transform: none;
   line-height: 1;
   white-space: nowrap;
-  color: #14231a;
+  color: var(--pop-ink);
 }
 @media (min-width: 768px) { .brand-text { font-size: 1.5rem; } }
 
@@ -426,15 +482,15 @@ onUnmounted(() => {
   align-items: center;
   gap: 0.25rem;
   padding: 0.4rem 0.5rem 0.4rem 1rem;
-  background: #FBF5EA;
-  border: 2px solid var(--pop-ink, #14231a);
+  background: var(--pop-card);
+  border: 2px solid var(--pop-ink);
   border-radius: 9999px;
-  color: var(--pop-ink, #14231a);
-  box-shadow: 3px 3px 0 rgba(20, 35, 26, 0.85);
+  color: var(--pop-ink);
+  box-shadow: 3px 3px 0 var(--pop-shadow);
   transition: box-shadow 0.25s ease;
   position: relative;
 }
-.navbar--scrolled { box-shadow: 4px 4px 0 rgba(20, 35, 26, 0.85); }
+.navbar--scrolled { box-shadow: 4px 4px 0 var(--pop-shadow); }
 
 .nav-link {
   display: inline-flex;
@@ -445,13 +501,14 @@ onUnmounted(() => {
   font-size: 0.68rem;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--pop-ink, #14231a);
+  color: var(--pop-ink);
   text-decoration: none;
   border-radius: 9999px;
   transition: background 0.2s ease, color 0.2s ease;
   white-space: nowrap;
 }
-.nav-link:hover { background: var(--pop-pink, #E585AA); color: var(--pop-ink, #14231a); }
+/* Pink fill stays light in dark mode, so the label on it must stay dark. */
+.nav-link:hover { background: var(--pop-pink); color: var(--pop-ink-on-accent); }
 
 /* ── Inline search (desktop) ─────────────────────────── */
 .nav-search {
@@ -461,20 +518,19 @@ onUnmounted(() => {
   gap: 0.4rem;
   margin-left: 0.35rem;
   padding: 0.3rem 0.65rem 0.3rem 0.75rem;
-  background: rgba(20, 35, 26, 0.06);
-  border: 1.5px solid rgba(20, 35, 26, 0.16);
+  background: var(--pop-ink-wash);
+  border: 1.5px solid var(--pop-line);
   border-radius: 9999px;
   transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, width 0.25s ease;
   width: 180px;
 }
 .nav-search:focus-within {
-  background: #ffffff;
-  border-color: var(--pop-ink, #14231a);
+  background: var(--pop-sheet);
+  border-color: var(--pop-ink);
   width: 260px;
-  box-shadow: 0 4px 14px rgba(20, 35, 26, 0.12);
+  box-shadow: 0 4px 14px var(--pop-shadow-soft);
 }
-.nav-search-icon { color: rgba(20, 35, 26, 0.5); flex-shrink: 0; }
-.nav-search:focus-within .nav-search-icon { color: rgba(20, 35, 26, 0.55); }
+.nav-search-icon { color: var(--pop-ink-mute); flex-shrink: 0; }
 .nav-search-input {
   flex: 1;
   min-width: 0;
@@ -484,11 +540,9 @@ onUnmounted(() => {
   font-family: var(--font-body);
   font-weight: 500;
   font-size: 0.82rem;
-  color: var(--pop-ink, #14231a);
+  color: var(--pop-ink);
 }
-.nav-search-input::placeholder { color: rgba(20, 35, 26, 0.45); }
-.nav-search:focus-within .nav-search-input { color: var(--pop-ink); }
-.nav-search:focus-within .nav-search-input::placeholder { color: rgba(20, 35, 26, 0.35); }
+.nav-search-input::placeholder { color: var(--pop-ink-faint); }
 
 /* ── Search dropdown ─────────────────────────────────── */
 .search-dropdown {
@@ -499,10 +553,10 @@ onUnmounted(() => {
   width: 380px;
   max-height: 60vh;
   overflow-y: auto;
-  background: #ffffff;
-  border: 1px solid rgba(20, 35, 26, 0.1);
+  background: var(--pop-sheet);
+  border: 1px solid var(--pop-line);
   border-radius: 1rem;
-  box-shadow: 0 18px 44px rgba(20, 35, 26, 0.25);
+  box-shadow: 0 18px 44px var(--pop-shadow-soft);
   padding: 0.4rem;
 }
 
@@ -511,7 +565,7 @@ onUnmounted(() => {
   font-family: var(--font-body);
   font-weight: 500;
   font-size: 0.88rem;
-  color: rgba(20, 35, 26, 0.6);
+  color: var(--pop-ink-mute);
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -541,13 +595,13 @@ onUnmounted(() => {
   transition: background 0.15s ease;
   color: var(--pop-ink);
 }
-.search-item:hover { background: rgba(20, 35, 26, 0.06); }
+.search-item:hover { background: var(--pop-ink-wash); }
 .search-thumb {
   width: 40px;
   height: 40px;
   border-radius: 8px;
   overflow: hidden;
-  background: #f1ebdf;
+  background: var(--pop-card-2);
   flex-shrink: 0;
 }
 .search-item-body {
@@ -572,7 +626,7 @@ onUnmounted(() => {
   font-size: 0.66rem;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: rgba(20, 35, 26, 0.5);
+  color: var(--pop-ink-mute);
 }
 .search-item-price {
   font-family: var(--font-body);
@@ -600,19 +654,98 @@ onUnmounted(() => {
   width: 42px;
   height: 42px;
   border-radius: 9999px;
-  background: #ffffff;
-  border: 2px solid var(--pop-ink, #14231a);
+  background: var(--pop-sheet);
+  border: 2px solid var(--pop-ink);
   color: var(--pop-ink);
-  box-shadow: 2px 2px 0 rgba(20, 35, 26, 0.85);
-  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.2s ease;
+  box-shadow: 2px 2px 0 var(--pop-shadow);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.2s ease, color 0.2s ease;
   text-decoration: none;
   position: relative;
+  cursor: pointer;
 }
 @media (min-width: 768px) { .nav-avatar-btn { display: flex; width: 46px; height: 46px; } }
 .nav-avatar-btn:hover {
   transform: translate(-1px, -1px);
-  background: var(--pop-pink, #E585AA);
-  box-shadow: 3px 3px 0 rgba(20, 35, 26, 0.85);
+  background: var(--pop-pink);
+  /* pink fill → dark glyph, in both themes */
+  color: var(--pop-ink-on-accent);
+  box-shadow: 3px 3px 0 var(--pop-shadow);
+}
+.nav-avatar-btn:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--pop-shadow); }
+
+/* ── Theme toggle: sun ⇄ moon ─────────────────────────
+   Sticker treatment is inherited from .nav-avatar-btn / .mobile-icon-btn
+   (surface fill, 2px ink border, 2px 2px 0 hard offset, press-in on :active),
+   so only the icon lives here.
+
+   THE MORPH — it is not a cross-fade of two glyphs. One disc, one ring of
+   rays, and one "bite" circle painted in the button's own fill colour:
+     · the bite flies in diagonally from outside the icon and eats the disc's
+       upper-right, leaving a crescent,
+     · the rays retract into the disc (scale toward the centre) and fade,
+     · the whole icon counter-rotates and the disc swells a hair as it lands.
+
+   All three are driven by --tb-dark (0 → 1, set in main.css). That means the
+   icon is already in the right pose on the very first paint — no JS, no
+   flash, and no load-time animation to watch. Flipping the token is what
+   animates it, because the computed transform changes and transitions. */
+.theme-toggle {
+  /* The bite must be painted in exactly the button's fill, whatever it is. */
+  --toggle-bg: var(--pop-sheet);
+}
+.theme-toggle:hover { --toggle-bg: var(--pop-pink); }
+
+.theme-icon {
+  display: block;
+  transform: rotate(calc(var(--tb-dark) * -38deg));
+  transition: transform 560ms var(--ease-fluid, cubic-bezier(0.22, 1, 0.36, 1));
+}
+
+.theme-icon-rays,
+.theme-icon-disc,
+.theme-icon-bite {
+  transform-box: view-box;
+  transform-origin: 12px 12px;
+}
+
+.theme-icon-rays {
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  fill: none;
+  transform: scale(calc(1 - 0.72 * var(--tb-dark)));
+  opacity: calc(1 - var(--tb-dark));
+  transition:
+    transform 460ms var(--ease-fluid, cubic-bezier(0.22, 1, 0.36, 1)),
+    opacity 260ms ease;
+}
+
+.theme-icon-disc {
+  fill: currentColor;
+  transform: scale(calc(1 + 0.1 * var(--tb-dark)));
+  transition: transform 560ms var(--ease-fluid, cubic-bezier(0.22, 1, 0.36, 1));
+}
+
+/* Parked well outside the disc in light mode (no overlap at all), slides to a
+   3.8px diagonal offset in dark mode — which leaves a ~3.2px crescent. */
+.theme-icon-bite {
+  fill: var(--toggle-bg);
+  transform: translate(
+    calc(8.5px - 5.81px * var(--tb-dark)),
+    calc(-8.5px + 5.81px * var(--tb-dark))
+  );
+  transition:
+    transform 560ms var(--ease-fluid, cubic-bezier(0.22, 1, 0.36, 1)),
+    fill 0.2s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .theme-icon,
+  .theme-icon-rays,
+  .theme-icon-disc,
+  .theme-icon-bite {
+    transition: none !important;
+  }
 }
 
 .cart-badge-small {
@@ -630,7 +763,8 @@ onUnmounted(() => {
   color: #ffffff;
   background: #b3324c;
   border-radius: 9999px;
-  border: 2px solid #ffffff;
+  /* ring matches whatever surface the badge sits on */
+  border: 2px solid var(--pop-sheet);
 }
 
 /* ── Hamburger (mobile) ──────────────────────────────── */
@@ -646,15 +780,15 @@ onUnmounted(() => {
   width: 44px;
   height: 44px;
   border-radius: 9999px;
-  background: #ffffff;
-  color: var(--pop-ink, #14231a);
-  border: 2px solid var(--pop-ink, #14231a);
+  background: var(--pop-sheet);
+  color: var(--pop-ink);
+  border: 2px solid var(--pop-ink);
   cursor: pointer;
-  box-shadow: 2px 2px 0 rgba(20, 35, 26, 0.85);
-  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.2s ease;
+  box-shadow: 2px 2px 0 var(--pop-shadow);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.2s ease, color 0.2s ease;
 }
-.mobile-icon-btn:hover { background: var(--pop-pink, #E585AA); transform: translate(-1px, -1px); box-shadow: 3px 3px 0 rgba(20, 35, 26, 0.85); }
-.mobile-icon-btn:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 rgba(20, 35, 26, 0.85); }
+.mobile-icon-btn:hover { background: var(--pop-pink); color: var(--pop-ink-on-accent); transform: translate(-1px, -1px); box-shadow: 3px 3px 0 var(--pop-shadow); }
+.mobile-icon-btn:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--pop-shadow); }
 /* Scoped display above outranks Tailwind's `md:hidden`, so enforce hide on
    desktop explicitly — otherwise the mobile cart shows next to the desktop one. */
 @media (min-width: 768px) { .mobile-icon-btn { display: none; } }
@@ -668,15 +802,16 @@ onUnmounted(() => {
   width: 44px;
   height: 44px;
   border-radius: 9999px;
-  background: #ffffff;
-  border: 2px solid var(--pop-ink, #14231a);
+  background: var(--pop-sheet);
+  border: 2px solid var(--pop-ink);
   cursor: pointer;
-  box-shadow: 2px 2px 0 rgba(20, 35, 26, 0.85);
+  box-shadow: 2px 2px 0 var(--pop-shadow);
   transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.2s ease;
   padding: 0;
 }
-.hamburger-btn:hover { background: var(--pop-pink, #E585AA); transform: translate(-1px, -1px); box-shadow: 3px 3px 0 rgba(20, 35, 26, 0.85); }
-.hamburger-btn:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 rgba(20, 35, 26, 0.85); }
+.hamburger-btn:hover { background: var(--pop-pink); transform: translate(-1px, -1px); box-shadow: 3px 3px 0 var(--pop-shadow); }
+.hamburger-btn:hover .hamburger-line { background: var(--pop-ink-on-accent); }
+.hamburger-btn:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--pop-shadow); }
 /* Phones only — hidden from tablet/desktop up (scoped rule outranks `md:hidden`). */
 @media (min-width: 768px) { .hamburger-btn { display: none; } }
 
@@ -684,10 +819,10 @@ onUnmounted(() => {
   display: block;
   width: 18px;
   height: 2.5px;
-  background: var(--pop-ink, #14231a);
+  background: var(--pop-ink);
   border-radius: 2px;
   transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1),
-              opacity 0.2s ease;
+              opacity 0.2s ease, background 0.2s ease;
   transform-origin: center;
 }
 .hamburger-btn.is-open .hamburger-line:nth-child(1) {
@@ -706,10 +841,10 @@ onUnmounted(() => {
   /* Cream paper with the same dotted print grid as <body> and the cart drawer,
      instead of flat white — the white sheet read as a system dialog rather than
      part of the shop. */
-  background-color: var(--pop-cream, #F0E7D2);
+  background-color: var(--pop-cream);
   background-image:
-    radial-gradient(rgba(32, 17, 52, 0.14) 1.3px, transparent 1.5px),
-    radial-gradient(rgba(32, 17, 52, 0.07) 1px, transparent 1.2px);
+    radial-gradient(var(--pop-dot-1) 1.3px, transparent 1.5px),
+    radial-gradient(var(--pop-dot-2) 1px, transparent 1.2px);
   background-size: 26px 26px, 52px 52px;
   background-position: 0 0, 13px 13px;
   overflow-y: auto;
@@ -733,7 +868,7 @@ onUnmounted(() => {
   font-weight: 800;
   font-size: 1.5rem;
   text-transform: uppercase;
-  color: #14231a;
+  color: var(--pop-ink);
   text-decoration: none;
   letter-spacing: -0.01em;
 }
@@ -744,21 +879,22 @@ onUnmounted(() => {
   width: 44px;
   height: 44px;
   border-radius: 999px;
-  background: #ffffff;
-  color: #14231a;
-  border: 2px solid var(--pop-ink, #14231a);
-  box-shadow: 2px 2px 0 rgba(20, 35, 26, 0.85);
+  background: var(--pop-sheet);
+  color: var(--pop-ink);
+  border: 2px solid var(--pop-ink);
+  box-shadow: 2px 2px 0 var(--pop-shadow);
   cursor: pointer;
-  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.2s ease;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.2s ease, color 0.2s ease;
 }
 .mobile-close-btn:hover {
-  background: var(--pop-pink, #E585AA);
+  background: var(--pop-pink);
+  color: var(--pop-ink-on-accent);
   transform: translate(-1px, -1px);
-  box-shadow: 3px 3px 0 rgba(20, 35, 26, 0.85);
+  box-shadow: 3px 3px 0 var(--pop-shadow);
 }
 .mobile-close-btn:active {
   transform: translate(2px, 2px);
-  box-shadow: 1px 1px 0 rgba(20, 35, 26, 0.85);
+  box-shadow: 1px 1px 0 var(--pop-shadow);
 }
 
 /* Obal inputu + výsledků; rodičovský `gap` na ně už nesahá, řeší si ho sám. */
@@ -773,11 +909,11 @@ onUnmounted(() => {
   align-items: center;
   gap: 0.6rem;
   padding: 0.8rem 1rem;
-  background: #fbf7ee;
-  border: 2px solid var(--pop-ink, #14231a);
+  background: var(--pop-card);
+  border: 2px solid var(--pop-ink);
   border-radius: 9px;
 }
-.mobile-search-icon { color: rgba(20, 35, 26, 0.55); flex-shrink: 0; }
+.mobile-search-icon { color: var(--pop-ink-mute); flex-shrink: 0; }
 .mobile-search-input {
   flex: 1;
   border: none;
@@ -788,7 +924,7 @@ onUnmounted(() => {
   font-size: 1rem;
   color: var(--pop-ink);
 }
-.mobile-search-input::placeholder { color: rgba(20, 35, 26, 0.4); }
+.mobile-search-input::placeholder { color: var(--pop-ink-faint); }
 .mobile-search-clear {
   display: inline-flex;
   align-items: center;
@@ -796,15 +932,15 @@ onUnmounted(() => {
   width: 24px;
   height: 24px;
   border-radius: 9999px;
-  background: rgba(20, 35, 26, 0.1);
+  background: var(--pop-ink-wash-2);
   border: none;
-  color: rgba(20, 35, 26, 0.6);
+  color: var(--pop-ink-mute);
   cursor: pointer;
 }
 
 .mobile-results {
-  background: #ffffff;
-  border: 1px solid rgba(20, 35, 26, 0.08);
+  background: var(--pop-sheet);
+  border: 1px solid var(--pop-line);
   border-radius: 1rem;
   padding: 0.4rem;
   max-height: 45vh;
@@ -821,10 +957,10 @@ onUnmounted(() => {
   align-items: center;
   gap: 0.9rem;
   padding: 0.95rem 1.1rem;
-  background: #fbf7ee;
-  border: 2px solid var(--pop-ink, #14231a);
+  background: var(--pop-card);
+  border: 2px solid var(--pop-ink);
   border-radius: 10px;
-  box-shadow: 3px 3px 0 rgba(20, 35, 26, 0.85);
+  box-shadow: 3px 3px 0 var(--pop-shadow);
   text-decoration: none;
   font-family: var(--font-mono, monospace);
   font-weight: 700;
@@ -837,9 +973,9 @@ onUnmounted(() => {
   width: 100%;
   text-align: left;
 }
-.mobile-link:hover { transform: translate(-1px, -1px); box-shadow: 4px 4px 0 rgba(20, 35, 26, 0.85); background: var(--pop-pink, #E585AA); }
-.mobile-link:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 rgba(20, 35, 26, 0.85); }
-.mobile-link--danger { color: #8a2a2a; }
+.mobile-link:hover { transform: translate(-1px, -1px); box-shadow: 4px 4px 0 var(--pop-shadow); background: var(--pop-pink); color: var(--pop-ink-on-accent); }
+.mobile-link:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--pop-shadow); }
+.mobile-link--danger { color: var(--pop-danger); }
 .mobile-badge {
   margin-left: auto;
   min-width: 22px;
@@ -860,7 +996,7 @@ onUnmounted(() => {
   text-align: center;
   font-family: var(--font-body);
   font-size: 0.72rem;
-  color: rgba(20, 35, 26, 0.4);
+  color: var(--pop-ink-faint);
   padding-top: 1rem;
 }
 
@@ -873,19 +1009,19 @@ onUnmounted(() => {
   width: 46px;
   height: 46px;
   border-radius: 9999px;
-  background: var(--pop-pink, #E585AA);
-  color: var(--pop-ink, #14231a);
-  border: 2px solid var(--pop-ink, #14231a);
+  background: var(--pop-pink);
+  color: var(--pop-ink-on-accent);
+  border: 2px solid var(--pop-ink-on-accent);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 3px 3px 0 rgba(20, 35, 26, 0.6);
+  box-shadow: 3px 3px 0 var(--pop-shadow);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 .scroll-top-btn:hover {
   transform: translate(-1px, -1px);
-  box-shadow: 5px 5px 0 rgba(20, 35, 26, 0.6);
+  box-shadow: 5px 5px 0 var(--pop-shadow);
 }
 @media (min-width: 768px) {
   .scroll-top-btn { right: 1.75rem; bottom: 1.75rem; width: 50px; height: 50px; }
@@ -899,19 +1035,19 @@ onUnmounted(() => {
   width: 46px;
   height: 46px;
   border-radius: 9999px;
-  background: #ffffff;
+  background: var(--pop-sheet);
   color: var(--pop-ink);
-  border: 1px solid rgba(20, 35, 26, 0.15);
+  border: 1px solid var(--pop-line);
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 6px 18px rgba(20, 35, 26, 0.18);
+  box-shadow: 0 6px 18px var(--pop-shadow-soft);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
   text-decoration: none;
 }
 .cart-float-btn:hover {
   transform: translateY(-2px) scale(1.05);
-  box-shadow: 0 10px 24px rgba(20, 35, 26, 0.24);
+  box-shadow: 0 10px 24px var(--pop-shadow-soft);
 }
 @media (min-width: 768px) {
   .cart-float-btn { top: 1.25rem; right: 1.5rem; width: 50px; height: 50px; }
@@ -920,10 +1056,10 @@ onUnmounted(() => {
    navbar buttons); it stays top-right while scroll-to-top sits bottom-right. */
 @media (max-width: 767px) {
   .cart-float-btn {
-    background: #ffffff;
-    color: var(--pop-ink, #14231a);
-    border: 2px solid var(--pop-ink, #14231a);
-    box-shadow: 3px 3px 0 rgba(20, 35, 26, 0.85);
+    background: var(--pop-sheet);
+    color: var(--pop-ink);
+    border: 2px solid var(--pop-ink);
+    box-shadow: 3px 3px 0 var(--pop-shadow);
   }
 }
 .cart-float-badge {
@@ -941,7 +1077,7 @@ onUnmounted(() => {
   color: #ffffff;
   background: #b3324c;
   border-radius: 9999px;
-  border: 2px solid #ffffff;
+  border: 2px solid var(--pop-sheet);
 }
 
 /* ── Transitions ─────────────────────────────────────── */

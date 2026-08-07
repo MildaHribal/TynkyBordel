@@ -61,15 +61,18 @@
   font-size: 0.66rem;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--pop-ink);
+  /* Sits on a pink/lime fill, which stays LIGHT in dark mode — so the ink
+     here must stay dark too. --pop-ink flips to near-white and would be
+     invisible. Same for the border and the hard offset. */
+  color: var(--pop-ink-on-accent);
   background: var(--pop-pink);
   padding: 0.3rem 0.7rem;
-  border: 2px solid var(--pop-ink);
+  border: 2px solid var(--pop-ink-on-accent);
   border-radius: 5px;
   transform: rotate(-3deg);
-  box-shadow: 3px 3px 0 rgba(20, 35, 26, 0.9);
+  box-shadow: 3px 3px 0 var(--pop-ink-on-accent);
 }
-.zine-sticker--lime { background: var(--pop-lime); color: var(--pop-ink); }
+.zine-sticker--lime { background: var(--pop-lime); color: var(--pop-ink-on-accent); }
 .zine-sticker--flat { transform: none; box-shadow: none; border-width: 0; border-radius: 999px; }
 
 /* ── Comic buttons (hard offset shadow, press-in on click) ──────────────── */
@@ -90,7 +93,8 @@
   cursor: pointer;
   text-decoration: none;
   background: var(--pop-pink);
-  color: var(--pop-ink);
+  /* Pink fill stays light in dark mode → the label stays dark. */
+  color: var(--pop-ink-on-accent);
   box-shadow: 4px 4px 0 var(--btn-shadow);
   transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.2s ease;
 }
@@ -98,26 +102,28 @@
 .zine-btn:active { transform: translate(3px, 3px); box-shadow: 1px 1px 0 var(--btn-shadow); }
 .zine-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: 4px 4px 0 var(--btn-shadow); }
 .zine-btn--plum { background: var(--pop-plum); color: #fff; }
-.zine-btn--lime { background: var(--pop-lime); color: var(--pop-ink); }
-.zine-btn--cream { background: var(--pop-cream); color: var(--pop-ink); }
-.zine-btn--ghost { background: transparent; color: var(--pop-ink); box-shadow: 4px 4px 0 rgba(20, 35, 26,0.18); }
-.zine-btn--ghost:hover { background: rgba(20, 35, 26,0.05); }
+.zine-btn--lime { background: var(--pop-lime); color: var(--pop-ink-on-accent); }
+/* --pop-cream IS the page in dark mode, so a "cream" button would dissolve
+   into it. --pop-card is the raised paper token and reads as a surface. */
+.zine-btn--cream { background: var(--pop-card); color: var(--pop-ink); }
+.zine-btn--ghost { background: transparent; color: var(--pop-ink); box-shadow: 4px 4px 0 var(--pop-shadow-soft); }
+.zine-btn--ghost:hover { background: var(--pop-ink-wash); }
 /* On dark surfaces the shadow needs to be a colour, not near-black. */
-.zine-btn--ondark { --btn-shadow: var(--pop-pink); border-color: var(--pop-cream); }
+.zine-btn--ondark { --btn-shadow: var(--pop-pink); border-color: var(--pop-on-dark); }
 
 /* ── Panel (dark zine card) ─────────────────────────────────────────────── */
 .zine-panel {
   background: var(--pop-panel);
-  color: #F0E7D2;
+  color: var(--pop-on-dark);
   border: 2px solid var(--pop-ink);
   border-radius: 16px;
-  box-shadow: 6px 6px 0 rgba(20, 35, 26, 0.85);
+  box-shadow: 6px 6px 0 var(--pop-shadow);
 }
 .zine-card-cream {
-  background: #fbf7ee;
+  background: var(--pop-card);
   border: 2px solid var(--pop-ink);
   border-radius: 14px;
-  box-shadow: 5px 5px 0 rgba(20, 35, 26, 0.85);
+  box-shadow: 5px 5px 0 var(--pop-shadow);
 }
 
 /* ── Marquee ticker ─────────────────────────────────────────────────────── */
@@ -145,10 +151,10 @@
   font-size: 0.78rem;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: #F0E7D2;
+  color: var(--pop-on-dark);
 }
 .zine-marquee--pink .zine-marquee-item,
-.zine-marquee--lime .zine-marquee-item { color: var(--pop-ink); }
+.zine-marquee--lime .zine-marquee-item { color: var(--pop-ink-on-accent); }
 .zine-marquee-star { color: var(--pop-lime); }
 .zine-marquee--pink .zine-marquee-star,
 .zine-marquee--lime .zine-marquee-star { color: var(--pop-plum); }
@@ -163,8 +169,8 @@
   width: 84px;
   height: 26px;
   background: rgba(185, 225, 75, 0.68);
-  border: 1px solid rgba(20, 35, 26, 0.25);
-  box-shadow: 0 2px 6px rgba(20, 35, 26, 0.18);
+  border: 1px solid var(--pop-line-strong);
+  box-shadow: 0 2px 6px var(--pop-shadow-soft);
   z-index: 3;
 }
 
@@ -172,9 +178,9 @@
 .zine-price {
   font-family: var(--font-mono);
   font-weight: 700;
-  color: var(--pop-ink);
+  color: var(--pop-ink-on-accent);
   background: var(--pop-lime);
-  border: 2px solid var(--pop-ink);
+  border: 2px solid var(--pop-ink-on-accent);
   padding: 0.1rem 0.5rem;
   border-radius: 6px;
   display: inline-block;
@@ -209,7 +215,7 @@
   background: var(--pop-panel) !important;
   border: 2px solid var(--pop-ink) !important;
   border-radius: 14px !important;
-  box-shadow: 5px 6px 0 rgba(20, 35, 26, 0.85) !important;
+  box-shadow: 5px 6px 0 var(--pop-shadow) !important;
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
 }
@@ -236,17 +242,19 @@
 }
 .btn-cosmic {
   background: var(--pop-pink) !important;
-  color: var(--pop-ink) !important;
+  color: var(--pop-ink-on-accent) !important;
   box-shadow: 4px 4px 0 var(--pop-ink) !important;
 }
 .btn-cosmic::before { display: none !important; }
 .btn-cosmic-cyan {
   background: var(--pop-lime) !important;
-  color: var(--pop-ink) !important;
+  color: var(--pop-ink-on-accent) !important;
   box-shadow: 4px 4px 0 var(--pop-ink) !important;
 }
 .btn-cosmic-outline {
-  background: var(--pop-cream) !important;
+  /* NOT --pop-cream: that token is the page ground and the button would
+     vanish into it in dark mode. */
+  background: var(--pop-card) !important;
   color: var(--pop-ink) !important;
   box-shadow: 4px 4px 0 var(--pop-ink) !important;
 }
@@ -265,7 +273,7 @@
 
 /* Inputs → light cream fields with a hard border (pop on dark panels) */
 .input-cosmic {
-  background: #fbf7ee !important;
+  background: var(--pop-card) !important;
   border: 2px solid var(--pop-ink) !important;
   border-radius: 9px !important;
   color: var(--pop-ink) !important;
@@ -273,7 +281,7 @@
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
 }
-.input-cosmic::placeholder { color: rgba(20, 35, 26, 0.4) !important; }
+.input-cosmic::placeholder { color: var(--pop-ink-faint) !important; }
 .input-cosmic:focus {
   outline: none !important;
   box-shadow: 0 0 0 3px var(--pop-pink) !important;

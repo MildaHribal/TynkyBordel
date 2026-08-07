@@ -32,26 +32,42 @@ const CONTENT_TYPES: Record<string, string> = {
   '.gif': 'image/gif',
 }
 
+/**
+ * A miss must NOT be cached.
+ *
+ * `.webp` is on Cloudflare's default-cacheable extension list, so a 404 from
+ * this route was being held at the edge for hours — which meant that once an
+ * image 404'd (even transiently, e.g. requested a moment before the upload
+ * finished writing), every other visitor kept getting the cached miss long
+ * after the file existed. Only the browser that had already fetched it
+ * successfully still saw the image, which is exactly the "it works on my
+ * device only" symptom. `no-store` makes a miss cost nothing but a re-request.
+ */
+function notFound(event: any) {
+  setResponseHeader(event, 'cache-control', 'no-store, no-cache, must-revalidate')
+  return createError({ statusCode: 404, statusMessage: 'Not found' })
+}
+
 export default defineEventHandler(async (event) => {
   const segments = getRouterParam(event, 'path') || ''
   const filePath = resolveUploadPath(segments)
   if (!filePath) {
-    throw createError({ statusCode: 404, statusMessage: 'Not found' })
+    throw notFound(event)
   }
 
   const contentType = CONTENT_TYPES[extname(filePath).toLowerCase()]
   if (!contentType) {
-    throw createError({ statusCode: 404, statusMessage: 'Not found' })
+    throw notFound(event)
   }
 
   let stats
   try {
     stats = await stat(filePath)
   } catch {
-    throw createError({ statusCode: 404, statusMessage: 'Not found' })
+    throw notFound(event)
   }
   if (!stats.isFile()) {
-    throw createError({ statusCode: 404, statusMessage: 'Not found' })
+    throw notFound(event)
   }
 
   // Uploads are content-addressed by a random filename, so a given URL's bytes

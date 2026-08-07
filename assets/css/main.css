@@ -44,6 +44,12 @@
    PALETTE — retro-zine: cream · olive · hot pink · acid lime
    Handmade art-shop energy: warm paper, deep olive product cards, a
    pastel rose that shouts, and an acid lime for the "yes / go" beats.
+
+   This block is the LIGHT theme and the fallback for browsers without
+   `light-dark()`. The dark theme lives in the @supports block further
+   down and only *redefines these same tokens* — nothing downstream
+   knows a dark mode exists. Anything that hardcodes a colour instead
+   of using a token here will NOT follow.
    ══════════════════════════════════════════════════════════════ */
 :root {
   /* Surfaces */
@@ -53,13 +59,22 @@
   --pop-panel:    #201c19;   /* dark panels (marquee, drawers) — warm near-black */
   --pop-panel-2:  #2e2925;   /* raised panel surface (hover) */
 
+  /* Paper surfaces that used to be hardcoded all over the app.
+     --pop-card  = the "cut-out paper" card / input fill (was #fbf7ee)
+     --pop-sheet = the crisp white sticker/dropdown fill (was #ffffff) */
+  --pop-card:     #fbf7ee;
+  --pop-card-2:   #F1EBDF;   /* secondary paper (thumb placeholders) */
+  --pop-sheet:    #ffffff;
+  --pop-sheet-2:  #F5F1EA;   /* raised sheet / page canvas behind <body> */
+
   /* Accents */
   --pop-pink:     #E585AA;   /* soft pastel rose — primary accent */
-  --pop-pink-ink: #b34a72;   /* deeper rose for text-on-cream legibility */
+  --pop-pink-ink: #b34a72;   /* deeper rose for text-on-paper legibility */
   --pop-blush:    #F7D3E0;   /* soft sticker fill */
   --pop-lime:     #B9E14B;   /* acid lime — price / go */
-  --pop-lime-ink: #4d6b0e;   /* lime-family text on cream */
+  --pop-lime-ink: #4d6b0e;   /* lime-family text on paper */
   --pop-green:    #A8DF8E;
+  --pop-danger:   #8a2a2a;
 
   /* Soft secondaries that pair with cream/pink/lime */
   --pop-lavender: #A9CBBF;
@@ -68,6 +83,38 @@
   /* Page text on paper — deep forest near-black */
   --pop-ink:      #14231a;
   --pop-ink-soft: #4e6153;
+
+  /* Ink on an ACCENT fill (pink / lime / blush). Those fills stay light in
+     both themes, so this one must stay DARK in both themes — it is NOT
+     --pop-ink. Every `background: var(--pop-pink); color: var(--pop-ink)`
+     pair has to use this instead, or it turns light-on-light in dark mode. */
+  --pop-ink-on-accent: #14231a;
+  /* Text on a surface that is dark in BOTH themes (olive cards, the wine
+     footer, .zine-panel). Constant on purpose. */
+  --pop-on-dark:  #F0E7D2;
+
+  /* Ink washes — borders, hairlines, muted text, placeholders. */
+  --pop-line:        rgba(20, 35, 26, 0.14);
+  --pop-line-strong: rgba(20, 35, 26, 0.30);
+  --pop-ink-wash:    rgba(20, 35, 26, 0.06);
+  --pop-ink-wash-2:  rgba(20, 35, 26, 0.10);
+  --pop-ink-faint:   rgba(20, 35, 26, 0.45);
+  /* 0.60 measured 4.37:1 on white and 4.06:1 on cream — under AA. 0.64 clears
+     it (4.96 / 4.57) and is indistinguishable to the eye. */
+  --pop-ink-mute:    rgba(20, 35, 26, 0.64);
+
+  /* The zine hard-offset shadow, and the soft blurred one. */
+  --pop-shadow:      rgba(20, 35, 26, 0.85);
+  --pop-shadow-soft: rgba(20, 35, 26, 0.18);
+
+  /* The dotted print grid on <body> and on the drawers. */
+  --pop-dot-1: rgba(32, 17, 52, 0.14);
+  --pop-dot-2: rgba(32, 17, 52, 0.07);
+
+  /* 0 in light, 1 in dark. `light-dark()` only returns colours, so this is
+     the switch for the handful of NUMERIC things that must also flip
+     (grain opacity, the sun→moon morph). Use it inside calc(). */
+  --tb-dark: 0;
 
   /* ── Type system ────────────────────────────────────────────
      Three families, and only three. Each is one self-hosted .woff2
@@ -92,12 +139,109 @@
   --font-petrona: var(--font-body);
 }
 
+/* ══════════════════════════════════════════════════════════════
+   DARK THEME — "midnight riso"
+   ──────────────────────────────────────────────────────────────
+   Not black, not grey: a deep violet-plum. The hue is lifted
+   straight out of the light theme's own print-grid dots
+   (rgba(32,17,52)) so the two themes are the same shop at two
+   times of day rather than two designs.
+
+   Ramp (page → raised → higher):
+     #1B1129  ground   — the paper
+     #2B1E3F  card     — cut-out paper cards, inputs
+     #33244C  sheet    — sticker buttons, dropdowns, popovers
+     #3C2B58  raised   — hover / highest surface
+
+   HOW THE SWITCH WORKS — and why it cannot flash or mismatch:
+   the whole thing is `light-dark()` driven by `color-scheme`, i.e.
+   it is pure CSS in a render-blocking stylesheet. A visitor whose OS
+   is dark gets a dark first paint with no JavaScript involved at all,
+   and the server HTML is byte-identical in both themes, so there is
+   nothing for Vue to hydrate differently. JS only ever writes
+   `data-theme` on <html>, which Vue does not render.
+
+   @supports guards it: on a browser without light-dark() the block is
+   dropped wholesale and the light theme above stands unharmed, rather
+   than every token resolving to an invalid value.
+   ══════════════════════════════════════════════════════════════ */
+@supports (color: light-dark(#fff, #000)) {
+  :root {
+    /* Follow the OS by default. The [data-theme] rules below override it
+       when the visitor has made an explicit choice. */
+    color-scheme: light dark;
+
+    /* ── Surfaces ── */
+    --pop-cream:   light-dark(#F0E7D2, #1B1129);
+    --pop-plum:    light-dark(#3b5222, #44602A);  /* olive lifted so cards sit ON the purple */
+    --pop-plum-2:  light-dark(#4c6330, #4E6B2B);
+    --pop-panel:   light-dark(#201c19, #241934);
+    --pop-panel-2: light-dark(#2e2925, #31234A);
+
+    --pop-card:    light-dark(#fbf7ee, #2B1E3F);
+    --pop-card-2:  light-dark(#F1EBDF, #33244C);
+    --pop-sheet:   light-dark(#ffffff, #33244C);
+    --pop-sheet-2: light-dark(#F5F1EA, #3C2B58);
+
+    /* ── Accents ──
+       The *-ink variants are the on-paper text colours. #b34a72 and
+       #4d6b0e are tuned for cream and are far too dark on violet, so
+       dark mode takes the light-side variants instead. The plain
+       accents stay light because they are FILLS — text on them comes
+       from --pop-ink-on-accent, which stays dark. */
+    --pop-pink:     light-dark(#E585AA, #EE8FB4);
+    --pop-pink-ink: light-dark(#b34a72, #F5A3C2);
+    --pop-blush:    light-dark(#F7D3E0, #EFC6D8);
+    --pop-lime:     light-dark(#B9E14B, #C2E85C);
+    --pop-lime-ink: light-dark(#4d6b0e, #C9EE68);
+    --pop-green:    light-dark(#A8DF8E, #A8DF8E);
+    --pop-danger:   light-dark(#8a2a2a, #FF9AA2);
+
+    --pop-lavender: light-dark(#A9CBBF, #A9CBBF);
+    --pop-blue:     light-dark(#B4D3D9, #B4D3D9);
+
+    /* ── Ink ── */
+    --pop-ink:      light-dark(#14231a, #EFE6F6);
+    --pop-ink-soft: light-dark(#4e6153, #B9A9CC);
+    /* Stays dark in BOTH themes — it lands on pink/lime/blush fills. */
+    --pop-ink-on-accent: light-dark(#14231a, #1B1129);
+    --pop-on-dark:  #F0E7D2;
+
+    --pop-line:        light-dark(rgba(20, 35, 26, 0.14), rgba(239, 230, 246, 0.18));
+    --pop-line-strong: light-dark(rgba(20, 35, 26, 0.30), rgba(239, 230, 246, 0.34));
+    --pop-ink-wash:    light-dark(rgba(20, 35, 26, 0.06), rgba(239, 230, 246, 0.09));
+    --pop-ink-wash-2:  light-dark(rgba(20, 35, 26, 0.10), rgba(239, 230, 246, 0.14));
+    --pop-ink-faint:   light-dark(rgba(20, 35, 26, 0.45), rgba(239, 230, 246, 0.55));
+    --pop-ink-mute:    light-dark(rgba(20, 35, 26, 0.64), rgba(239, 230, 246, 0.68));
+
+    /* The hard offset shadow inverts with the ink: a dark stamp on cream
+       becomes a lilac riso mis-registration on violet. A near-black offset
+       would simply vanish against a #1B1129 ground. */
+    --pop-shadow:      light-dark(rgba(20, 35, 26, 0.85), rgba(198, 166, 255, 0.42));
+    --pop-shadow-soft: light-dark(rgba(20, 35, 26, 0.18), rgba(0, 0, 0, 0.55));
+
+    /* Print grid: dark dots on paper → pale violet dots on violet. Tuned to
+       ~1.27 / ~1.11 local contrast, matching the light theme's 1.33 / 1.15,
+       so the texture reads without turning into noise. */
+    --pop-dot-1: light-dark(rgba(32, 17, 52, 0.14), rgba(216, 196, 255, 0.11));
+    --pop-dot-2: light-dark(rgba(32, 17, 52, 0.07), rgba(216, 196, 255, 0.055));
+  }
+
+  /* The numeric switch. Four tiny rules, deliberately kept apart from the
+     palette above — everything else in the app flips through the tokens. */
+  :root[data-theme="dark"]  { color-scheme: dark;  --tb-dark: 1; }
+  :root[data-theme="light"] { color-scheme: light; --tb-dark: 0; }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) { --tb-dark: 1; }
+  }
+}
+
 body {
   /* Warm paper with a subtle dotted grid — the zine "print" texture. */
   background-color: var(--pop-cream);
   background-image:
-    radial-gradient(rgba(32, 17, 52, 0.14) 1.3px, transparent 1.5px),
-    radial-gradient(rgba(32, 17, 52, 0.07) 1px, transparent 1.2px);
+    radial-gradient(var(--pop-dot-1) 1.3px, transparent 1.5px),
+    radial-gradient(var(--pop-dot-2) 1px, transparent 1.2px);
   background-size: 26px 26px, 52px 52px;
   background-position: 0 0, 13px 13px;
   /* `background-attachment: fixed` was used here for a parallax effect on
@@ -308,7 +452,7 @@ body :where(h1, h2, h3, h4, h5, h6) {
 }
 
 ::-webkit-scrollbar-track {
-  background: rgba(10, 0, 21, 0.8);
+  background: var(--pop-ink-wash-2);
 }
 
 ::-webkit-scrollbar-thumb {
@@ -335,7 +479,9 @@ body :where(h1, h2, h3, h4, h5, h6) {
 
 html {
   scroll-behavior: auto;
-  background-color: #F5F1EA;
+  /* The canvas behind <body> (overscroll rubber-band, sub-pixel gaps).
+     Tokenised so it can never flash cream behind a dark page. */
+  background-color: var(--pop-sheet-2);
 }
 
 html.is-scrolling-smooth {
@@ -445,12 +591,15 @@ html.is-scrolling-smooth {
   inset: 0;
   z-index: 1;
   pointer-events: none;
-  opacity: 0.28;
+  /* The noise is tinted a warm cream by the feColorMatrix below. That reads as
+     paper fibre over cream, but as bright speckle over deep violet — so dark
+     mode takes the same texture down to a whisper (0.28 → 0.10). */
+  opacity: calc(0.28 - 0.18 * var(--tb-dark));
   background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.92' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.55  0 0 0 0 0.48  0 0 0 0 0.32  0 0 0 0.35 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
   background-size: 240px 240px;
 }
 @media (max-width: 640px) {
-  .psy-grain::after { opacity: 0.18; }
+  .psy-grain::after { opacity: calc(0.18 - 0.11 * var(--tb-dark)); }
 }
 
 /* ══════════════════════════════════════════════════════════════
