@@ -216,18 +216,20 @@ onUnmounted(() => {
         @click="toggleTheme"
       >
         <svg class="theme-icon" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false">
-          <g class="theme-icon-rays">
-            <line x1="12" y1="1.3" x2="12" y2="3.4" />
-            <line x1="12" y1="20.6" x2="12" y2="22.7" />
-            <line x1="1.3" y1="12" x2="3.4" y2="12" />
-            <line x1="20.6" y1="12" x2="22.7" y2="12" />
-            <line x1="4.6" y1="4.6" x2="6.1" y2="6.1" />
-            <line x1="17.9" y1="17.9" x2="19.4" y2="19.4" />
-            <line x1="4.6" y1="19.4" x2="6.1" y2="17.9" />
-            <line x1="17.9" y1="6.1" x2="19.4" y2="4.6" />
+          <g class="theme-sun">
+            <circle cx="12" cy="12" r="5" />
+            <g class="theme-sun-rays">
+              <line x1="12" y1="1.5" x2="12" y2="3.6" />
+              <line x1="12" y1="20.4" x2="12" y2="22.5" />
+              <line x1="1.5" y1="12" x2="3.6" y2="12" />
+              <line x1="20.4" y1="12" x2="22.5" y2="12" />
+              <line x1="4.6" y1="4.6" x2="6.1" y2="6.1" />
+              <line x1="17.9" y1="17.9" x2="19.4" y2="19.4" />
+              <line x1="4.6" y1="19.4" x2="6.1" y2="17.9" />
+              <line x1="17.9" y1="6.1" x2="19.4" y2="4.6" />
+            </g>
           </g>
-          <circle class="theme-icon-disc" cx="12" cy="12" r="5.4" />
-          <circle class="theme-icon-bite" cx="12" cy="12" r="6" />
+          <path class="theme-moon" d="M21 14.2A9.2 9.2 0 0 1 9.8 3a7.6 7.6 0 1 0 11.2 11.2Z" />
         </svg>
       </button>
 
@@ -250,18 +252,20 @@ onUnmounted(() => {
         @click="toggleTheme"
       >
         <svg class="theme-icon" viewBox="0 0 24 24" width="21" height="21" aria-hidden="true" focusable="false">
-          <g class="theme-icon-rays">
-            <line x1="12" y1="1.3" x2="12" y2="3.4" />
-            <line x1="12" y1="20.6" x2="12" y2="22.7" />
-            <line x1="1.3" y1="12" x2="3.4" y2="12" />
-            <line x1="20.6" y1="12" x2="22.7" y2="12" />
-            <line x1="4.6" y1="4.6" x2="6.1" y2="6.1" />
-            <line x1="17.9" y1="17.9" x2="19.4" y2="19.4" />
-            <line x1="4.6" y1="19.4" x2="6.1" y2="17.9" />
-            <line x1="17.9" y1="6.1" x2="19.4" y2="4.6" />
+          <g class="theme-sun">
+            <circle cx="12" cy="12" r="5" />
+            <g class="theme-sun-rays">
+              <line x1="12" y1="1.5" x2="12" y2="3.6" />
+              <line x1="12" y1="20.4" x2="12" y2="22.5" />
+              <line x1="1.5" y1="12" x2="3.6" y2="12" />
+              <line x1="20.4" y1="12" x2="22.5" y2="12" />
+              <line x1="4.6" y1="4.6" x2="6.1" y2="6.1" />
+              <line x1="17.9" y1="17.9" x2="19.4" y2="19.4" />
+              <line x1="4.6" y1="19.4" x2="6.1" y2="17.9" />
+              <line x1="17.9" y1="6.1" x2="19.4" y2="4.6" />
+            </g>
           </g>
-          <circle class="theme-icon-disc" cx="12" cy="12" r="5.4" />
-          <circle class="theme-icon-bite" cx="12" cy="12" r="6" />
+          <path class="theme-moon" d="M21 14.2A9.2 9.2 0 0 1 9.8 3a7.6 7.6 0 1 0 11.2 11.2Z" />
         </svg>
       </button>
 
@@ -697,53 +701,47 @@ onUnmounted(() => {
 
 .theme-icon {
   display: block;
-  transform: rotate(calc(var(--tb-dark) * -38deg));
-  transition: transform 560ms var(--ease-fluid, cubic-bezier(0.22, 1, 0.36, 1));
+  /* One rotation drives the whole handoff, so the two shapes always agree. */
+  transform: rotate(calc(var(--tb-dark) * -50deg));
+  transition: transform 520ms var(--ease-fluid, cubic-bezier(0.22, 1, 0.36, 1));
 }
 
-.theme-icon-rays,
-.theme-icon-disc,
-.theme-icon-bite {
+/* Sun and crescent are separate, self-contained shapes. The previous version
+   built the crescent by covering a disc with a second circle painted in the
+   button's own background colour — which showed up as a stray notch the moment
+   that background changed (hover) or the fill didn't match exactly. */
+.theme-sun,
+.theme-moon {
   transform-box: view-box;
   transform-origin: 12px 12px;
+  transition:
+    transform 520ms var(--ease-fluid, cubic-bezier(0.22, 1, 0.36, 1)),
+    opacity 240ms ease;
 }
 
-.theme-icon-rays {
+.theme-sun {
+  fill: currentColor;
+  opacity: calc(1 - var(--tb-dark));
+  transform: scale(calc(1 - 0.35 * var(--tb-dark)));
+}
+
+.theme-sun-rays {
   stroke: currentColor;
   stroke-width: 2;
   stroke-linecap: round;
   fill: none;
-  transform: scale(calc(1 - 0.72 * var(--tb-dark)));
-  opacity: calc(1 - var(--tb-dark));
-  transition:
-    transform 460ms var(--ease-fluid, cubic-bezier(0.22, 1, 0.36, 1)),
-    opacity 260ms ease;
 }
 
-.theme-icon-disc {
+.theme-moon {
   fill: currentColor;
-  transform: scale(calc(1 + 0.1 * var(--tb-dark)));
-  transition: transform 560ms var(--ease-fluid, cubic-bezier(0.22, 1, 0.36, 1));
-}
-
-/* Parked well outside the disc in light mode (no overlap at all), slides to a
-   3.8px diagonal offset in dark mode — which leaves a ~3.2px crescent. */
-.theme-icon-bite {
-  fill: var(--toggle-bg);
-  transform: translate(
-    calc(8.5px - 5.81px * var(--tb-dark)),
-    calc(-8.5px + 5.81px * var(--tb-dark))
-  );
-  transition:
-    transform 560ms var(--ease-fluid, cubic-bezier(0.22, 1, 0.36, 1)),
-    fill 0.2s ease;
+  opacity: var(--tb-dark);
+  transform: scale(calc(0.65 + 0.35 * var(--tb-dark)));
 }
 
 @media (prefers-reduced-motion: reduce) {
   .theme-icon,
-  .theme-icon-rays,
-  .theme-icon-disc,
-  .theme-icon-bite {
+  .theme-sun,
+  .theme-moon {
     transition: none !important;
   }
 }
