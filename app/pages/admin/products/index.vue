@@ -4,17 +4,49 @@
 definePageMeta({ layout: 'admin', middleware: 'admin' })
 
 const { data: products, pending, refresh } = await useFetch<any[]>('/api/admin/products')
+const { data: allCategories, refresh: refreshCategories } = await useFetch<any[]>('/api/categories')
 const toast = useCosmicToast()
 
 const searchQuery = ref('')
+const selectedCategory = ref('')
+
+const categoryTree = computed(() => {
+  if (!allCategories.value) return []
+  const map = new Map()
+  allCategories.value.forEach((cat) => map.set(cat.id, { ...cat, children: [] }))
+  const tree: any[] = []
+  allCategories.value.forEach((cat) => {
+    const node = map.get(cat.id)
+    if (cat.parentId) {
+      const parent = map.get(cat.parentId)
+      if (parent) parent.children.push(node)
+    } else {
+      tree.push(node)
+    }
+  })
+  return tree
+})
+
+function getCategoryPath(id: number | null): string {
+  if (!id || !allCategories.value) return ''
+  const path: string[] = []
+  let current = allCategories.value.find((c) => c.id === id)
+  while (current) {
+    path.unshift(current.name)
+    const nextId = current.parentId
+    current = nextId ? allCategories.value.find((c) => c.id === nextId) : null
+  }
+  return path.join(' › ')
+}
 
 const filteredProducts = computed(() => {
   if (!products.value) return []
   let r = products.value
   if (searchQuery.value) {
     const q = searchQuery.value.toLowerCase()
-    r = r.filter((p: any) => p.title.toLowerCase().includes(q))
+    r = r.filter((p: any) => p.title.toLowerCase().includes(q) || p.category?.toLowerCase().includes(q))
   }
+  if (selectedCategory.value) r = r.filter((p: any) => p.category === selectedCategory.value)
   return r
 })
 
@@ -32,6 +64,92 @@ const form = ref({
   categoryId: null as number | null,
 })
 
+const pickerPath = ref<any[]>([])
+const currentLevelCategories = computed(() =>
+  pickerPath.value.length === 0
+    ? categoryTree.value
+    : pickerPath.value[pickerPath.value.length - 1].children || [],
+)
+function selectLevel(cat: any) {
+  if (cat.children?.length) pickerPath.value.push(cat)
+  else {
+    form.value.categoryId = cat.id
+    form.value.category = cat.name
+  }
+}
+function resetPicker() { pickerPath.value = [] }
+function setFinalCategory(cat: any) {
+  form.value.categoryId = cat.id
+  form.value.category = cat.name
+}
+
+// Deleting an existing category, guarded by the same double-click pattern the
+// product delete uses. Products in it survive (the endpoint unlinks them) and
+// its subcategories move up one level.
+const pendingDeleteCatId = ref<number | null>(null)
+let catConfirmUntil = 0
+async function deleteCategory(cat: any) {
+  const now = Date.now()
+  if (pendingDeleteCatId.value !== cat.id || now > catConfirmUntil) {
+    pendingDeleteCatId.value = cat.id
+    catConfirmUntil = now + 5000
+    toast.info('Potvrď smazání', `Klikni znovu pro smazání „${cat.name}".`)
+    return
+  }
+  try {
+    await $fetch(`/api/admin/categories/${cat.id}`, { method: 'DELETE' })
+    if (form.value.categoryId === cat.id) { form.value.categoryId = null; form.value.category = '' }
+    pickerPath.value = []
+    await refreshCategories()
+    await refresh()
+    toast.success('Smazáno', `Kategorie „${cat.name}" odstraněna.`)
+  } catch (e: any) {
+    toast.error('Chyba', e?.data?.statusMessage || e?.message || 'Kategorii se nepodařilo smazat.')
+  } finally {
+    pendingDeleteCatId.value = null
+  }
+}
+
+// ── Inline category creation ──────────────────────────────────────────────
+// Lets the admin add a brand-new category (or subcategory) straight from the
+// product form. The new category is created under whatever level the picker is
+// currently drilled into, then auto-selected for the product.
+const showNewCat = ref(false)
+const newCatName = ref('')
+const creatingCat = ref(false)
+// Where a new category would be created: the level the picker is currently in.
+const newCatParent = computed(() =>
+  pickerPath.value.length ? pickerPath.value[pickerPath.value.length - 1] : null,
+)
+function openNewCat() {
+  newCatName.value = ''
+  showNewCat.value = true
+}
+async function createCategory() {
+  const name = newCatName.value.trim()
+  if (!name || creatingCat.value) return
+  creatingCat.value = true
+  try {
+    const created: any = await $fetch('/api/admin/categories', {
+      method: 'POST',
+      body: { name, parentId: newCatParent.value?.id ?? null },
+    })
+    await refreshCategories()
+    // Auto-select the freshly created category for this product. Reset the
+    // picker so its grid rebuilds from the fresh tree (the old pickerPath nodes
+    // don't know about the new child).
+    form.value.categoryId = created.id
+    form.value.category = created.name
+    pickerPath.value = []
+    showNewCat.value = false
+    newCatName.value = ''
+    toast.success('Kategorie přidána', created.name)
+  } catch (e: any) {
+    toast.error('Chyba', e?.data?.statusMessage || e?.message || 'Kategorii se nepodařilo vytvořit.')
+  } finally {
+    creatingCat.value = false
+  }
+}
 
 const uploading = ref(false)
 const uploadError = ref('')
@@ -42,6 +160,8 @@ function openCreate() {
   editingProduct.value = null
   form.value = { title: '', description: '', price: 0, image: '', images: [], stock: 0, category: '', categoryId: null }
   uploadError.value = ''
+  pickerPath.value = []
+  showNewCat.value = false
   closeCropper()
   showModal.value = true
 }
@@ -59,6 +179,8 @@ function openEdit(product: any) {
     categoryId: product.categoryId || null,
   }
   uploadError.value = ''
+  pickerPath.value = []
+  showNewCat.value = false
   closeCropper()
   showModal.value = true
 }
@@ -233,6 +355,10 @@ function getImageSrc(image: string) {
         <Icon name="lucide:search" height="16" class="search-icon" />
         <input v-model="searchQuery" type="text" placeholder="Hledat produkty…" class="search-input" />
       </div>
+      <select v-model="selectedCategory" class="filter-select">
+        <option value="">Všechny kategorie</option>
+        <option v-for="cat in allCategories" :key="cat.id" :value="cat.name">{{ cat.name }}</option>
+      </select>
     </div>
 
     <p class="results-count" v-if="!pending">{{ filteredProducts.length }} produktů</p>
@@ -247,6 +373,7 @@ function getImageSrc(image: string) {
           <thead>
             <tr>
               <th>Produkt</th>
+              <th>Kategorie</th>
               <th>Cena</th>
               <th>Sklad</th>
               <th>Vytvořeno</th>
@@ -266,6 +393,9 @@ function getImageSrc(image: string) {
                     <span class="product-id">#{{ p.productNumber || p.id }}</span>
                   </div>
                 </div>
+              </td>
+              <td data-label="Kategorie">
+                <span class="item-tag" v-if="p.category">{{ p.category }}</span>
               </td>
               <td class="price" data-label="Cena">{{ p.price.toLocaleString('cs-CZ') }} Kč</td>
               <td data-label="Sklad">
@@ -322,6 +452,87 @@ function getImageSrc(image: string) {
                 <div class="form-group">
                   <label class="form-label">Sklad</label>
                   <input v-model.number="form.stock" type="number" class="form-input" min="0" />
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Kategorie</label>
+                <div v-if="form.categoryId" class="selected-cat">
+                  <Icon name="lucide:check" height="14" />
+                  <span>{{ getCategoryPath(form.categoryId) }}</span>
+                  <button type="button" class="cat-clear" @click="form.categoryId = null; form.category = ''">
+                    <Icon name="lucide:x" height="12" />
+                  </button>
+                </div>
+
+                <div class="picker">
+                  <div class="picker-crumbs">
+                    <button type="button" class="crumb" @click="resetPicker">Vše</button>
+                    <template v-for="(p, i) in pickerPath" :key="p.id">
+                      <span class="crumb-sep">›</span>
+                      <button type="button" class="crumb" @click="pickerPath = pickerPath.slice(0, i + 1)">
+                        {{ p.name }}
+                      </button>
+                    </template>
+                  </div>
+                  <div class="picker-grid">
+                    <div v-for="cat in currentLevelCategories" :key="cat.id" class="picker-row">
+                      <button type="button" class="picker-btn" @click="selectLevel(cat)">
+                        <span>{{ cat.name }}</span>
+                        <Icon v-if="cat.children?.length" name="lucide:chevron-right" height="12" />
+                      </button>
+                      <button
+                        type="button"
+                        class="picker-del"
+                        :class="{ 'is-armed': pendingDeleteCatId === cat.id }"
+                        :title="`Smazat kategorii ${cat.name}`"
+                        :aria-label="`Smazat kategorii ${cat.name}`"
+                        @click.stop="deleteCategory(cat)"
+                      >
+                        <Icon :name="pendingDeleteCatId === cat.id ? 'lucide:check' : 'lucide:trash-2'" height="12" />
+                      </button>
+                    </div>
+                    <div v-if="currentLevelCategories.length === 0" class="picker-empty">
+                      Žádné podkategorie
+                    </div>
+                  </div>
+                  <button
+                    v-if="pickerPath.length > 0"
+                    type="button"
+                    class="picker-confirm"
+                    @click="setFinalCategory(pickerPath[pickerPath.length - 1])"
+                  >
+                    <Icon name="lucide:check" height="14" />
+                    Zvolit „{{ pickerPath[pickerPath.length - 1].name }}"
+                  </button>
+
+                  <!-- Inline new-category creator -->
+                  <div class="new-cat">
+                    <button v-if="!showNewCat" type="button" class="new-cat-toggle" @click="openNewCat">
+                      <Icon name="lucide:plus" height="14" />
+                      Přidat novou kategorii{{ newCatParent ? ` do „${newCatParent.name}"` : '' }}
+                    </button>
+                    <div v-else class="new-cat-form">
+                      <div class="new-cat-label">
+                        Nová kategorie {{ newCatParent ? `v „${newCatParent.name}"` : '(hlavní úroveň)' }}
+                      </div>
+                      <div class="new-cat-row">
+                        <input
+                          v-model="newCatName"
+                          type="text"
+                          class="form-input"
+                          placeholder="Např. Náhrdelníky"
+                          @keydown.enter.prevent="createCategory"
+                          @keydown.esc.prevent="showNewCat = false"
+                        />
+                        <button type="button" class="btn-primary new-cat-save" :disabled="creatingCat || !newCatName.trim()" @click="createCategory">
+                          <Icon :name="creatingCat ? 'lucide:loader-2' : 'lucide:check'" height="14" :class="{ spin: creatingCat }" />
+                          Vytvořit
+                        </button>
+                        <button type="button" class="btn-ghost new-cat-cancel" @click="showNewCat = false">Zrušit</button>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -458,6 +669,23 @@ function getImageSrc(image: string) {
 }
 .crumb:hover { color: #2a1340; }
 .crumb-sep { color: rgba(42, 19, 64, 0.3); }
+
+.picker-row { display: flex; gap: 4px; align-items: stretch; }
+.picker-row .picker-btn { flex: 1; }
+.picker-del {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  border: 1px solid rgba(179, 50, 76, 0.35);
+  border-radius: 8px;
+  background: transparent;
+  color: #b3324c;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.picker-del:hover { background: rgba(179, 50, 76, 0.08); }
+.picker-del.is-armed { background: #b3324c; color: #fff; }
 
 .picker-grid {
   padding: 0.45rem;

@@ -353,7 +353,8 @@ onUnmounted(() => {
                     </div>
                     <div class="search-item-body">
                       <span class="search-item-title">{{ prod.title }}</span>
-                        </div>
+                      <span v-if="prod.category" class="search-item-cat">{{ prod.category }}</span>
+                    </div>
                     <span class="search-item-price">{{ prod.price }} Kč</span>
                   </button>
                 </li>

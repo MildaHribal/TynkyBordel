@@ -42,10 +42,34 @@ const inStockCount = computed(() =>
   collection.value.filter((p: any) => (p.stock ?? 0) > 0).length
 )
 
-// Polaroid collage in the hero: the three freshest pieces with an image.
-const heroPics = computed(() =>
-  collection.value.filter((p: any) => p.image).slice(0, 3)
+// ── Category filter pills ("Čerstvé z ateliéru") ────────────────────────────
+// Derived from the loaded products, so with no categories in the catalog the
+// pills simply don't render — the owner deletes/creates categories in the
+// admin and this follows.
+const activeFilter = ref<string>('all')
+const categories = computed(() => {
+  const seen = new Map<string, number>()
+  for (const p of collection.value as any[]) {
+    if (p.category) seen.set(p.category, (seen.get(p.category) ?? 0) + 1)
+  }
+  return Array.from(seen, ([name, count]) => ({ name, count }))
+})
+const filtered = computed(() =>
+  activeFilter.value === 'all'
+    ? collection.value
+    : collection.value.filter((p: any) => p.category === activeFilter.value)
 )
+
+// Polaroid collage in the hero: three FIXED pieces of art, shipped in the
+// repo under public/hero. Deliberately not derived from the catalog — the
+// owner wants the same three photos on every environment, and repo files are
+// the one image source that exists on production no matter what the database
+// or the uploads volume are doing.
+const heroPics = [
+  { id: 'hero-1', image: '/hero/polaroid-1.webp', title: '' },
+  { id: 'hero-2', image: '/hero/polaroid-2.webp', title: '' },
+  { id: 'hero-3', image: '/hero/polaroid-3.webp', title: '' },
+]
 
 
 function heroSrc(image: string) {
@@ -196,18 +220,29 @@ function scrollToKolekce(e: MouseEvent) {
             <span class="zine-eyebrow">Čerstvé z ateliéru</span>
             <h2 class="zine-section-title">Všechny kousky</h2>
           </div>
+          <div v-if="categories.length" class="zfilters">
+            <button
+              class="zfilter" :class="{ 'is-active': activeFilter === 'all' }"
+              @click="activeFilter = 'all'"
+            >Vše ({{ collection.length }})</button>
+            <button
+              v-for="cat in categories" :key="cat.name"
+              class="zfilter" :class="{ 'is-active': activeFilter === cat.name }"
+              @click="activeFilter = cat.name"
+            >{{ cat.name }}</button>
+          </div>
         </div>
 
         <div class="max-w-[1340px] mx-auto">
           <div class="zgrid">
             <ProductCard
-              v-for="(prod, idx) in collection"
+              v-for="(prod, idx) in filtered"
               :key="prod.id"
               :product="prod"
               :is-priority="idx < 2"
             />
           </div>
-          <p v-if="collection.length === 0" class="zempty">Zatím tu nic není.</p>
+          <p v-if="filtered.length === 0" class="zempty">Zatím tu nic není.</p>
         </div>
       </section>
 
@@ -219,7 +254,7 @@ function scrollToKolekce(e: MouseEvent) {
         <div class="zabout">
           <div class="zabout-art">
             <NuxtImg
-              src="/hero/mushroom-eye.png" alt="Autorská ilustrace"
+              src="/hero/tynka.webp" alt="Týnka — autorka"
               width="300" height="300" format="webp" quality="80" loading="lazy"
               sizes="300px"
               class="zabout-img"
@@ -228,10 +263,21 @@ function scrollToKolekce(e: MouseEvent) {
           <div class="zabout-copy">
             <span class="zine-eyebrow">✶ O mně</span>
             <h2 class="zabout-title">Akustická děvka,<br />která musí furt něco tvořit</h2>
-            <p class="zabout-desc">
-              Jsem obsessed smažkama. Vytvářím jak hovna, tak absolutní bangery —
-              obrazy, sochy z papírmašé, klíčenky. Každý kousek je originál, vyrobený rukama.
-            </p>
+            <div class="zabout-desc">
+              <p>
+                Jsem <strong class="zabout-strong">Týnka</strong> a přes tvorbu pouštím do světa
+                <span class="zabout-mark">více barev</span>, svůj zvláštní humor a nápady,
+                které chci přeměnit v něco hmatatelného.
+              </p>
+              <p>
+                Každý kousek, který tu najdeš, vznikl spontánním nápadem —
+                klidně ve <span class="zabout-mark">čtyři ráno</span> po nechtěném probuzení.
+              </p>
+              <p>
+                Sdílet je s ostatními byl můj dlouholetý sen a jsem neskutečně ráda,
+                že si ho <strong class="zabout-strong">konečně plním</strong>.
+              </p>
+            </div>
           </div>
         </div>
       </section>
@@ -361,6 +407,25 @@ function scrollToKolekce(e: MouseEvent) {
 }
 
 
+/* ── Filters ── */
+.zfilters { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.zfilter {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--pop-ink);
+  background: transparent;
+  border: 2px solid var(--pop-ink);
+  border-radius: 999px;
+  padding: 0.42rem 0.85rem;
+  cursor: pointer;
+  transition: background 0.16s ease, color 0.16s ease, transform 0.12s ease;
+}
+.zfilter:hover { transform: translateY(-1px); background: rgba(20, 35, 26, 0.06); }
+.zfilter.is-active { background: var(--pop-ink); color: var(--pop-cream); }
+
 /* ── Product grid ── */
 .zgrid {
   display: grid;
@@ -411,12 +476,32 @@ function scrollToKolekce(e: MouseEvent) {
 .zabout-desc {
   font-family: var(--font-body);
   font-size: 1rem;
-  line-height: 1.6;
+  line-height: 1.65;
   /* Softer than the title but still 5.6:1 — the body copy has to clear AA,
-     so this is as far down as the alpha can go on this green. */
+     so this is as far down as the alpha can go on this green. Tokens only in
+     the accents below, so dark mode re-tunes them by itself. */
   color: rgba(240, 231, 210, 0.85);
-  margin: 0 0 1.6rem;
+  margin: 0 0 0.4rem;
   max-width: 52ch;
+}
+.zabout-desc p { margin: 0 0 0.95rem; }
+/* Lime for names/beats — the same "yes / go" colour prices use. On the olive
+   panel it clears AA in both themes (5.7:1 light, ~5:1 dark). */
+.zabout-strong {
+  color: var(--pop-lime);
+  font-weight: 700;
+}
+/* Pink sticker highlight, same construction as .zhero-mark but calmer. Text
+   uses --pop-ink-on-accent: the pink fill STAYS light in dark mode, so the
+   text on it must stay dark rather than follow --pop-ink to near-white. */
+.zabout-mark {
+  display: inline-block;
+  background: var(--pop-pink);
+  color: var(--pop-ink-on-accent, #14231a);
+  font-weight: 600;
+  padding: 0 0.3em;
+  border-radius: 5px;
+  transform: rotate(-1deg);
 }
 /* The shared .zine-eyebrow is --pop-pink-ink, tuned for cream paper; on the
    olive it drops to 1.6:1. Blush is the same family and clears AA at 6.35:1. */

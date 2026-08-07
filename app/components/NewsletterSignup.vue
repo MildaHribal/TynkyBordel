@@ -166,8 +166,6 @@ const submit = async () => {
 
 .nl-error {
   margin: 0.5rem 0 0;
-  /* Warm amber rather than pale pink: pink is the eyebrow colour right above,
-     so an error in the same hue didn't read as an error. */
   color: #FFC98A;
   font-family: var(--font-body);
   font-size: 0.78rem;
