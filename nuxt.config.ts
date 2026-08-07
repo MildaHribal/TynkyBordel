@@ -110,11 +110,9 @@ export default defineNuxtConfig({
             { name: 'Fraunces', provider: 'google', weights: [400, 600], styles: ['normal', 'italic'] }, // serif, italic tagline
             { name: 'Petrona', provider: 'google', weights: [400], styles: ['normal', 'italic'] },       // italic card titles
             { name: 'Gloock', provider: 'google', weights: [400] },                          // display headings
-            { name: 'Maname', provider: 'google', weights: [400] },
             { name: 'Bricolage Grotesque', provider: 'google', weights: [600, 700, 800], preload: true },   // zine hero heading — LCP text
             { name: 'Space Mono', provider: 'google', weights: [400, 700], styles: ['normal', 'italic'] }, // labels / prices / meta
-            { name: 'Berkshire Swash', provider: 'google', weights: [400] },
-            { name: 'Caprasimo', provider: 'google', weights: [400] },                       // navbar brand
+            { name: 'Berkshire Swash', provider: 'google', weights: [400] },                 // navbar brand + nouveau accents
         ],
     },
 

@@ -333,7 +333,7 @@ const toggleFavorite = async () => {
   font-size: 0.68rem;
   letter-spacing: 0.22em;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.5);
+  color: rgba(255, 255, 255, 0.72);
   font-weight: 600;
 }
 
@@ -343,7 +343,7 @@ const toggleFavorite = async () => {
   font-size: 0.92rem;
   line-height: 1.2;
   letter-spacing: 0.01em;
-  color: #F0E7D2;
+  color: #FDF7EC;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
@@ -359,7 +359,7 @@ const toggleFavorite = async () => {
   font-weight: 500;
   font-size: 0.82rem;
   line-height: 1.45;
-  color: rgba(255, 255, 255, 0.55);
+  color: rgba(255, 255, 255, 0.82);
   margin: 0;
   display: -webkit-box;
   -webkit-line-clamp: 2;

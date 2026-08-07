@@ -107,7 +107,7 @@
 
 /* ── Panel (dark zine card) ─────────────────────────────────────────────── */
 .zine-panel {
-  background: var(--pop-plum);
+  background: var(--pop-panel);
   color: #F0E7D2;
   border: 2px solid var(--pop-ink);
   border-radius: 16px;
@@ -123,7 +123,7 @@
 /* ── Marquee ticker ─────────────────────────────────────────────────────── */
 .zine-marquee {
   overflow: hidden;
-  background: var(--pop-plum);
+  background: var(--pop-panel);
   border-top: 2px solid var(--pop-ink);
   border-bottom: 2px solid var(--pop-ink);
   padding: 0.55rem 0;
@@ -206,7 +206,7 @@
    ══════════════════════════════════════════════════════════════════════════ */
 .glass-card,
 .glass-card-strong {
-  background: var(--pop-plum) !important;
+  background: var(--pop-panel) !important;
   border: 2px solid var(--pop-ink) !important;
   border-radius: 14px !important;
   box-shadow: 5px 6px 0 rgba(20, 35, 26, 0.85) !important;
@@ -214,7 +214,7 @@
   -webkit-backdrop-filter: none !important;
 }
 .glass-card-hover:hover {
-  background: var(--pop-plum-2) !important;
+  background: var(--pop-panel-2) !important;
   border-color: var(--pop-pink) !important;
   box-shadow: 7px 8px 0 var(--pop-pink) !important;
   transform: translateY(-3px) !important;

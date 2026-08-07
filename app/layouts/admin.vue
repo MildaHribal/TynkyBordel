@@ -341,3 +341,7 @@ onUnmounted(() => {
   .tabbar-link:active { background: rgba(42, 19, 64, 0.06); }
 }
 </style>
+
+<!-- Admin-only global CSS — loaded only when the admin layout renders,
+     keeping it out of the storefront's render-blocking bundle. -->
+<style src="~~/assets/css/admin.css"></style>

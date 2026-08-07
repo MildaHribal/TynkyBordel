@@ -38,7 +38,11 @@ set_setting() {
   echo -n "  $1 = $2 "
   cf -X PATCH "$API/zones/$ZONE/settings/$1" --data "{\"value\":\"$2\"}" | ok
 }
-set_setting ssl strict                    # Full (Strict) — Caddy has a valid LE cert
+set_setting ssl full                      # Full (NOT Strict): encrypts CF→origin but
+                                          # doesn't validate the origin cert. Strict
+                                          # caused a 526 outage (origin cert didn't
+                                          # validate). Switch to `strict` ONLY after
+                                          # confirming Caddy serves a publicly-valid LE cert.
 set_setting always_use_https on
 set_setting min_tls_version 1.2
 set_setting tls_1_3 on

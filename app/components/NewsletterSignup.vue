@@ -87,7 +87,7 @@ const submit = async () => {
   overflow: hidden;
   border-radius: 16px;
   padding: 2rem 1.5rem;
-  background: var(--pop-plum, #182a1c);
+  background: var(--pop-panel, #331825);
   border: 2px solid var(--pop-ink, #14231a);
   box-shadow: 6px 6px 0 rgba(20, 35, 26, 0.85);
 }

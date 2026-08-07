@@ -96,7 +96,7 @@ import { BUSINESS } from "~~/shared/shop";
 /* ── Footer ──────────────────────────────────────────── */
 .site-footer {
   margin-top: 6rem;
-  background: var(--pop-plum, #2a5238);
+  background: var(--pop-panel, #331825);
   color: #F1EBDF;
   padding: 4rem 1.25rem 2rem;
   position: relative;
