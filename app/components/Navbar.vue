@@ -407,7 +407,7 @@ onUnmounted(() => {
 .brand-art { width: 32px; height: 32px; object-fit: contain; }
 @media (min-width: 768px) { .brand-art { width: 38px; height: 38px; } }
 .brand-text {
-  font-family: 'Berkshire Swash', cursive;
+  font-family: var(--font-zine);
   font-weight: 400;
   font-size: 1.3rem;
   letter-spacing: -0.01em;
@@ -478,7 +478,7 @@ onUnmounted(() => {
   border: none;
   outline: none;
   background: transparent;
-  font-family: 'Manrope', system-ui;
+  font-family: var(--font-body);
   font-weight: 500;
   font-size: 0.82rem;
   color: var(--pop-ink, #14231a);
@@ -505,7 +505,7 @@ onUnmounted(() => {
 
 .search-state {
   padding: 1.25rem 1rem;
-  font-family: 'Manrope', system-ui;
+  font-family: var(--font-body);
   font-weight: 500;
   font-size: 0.88rem;
   color: rgba(20, 35, 26, 0.6);
@@ -555,7 +555,7 @@ onUnmounted(() => {
   gap: 0.1rem;
 }
 .search-item-title {
-  font-family: 'Manrope', system-ui;
+  font-family: var(--font-body);
   font-weight: 600;
   font-size: 0.9rem;
   color: var(--pop-ink);
@@ -564,7 +564,7 @@ onUnmounted(() => {
   white-space: nowrap;
 }
 .search-item-cat {
-  font-family: 'Manrope', system-ui;
+  font-family: var(--font-body);
   font-weight: 600;
   font-size: 0.66rem;
   letter-spacing: 0.14em;
@@ -572,7 +572,7 @@ onUnmounted(() => {
   color: rgba(20, 35, 26, 0.5);
 }
 .search-item-price {
-  font-family: 'Fraunces', Georgia, serif;
+  font-family: var(--font-body);
   font-weight: 700;
   font-size: 0.95rem;
   color: var(--pop-ink);
@@ -713,7 +713,7 @@ onUnmounted(() => {
   margin-bottom: 0.25rem;
 }
 .mobile-menu-brand {
-  font-family: 'Berkshire Swash', cursive;
+  font-family: var(--font-zine);
   font-size: 1.5rem;
   color: #14231a;
   text-decoration: none;
@@ -759,7 +759,7 @@ onUnmounted(() => {
   border: none;
   outline: none;
   background: transparent;
-  font-family: 'Manrope', system-ui;
+  font-family: var(--font-body);
   font-weight: 500;
   font-size: 1rem;
   color: var(--pop-ink);
@@ -801,7 +801,7 @@ onUnmounted(() => {
   border: 1px solid rgba(20, 35, 26, 0.06);
   border-radius: 0.9rem;
   text-decoration: none;
-  font-family: 'Manrope', system-ui;
+  font-family: var(--font-body);
   font-weight: 700;
   font-size: 0.85rem;
   letter-spacing: 0.05em;
@@ -831,7 +831,7 @@ onUnmounted(() => {
 .mobile-footer {
   margin-top: auto;
   text-align: center;
-  font-family: 'Manrope', system-ui;
+  font-family: var(--font-body);
   font-size: 0.72rem;
   color: rgba(20, 35, 26, 0.4);
   padding-top: 1rem;

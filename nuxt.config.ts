@@ -181,6 +181,12 @@ export default defineNuxtConfig({
         'docker/**',
     ],
 
+    // Ship client source maps. They cost nothing on a normal page load (the
+    // browser only fetches a .map when devtools is open) and they're what makes
+    // a production stack trace readable — Lighthouse flags their absence too.
+    // The repo is public, so this exposes nothing that isn't already on GitHub.
+    sourcemap: { client: true, server: true },
+
     nitro: {
         compressPublicAssets: { gzip: true, brotli: true },
         minify: true,

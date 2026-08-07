@@ -131,7 +131,7 @@ const handleSubmit = async () => {
 
 /* ── Info column ── */
 .contact-title {
-  font-family: 'Fraunces', Georgia, serif;
+  font-family: var(--font-body);
   font-weight: 700;
   font-size: 2rem;
   line-height: 1.05;
@@ -149,7 +149,7 @@ const handleSubmit = async () => {
 }
 
 .contact-desc {
-  font-family: 'Fraunces', Georgia, serif;
+  font-family: var(--font-body);
   font-style: italic;
   font-weight: 500;
   font-size: 1.05rem;
@@ -185,7 +185,7 @@ const handleSubmit = async () => {
   flex-shrink: 0;
 }
 .contact-item-text {
-  font-family: 'Manrope', system-ui;
+  font-family: var(--font-body);
   font-weight: 600;
   font-size: 0.95rem;
   color: var(--pop-ink);
@@ -213,7 +213,7 @@ const handleSubmit = async () => {
 
 .form-field { display: flex; flex-direction: column; gap: 0.4rem; }
 .form-label {
-  font-family: 'Manrope', system-ui;
+  font-family: var(--font-body);
   font-weight: 700;
   font-size: 0.68rem;
   letter-spacing: 0.22em;
@@ -228,7 +228,7 @@ const handleSubmit = async () => {
   border-radius: 0.85rem;
   padding: 0.9rem 1rem;
   color: var(--pop-ink);
-  font-family: 'Manrope', system-ui;
+  font-family: var(--font-body);
   font-weight: 500;
   font-size: 0.95rem;
   transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
@@ -254,7 +254,7 @@ const handleSubmit = async () => {
   color: #ffffff;
   border: none;
   border-radius: 9999px;
-  font-family: 'Manrope', system-ui;
+  font-family: var(--font-body);
   font-weight: 700;
   font-size: 0.85rem;
   letter-spacing: 0.16em;

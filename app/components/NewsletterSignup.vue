@@ -69,7 +69,7 @@ const submit = async () => {
    checked against that wine (#5A1F2E), not the old near-black panel. */
 .nl {
   width: 100%;
-  max-width: 340px;
+  max-width: 420px;
 }
 
 .sr-only {
@@ -159,7 +159,7 @@ const submit = async () => {
   gap: 0.4rem;
   margin: 0;
   color: var(--pop-lime, #B9E14B);
-  font-family: 'Manrope', system-ui;
+  font-family: var(--font-body);
   font-weight: 600;
   font-size: 0.86rem;
 }
@@ -169,13 +169,13 @@ const submit = async () => {
   /* Warm amber rather than pale pink: pink is the eyebrow colour right above,
      so an error in the same hue didn't read as an error. */
   color: #FFC98A;
-  font-family: 'Manrope', system-ui;
+  font-family: var(--font-body);
   font-size: 0.78rem;
 }
 
 .nl-fineprint {
   margin: 0.55rem 0 0;
-  font-family: 'Manrope', system-ui;
+  font-family: var(--font-body);
   font-size: 0.71rem;
   line-height: 1.5;
   color: rgba(241, 235, 223, 0.58);

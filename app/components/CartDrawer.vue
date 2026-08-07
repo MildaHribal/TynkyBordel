@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { watch } from 'vue'
+import { nextTick, onUnmounted, ref, watch } from 'vue'
 
 import { useCartStore } from '~/stores/cart'
 
@@ -10,12 +10,70 @@ const resolveImage = (src?: string | null) => {
   return src.startsWith('http') || src.startsWith('/') ? src : `/${src}`
 }
 
+// ── Focus management ──────────────────────────────────────────────────────
+// The drawer is a modal dialog: while it is open, focus must stay inside it,
+// Escape must close it, and closing must hand focus back to whatever opened it
+// (the navbar cart button).
+const panelRef = ref<HTMLElement | null>(null)
+let lastFocused: HTMLElement | null = null
+
+const FOCUSABLE = 'a[href], button:not([disabled]), input, select, textarea, [tabindex]:not([tabindex="-1"])'
+
+const focusableItems = () => {
+  const root = panelRef.value
+  if (!root) return [] as HTMLElement[]
+  return Array.from(root.querySelectorAll<HTMLElement>(FOCUSABLE))
+    .filter((el) => el.getClientRects().length > 0)
+}
+
+const onKeydown = (event: KeyboardEvent) => {
+  if (event.key === 'Escape') {
+    event.stopPropagation()
+    cart.closeDrawer()
+    return
+  }
+
+  if (event.key !== 'Tab') return
+
+  const root = panelRef.value
+  if (!root) return
+
+  const items = focusableItems()
+  if (items.length === 0) {
+    event.preventDefault()
+    root.focus()
+    return
+  }
+
+  const first = items[0]!
+  const last = items[items.length - 1]!
+  const active = document.activeElement as HTMLElement | null
+
+  if (event.shiftKey && (active === first || active === root || !root.contains(active))) {
+    event.preventDefault()
+    last.focus()
+  } else if (!event.shiftKey && active === last) {
+    event.preventDefault()
+    first.focus()
+  }
+}
+
 // Lock body scroll while the drawer is open.
-watch(() => cart.isDrawerOpen, (open) => {
-  if (import.meta.client) {
-    document.body.style.overflow = open ? 'hidden' : ''
+watch(() => cart.isDrawerOpen, async (open) => {
+  if (!import.meta.client) return
+
+  document.body.style.overflow = open ? 'hidden' : ''
+
+  if (open) {
+    lastFocused = document.activeElement as HTMLElement | null
+    await nextTick()
+    panelRef.value?.focus()
+  } else if (lastFocused) {
+    lastFocused.focus?.()
+    lastFocused = null
   }
 })
+
 onUnmounted(() => {
   if (import.meta.client) document.body.style.overflow = ''
 })
@@ -23,14 +81,25 @@ onUnmounted(() => {
 
 <template>
   <Teleport to="body">
-    <!-- Backdrop -->
+    <!-- Backdrop — flat ink scrim (no backdrop-filter: a blur here costs a
+         full-viewport compositor pass every frame the drawer animates, and the
+         zine language wants a flat printed shadow anyway). -->
     <Transition name="cart-fade">
       <div v-if="cart.isDrawerOpen" class="cart-backdrop" @click="cart.closeDrawer()" />
     </Transition>
 
     <!-- Panel -->
     <Transition name="cart-slide">
-      <aside v-if="cart.isDrawerOpen" class="cart-drawer" role="dialog" aria-label="Košík">
+      <aside
+        v-if="cart.isDrawerOpen"
+        ref="panelRef"
+        class="cart-drawer"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Košík"
+        tabindex="-1"
+        @keydown="onKeydown"
+      >
         <header class="cart-head">
           <div class="cart-head-title">
             <Icon name="mdi:cart" height="20" />
@@ -42,16 +111,19 @@ onUnmounted(() => {
           </button>
         </header>
 
+        <!-- Tape strip straddling the header seam — the "pasted cut-out" tell. -->
+        <span class="zine-tape cart-tape" aria-hidden="true" />
+
         <!-- Empty -->
         <div v-if="cart.items.length === 0" class="cart-empty">
           <div class="cart-empty-emoji">🛒</div>
           <p class="cart-empty-text">Košík je zatím prázdný.</p>
-          <NuxtLink to="/#kolekce" class="cart-empty-cta" @click="cart.closeDrawer()">Prohlédnout kousky</NuxtLink>
+          <NuxtLink to="/#kolekce" class="zine-btn zine-btn--lime cart-empty-cta" @click="cart.closeDrawer()">Prohlédnout kousky</NuxtLink>
         </div>
 
         <!-- Items -->
         <div v-else class="cart-items">
-          <div v-for="item in cart.items" :key="item.id" class="cart-item">
+          <div v-for="item in cart.items" :key="item.id" class="zine-card-cream cart-item">
             <NuxtLink :to="`/product/${(item as any).slug || item.id}`" class="cart-thumb" @click="cart.closeDrawer()">
               <NuxtImg
                 v-if="resolveImage(item.image)"
@@ -63,7 +135,7 @@ onUnmounted(() => {
             </NuxtLink>
             <div class="cart-item-body">
               <div class="cart-item-title">{{ item.title || item.name }}</div>
-              <div class="cart-item-price">{{ item.price.toLocaleString('cs-CZ') }} Kč</div>
+              <div class="zine-price cart-item-price">{{ item.price.toLocaleString('cs-CZ') }} Kč</div>
               <div class="cart-item-controls">
                 <div class="cart-qty">
                   <button class="cart-qty-btn" @click="cart.updateQuantity(item.id, item.quantity - 1)" :disabled="item.quantity <= 1" aria-label="Ubrat">
@@ -85,10 +157,10 @@ onUnmounted(() => {
         <!-- Footer -->
         <footer v-if="cart.items.length > 0" class="cart-foot">
           <div class="cart-total">
-            <span>Celkem</span>
-            <span class="cart-total-amount">{{ cart.totalPrice.toLocaleString('cs-CZ') }} Kč</span>
+            <span class="cart-total-label">Celkem</span>
+            <span class="zine-price cart-total-amount">{{ cart.totalPrice.toLocaleString('cs-CZ') }} Kč</span>
           </div>
-          <NuxtLink to="/checkout" class="cart-checkout" @click="cart.closeDrawer()">
+          <NuxtLink to="/checkout" class="zine-btn zine-btn--lime cart-checkout" @click="cart.closeDrawer()">
             K pokladně
             <Icon name="lucide:arrow-right" height="17" />
           </NuxtLink>
@@ -102,12 +174,18 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
+/* ══════════════════════════════════════════════════════════════════════════
+   CART DRAWER — retro-zine.
+   A cream paper sheet taped over the page: flat cut-out surfaces, 2px ink
+   borders, hard (never blurred) offset shadows, mono labels, sticker buttons
+   that physically press in. No backdrop-filter, no permanent will-change.
+   ══════════════════════════════════════════════════════════════════════════ */
+
 .cart-backdrop {
   position: fixed;
   inset: 0;
   z-index: 110;
-  background: rgba(20, 8, 36, 0.5);
-  backdrop-filter: blur(2px);
+  background: rgba(20, 35, 26, 0.55);
 }
 
 .cart-drawer {
@@ -117,53 +195,87 @@ onUnmounted(() => {
   z-index: 111;
   height: 100dvh;
   width: min(420px, 100vw);
-  background: #fbf7f2;
   display: flex;
   flex-direction: column;
-  box-shadow: -18px 0 50px rgba(20, 8, 36, 0.28);
+  /* Warm paper + the same dotted print grid the page body uses, so the drawer
+     reads as another sheet of the zine rather than a UI panel. */
+  background-color: var(--pop-cream, #F0E7D2);
+  background-image:
+    radial-gradient(rgba(20, 35, 26, 0.11) 1.3px, transparent 1.5px),
+    radial-gradient(rgba(20, 35, 26, 0.06) 1px, transparent 1.2px);
+  background-size: 26px 26px, 52px 52px;
+  background-position: 0 0, 13px 13px;
+  border-left: 3px solid var(--pop-ink, #14231a);
+  /* Flat second rule instead of a 50px blur — a printed edge, and free. */
+  box-shadow: -7px 0 0 rgba(20, 35, 26, 0.22);
 }
+.cart-drawer:focus { outline: none; }
 
+/* ── Header — olive bar, same green as the product cards ─────────────────── */
 .cart-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 1.15rem 1.25rem;
-  border-bottom: 1px solid rgba(20, 35, 26, 0.1);
+  gap: 0.75rem;
+  padding: 1rem 1.1rem;
+  background: var(--pop-plum, #3b5222);
+  border-bottom: 3px solid var(--pop-ink, #14231a);
 }
 .cart-head-title {
   display: flex;
   align-items: center;
   gap: 0.55rem;
-  font-family: 'Fraunces', Georgia, serif;
-  font-weight: 700;
-  font-size: 1.2rem;
-  color: #14231a;
+  font-family: var(--font-zine);
+  font-weight: 800;
+  font-size: 1.35rem;
+  line-height: 1;
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
+  /* 8.15:1 on the olive ground (same pairing as the homepage about block). */
+  color: #FDF7EC;
 }
 .cart-head-count {
-  font-family: 'Manrope', system-ui;
-  font-size: 0.72rem;
+  font-family: var(--font-mono);
   font-weight: 700;
-  background: #14231a;
-  color: #fff;
-  border-radius: 999px;
-  padding: 0.1rem 0.5rem;
+  font-size: 0.7rem;
+  letter-spacing: 0.06em;
+  background: var(--pop-lime, #B9E14B);
+  color: var(--pop-ink, #14231a);
+  border: 2px solid var(--pop-ink, #14231a);
+  border-radius: 5px;
+  padding: 0.05rem 0.4rem;
+  transform: rotate(-4deg);
+  box-shadow: 2px 2px 0 rgba(20, 35, 26, 0.9);
 }
 .cart-close {
+  flex-shrink: 0;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
-  border-radius: 999px;
-  border: none;
-  background: rgba(20, 35, 26, 0.06);
-  color: #14231a;
+  width: 38px;
+  height: 38px;
+  border-radius: 9px;
+  border: 2px solid var(--pop-ink, #14231a);
+  background: var(--pop-cream, #F0E7D2);
+  color: var(--pop-ink, #14231a);
   cursor: pointer;
-  transition: background 0.2s ease, transform 0.2s ease;
+  box-shadow: 3px 3px 0 rgba(20, 35, 26, 0.9);
+  transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.2s ease;
 }
-.cart-close:hover { background: rgba(20, 35, 26, 0.12); transform: rotate(90deg); }
+.cart-close:hover { background: var(--pop-pink, #E585AA); }
+.cart-close:active { transform: translate(3px, 3px); box-shadow: 1px 1px 0 rgba(20, 35, 26, 0.9); }
 
-/* Empty */
+/* Tape strip pinning the header to the sheet. */
+.cart-tape {
+  top: 56px;
+  left: 20px;
+  width: 74px;
+  height: 22px;
+  transform: rotate(-5deg);
+  pointer-events: none;
+}
+
+/* ── Empty ───────────────────────────────────────────────────────────────── */
 .cart-empty {
   flex: 1;
   display: flex;
@@ -174,159 +286,181 @@ onUnmounted(() => {
   padding: 2rem;
   text-align: center;
 }
-.cart-empty-emoji { font-size: 2.75rem; opacity: 0.7; }
-.cart-empty-text { color: rgba(20, 35, 26, 0.6); font-family: 'Manrope', system-ui; }
-.cart-empty-cta {
-  margin-top: 0.5rem;
-  padding: 0.75rem 1.4rem;
-  border-radius: 999px;
-  background: #14231a;
-  color: #fff;
-  text-decoration: none;
-  font-family: 'Manrope', system-ui;
+.cart-empty-emoji {
+  font-size: 2.6rem;
+  line-height: 1;
+  transform: rotate(-6deg);
+}
+.cart-empty-text {
+  font-family: var(--font-mono);
   font-weight: 700;
   font-size: 0.78rem;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
+  color: var(--pop-ink-soft, #4e6153);
+  margin: 0;
 }
+.cart-empty-cta { margin-top: 0.35rem; }
 
-/* Items */
+/* ── Items ───────────────────────────────────────────────────────────────── */
 .cart-items {
   flex: 1;
   overflow-y: auto;
-  padding: 0.75rem 1rem;
+  padding: 1.1rem 1.15rem 1.25rem;
   display: flex;
   flex-direction: column;
-  gap: 0.6rem;
+  gap: 0.95rem;
+  scrollbar-width: thin;
+  scrollbar-color: var(--pop-ink-soft, #4e6153) transparent;
 }
+/* .zine-card-cream supplies the paper fill, 2px ink border and hard shadow. */
 .cart-item {
   display: flex;
-  gap: 0.85rem;
-  padding: 0.7rem;
-  background: #fff;
-  border: 1px solid rgba(20, 35, 26, 0.08);
-  border-radius: 14px;
+  gap: 0.8rem;
+  padding: 0.6rem;
 }
 .cart-thumb {
   flex-shrink: 0;
-  width: 74px;
-  height: 74px;
-  border-radius: 10px;
+  width: 76px;
+  height: 76px;
+  border: 2px solid var(--pop-ink, #14231a);
+  border-radius: 8px;
   overflow: hidden;
-  background: #1a0f28;
+  /* Product photos are shot on black — the frame matches ProductCard. */
+  background: #000;
   display: block;
 }
 .cart-thumb-img { width: 100%; height: 100%; object-fit: cover; }
-.cart-item-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 0.3rem; }
+.cart-item-body { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 0.35rem; }
 .cart-item-title {
-  font-family: 'Fraunces', Georgia, serif;
-  font-weight: 600;
-  font-size: 0.95rem;
-  color: #14231a;
-  line-height: 1.2;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 0.86rem;
+  line-height: 1.25;
+  letter-spacing: 0.01em;
+  color: var(--pop-ink, #14231a);
   display: -webkit-box;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
-.cart-item-price {
-  font-family: 'Fraunces', Georgia, serif;
-  font-weight: 700;
-  font-size: 0.98rem;
-  color: #b3324c;
-}
+/* .zine-price supplies the lime tag + ink border. */
+.cart-item-price { font-size: 0.8rem; }
+
 .cart-item-controls {
+  width: 100%;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 0.5rem;
   margin-top: auto;
+  padding-top: 0.15rem;
 }
 .cart-qty {
   display: inline-flex;
   align-items: center;
-  gap: 0.15rem;
-  border: 1px solid rgba(20, 35, 26, 0.15);
-  border-radius: 999px;
-  padding: 0.1rem;
+  background: var(--pop-cream, #F0E7D2);
+  border: 2px solid var(--pop-ink, #14231a);
+  border-radius: 8px;
+  box-shadow: 2px 2px 0 rgba(20, 35, 26, 0.9);
+  overflow: hidden;
 }
 .cart-qty-btn {
-  width: 26px;
-  height: 26px;
-  border-radius: 999px;
+  width: 27px;
+  height: 27px;
   border: none;
   background: transparent;
-  color: #14231a;
+  color: var(--pop-ink, #14231a);
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   transition: background 0.15s ease;
 }
-.cart-qty-btn:hover:not(:disabled) { background: rgba(20, 35, 26, 0.08); }
-.cart-qty-btn:disabled { opacity: 0.35; cursor: not-allowed; }
-.cart-qty-val { min-width: 22px; text-align: center; font-weight: 700; font-size: 0.85rem; color: #14231a; }
-.cart-remove {
-  border: none;
-  background: transparent;
-  color: rgba(20, 35, 26, 0.45);
-  cursor: pointer;
-  padding: 0.35rem;
-  border-radius: 8px;
-  transition: color 0.15s ease, background 0.15s ease;
-}
-.cart-remove:hover { color: #b3324c; background: rgba(179, 50, 76, 0.08); }
-
-/* Footer */
-.cart-foot {
-  border-top: 1px solid rgba(20, 35, 26, 0.1);
-  padding: 1rem 1.25rem 1.25rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.7rem;
-  background: #fbf7f2;
-}
-.cart-total {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  font-family: 'Manrope', system-ui;
-  font-weight: 600;
-  color: rgba(20, 35, 26, 0.7);
-}
-.cart-total-amount {
-  font-family: 'Fraunces', Georgia, serif;
+.cart-qty-btn:hover:not(:disabled) { background: var(--pop-lime, #B9E14B); }
+.cart-qty-btn:active:not(:disabled) { background: var(--pop-pink, #E585AA); }
+.cart-qty-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+.cart-qty-val {
+  min-width: 24px;
+  text-align: center;
+  font-family: var(--font-mono);
   font-weight: 700;
-  font-size: 1.5rem;
-  color: #14231a;
-}
-.cart-checkout {
+  font-size: 0.8rem;
+  color: var(--pop-ink, #14231a);
+  border-left: 2px solid var(--pop-ink, #14231a);
+  border-right: 2px solid var(--pop-ink, #14231a);
+  padding: 0.1rem 0.15rem;
+  align-self: stretch;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
-  padding: 0.9rem;
-  border-radius: 999px;
-  background: #14231a;
-  color: #fff;
-  text-decoration: none;
-  font-family: 'Manrope', system-ui;
-  font-weight: 700;
-  font-size: 0.8rem;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  transition: background 0.2s ease, transform 0.2s ease;
 }
-.cart-checkout:hover { background: #21382a; transform: translateY(-1px); }
+.cart-remove {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 31px;
+  height: 31px;
+  border: 2px solid var(--pop-ink, #14231a);
+  border-radius: 8px;
+  background: var(--pop-blush, #F7D3E0);
+  color: var(--pop-ink, #14231a);
+  cursor: pointer;
+  box-shadow: 2px 2px 0 rgba(20, 35, 26, 0.9);
+  transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.2s ease;
+}
+.cart-remove:hover { background: var(--pop-pink, #E585AA); }
+.cart-remove:active { transform: translate(2px, 2px); box-shadow: 0 0 0 rgba(20, 35, 26, 0.9); }
+
+/* ── Footer ──────────────────────────────────────────────────────────────── */
+.cart-foot {
+  border-top: 3px solid var(--pop-ink, #14231a);
+  padding: 1rem 1.15rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  background: var(--pop-cream, #F0E7D2);
+}
+.cart-total {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+.cart-total-label {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 0.72rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--pop-ink, #14231a);
+}
+/* .zine-price again — the total is just a bigger price tag, tilted. */
+.cart-total-amount {
+  font-size: 1.05rem;
+  padding: 0.25rem 0.6rem;
+  transform: rotate(-1.5deg);
+  box-shadow: 3px 3px 0 rgba(20, 35, 26, 0.9);
+}
+.cart-checkout { width: 100%; }
 .cart-view-link {
   text-align: center;
-  color: rgba(20, 35, 26, 0.65);
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 0.68rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--pop-ink-soft, #4e6153);
   text-decoration: underline;
-  font-family: 'Manrope', system-ui;
-  font-size: 0.85rem;
+  text-underline-offset: 3px;
 }
-.cart-view-link:hover { color: #14231a; }
+/* --pop-pink-ink is only 4.12:1 on cream — too thin for a 0.68rem label, so the
+   hover goes one rose step deeper (primary-700, already in main.css) for 5.83:1. */
+.cart-view-link:hover { color: var(--color-primary-700, #97325c); }
 
-/* Transitions */
+/* ── Transitions ─────────────────────────────────────────────────────────── */
 .cart-fade-enter-active,
 .cart-fade-leave-active { transition: opacity 0.25s ease; }
 .cart-fade-enter-from,
@@ -340,5 +474,9 @@ onUnmounted(() => {
 @media (prefers-reduced-motion: reduce) {
   .cart-slide-enter-active,
   .cart-slide-leave-active { transition: none; }
+  .cart-fade-enter-active,
+  .cart-fade-leave-active { transition: none; }
+  .cart-close:active,
+  .cart-remove:active { transform: none; }
 }
 </style>

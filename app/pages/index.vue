@@ -170,9 +170,13 @@ function scrollToKolekce(e: MouseEvent) {
           <div class="zhero-collage" aria-hidden="true">
             <div v-for="(pic, i) in heroPics" :key="pic.id" :class="['zpolaroid', `zpolaroid--${i}`]">
               <span class="zine-tape zpolaroid-tape"></span>
+              <!-- `sizes` mirrors the CSS `clamp(140px, 40vw, 220px)` on
+                   .zpolaroid. Without it NuxtImg falls back to the raw `width`
+                   and shipped a 720px file into a 145px slot on phones. -->
               <NuxtImg
                 :src="heroSrc(pic.image)" :alt="pic.title || ''"
-                width="360" height="360" format="webp" quality="78"
+                width="220" height="220" format="webp" quality="78"
+                sizes="40vw md:220px"
                 :loading="i === 0 ? 'eager' : 'lazy'"
                 :preload="i === 0 || undefined"
                 :fetchpriority="i === 0 ? 'high' : 'auto'"
@@ -241,7 +245,9 @@ function scrollToKolekce(e: MouseEvent) {
           <div class="zabout-art">
             <NuxtImg
               src="/hero/mushroom-eye.png" alt="Autorská ilustrace"
-              width="440" height="440" format="webp" quality="80" loading="lazy" class="zabout-img"
+              width="300" height="300" format="webp" quality="80" loading="lazy"
+              sizes="300px"
+              class="zabout-img"
             />
           </div>
           <div class="zabout-copy">
@@ -327,7 +333,7 @@ function scrollToKolekce(e: MouseEvent) {
   transform: rotate(-1.5deg);
 }
 .zhero-sub {
-  font-family: 'Manrope', system-ui;
+  font-family: var(--font-body);
   font-weight: 500;
   font-size: 1.05rem;
   line-height: 1.55;
@@ -423,10 +429,11 @@ function scrollToKolekce(e: MouseEvent) {
   gap: 1.5rem;
   padding: 1.75rem;
   align-items: center;
-  /* Beige card, not the dark .zine-panel. It is only a shade off the cream
-     page, so the 2px ink border and the hard offset shadow — copied from
-     .zine-panel — are what make it read as raised. */
-  background: #FBF7EE;
+  /* Same olive green as the product cards, so the page keeps one green.
+     Chrome is copied from .zine-panel (which this no longer uses — that class
+     carries the near-black surface). Every foreground inside is the on-dark
+     variant; see the contrast notes on each rule below. */
+  background: var(--pop-plum);
   border: 2px solid var(--pop-ink);
   border-radius: 16px;
   box-shadow: 6px 6px 0 rgba(20, 35, 26, 0.85);
@@ -435,7 +442,7 @@ function scrollToKolekce(e: MouseEvent) {
 .zabout-art { display: flex; justify-content: center; }
 .zabout-img {
   width: 100%; max-width: 300px; border-radius: 12px;
-  border: 2px solid rgba(20, 35, 26, 0.25);
+  border: 2px solid rgba(253, 247, 236, 0.28);
 }
 .zabout-title {
   font-family: var(--font-zine);
@@ -443,18 +450,23 @@ function scrollToKolekce(e: MouseEvent) {
   font-size: clamp(1.5rem, 5vw, 2.5rem);
   line-height: 0.95;
   text-transform: uppercase;
-  color: var(--pop-ink);
+  /* 8.15:1 on the olive ground. */
+  color: #FDF7EC;
   margin: 0.7rem 0 1rem;
 }
 .zabout-desc {
-  font-family: 'Manrope', system-ui;
+  font-family: var(--font-body);
   font-size: 1rem;
   line-height: 1.6;
-  /* Same softness the cream-on-dark version had, inverted. */
-  color: rgba(20, 35, 26, 0.78);
+  /* Softer than the title but still 5.6:1 — the body copy has to clear AA,
+     so this is as far down as the alpha can go on this green. */
+  color: rgba(240, 231, 210, 0.85);
   margin: 0 0 1.6rem;
   max-width: 52ch;
 }
+/* The shared .zine-eyebrow is --pop-pink-ink, tuned for cream paper; on the
+   olive it drops to 1.6:1. Blush is the same family and clears AA at 6.35:1. */
+.zabout-copy .zine-eyebrow { color: var(--pop-blush); }
 
 /* ── Info tiles ── */
 .ztiles { display: grid; grid-template-columns: 1fr; gap: 1rem; }
@@ -486,7 +498,7 @@ function scrollToKolekce(e: MouseEvent) {
   letter-spacing: -0.01em;
 }
 .ztile-desc {
-  font-family: 'Manrope', system-ui;
+  font-family: var(--font-body);
   font-size: 0.9rem;
   line-height: 1.5;
   color: rgba(20, 35, 26, 0.7);

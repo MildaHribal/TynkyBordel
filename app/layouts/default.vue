@@ -45,7 +45,7 @@ import { BUSINESS } from "~~/shared/shop";
           <!-- Link columns -->
           <div class="footer-columns">
             <div class="footer-col">
-              <h4 class="footer-heading">Nakupování</h4>
+              <h2 class="footer-heading">Nakupování</h2>
               <ul class="footer-links">
                 <li><NuxtLink to="/" class="footer-link">Domů</NuxtLink></li>
                 <li><NuxtLink to="/#kolekce" class="footer-link">Katalog</NuxtLink></li>
@@ -55,7 +55,7 @@ import { BUSINESS } from "~~/shared/shop";
             </div>
 
             <div class="footer-col">
-              <h4 class="footer-heading">Podpora</h4>
+              <h2 class="footer-heading">Podpora</h2>
               <ul class="footer-links">
                 <li><NuxtLink to="/reklamace" class="footer-link">Doprava &amp; reklamace</NuxtLink></li>
                 <li><NuxtLink to="/obchodni-podminky" class="footer-link">Obchodní podmínky</NuxtLink></li>
@@ -64,7 +64,7 @@ import { BUSINESS } from "~~/shared/shop";
             </div>
 
             <div class="footer-col">
-              <h4 class="footer-heading">Sleduj</h4>
+              <h2 class="footer-heading">Sleduj</h2>
               <div class="footer-socials">
                 <a href="https://www.instagram.com/_kristyna_aaa/" target="_blank" rel="noopener noreferrer" class="footer-social footer-social--instagram" aria-label="Instagram Kristýna">
                   <Icon name="mdi:instagram" height="18" />
@@ -171,7 +171,7 @@ import { BUSINESS } from "~~/shared/shop";
   object-fit: contain;
 }
 .footer-brand-name {
-  font-family: 'Bricolage Grotesque', system-ui;
+  font-family: var(--font-zine);
   font-weight: 800;
   font-size: 1.5rem;
   letter-spacing: -0.01em;
@@ -179,7 +179,7 @@ import { BUSINESS } from "~~/shared/shop";
   line-height: 1;
 }
 .footer-tagline {
-  font-family: 'Fraunces', Georgia, serif;
+  font-family: var(--font-body);
   font-style: italic;
   font-weight: 400;
   font-size: 1.1rem;
@@ -219,7 +219,7 @@ import { BUSINESS } from "~~/shared/shop";
   gap: 0.7rem;
 }
 .footer-link {
-  font-family: 'Manrope', system-ui;
+  font-family: var(--font-body);
   font-weight: 500;
   font-size: 0.95rem;
   color: rgba(241, 235, 223, 0.85);
@@ -247,7 +247,7 @@ import { BUSINESS } from "~~/shared/shop";
   border-radius: 9999px;
   background: rgba(240, 231, 210, 0.06);
   color: rgba(241, 235, 223, 0.9);
-  font-family: 'Manrope', system-ui;
+  font-family: var(--font-body);
   font-weight: 600;
   font-size: 0.82rem;
   text-decoration: none;
@@ -288,7 +288,7 @@ import { BUSINESS } from "~~/shared/shop";
   .footer-bottom { flex-direction: row; }
 }
 .footer-copyright {
-  font-family: 'Manrope', system-ui;
+  font-family: var(--font-body);
   font-weight: 500;
   font-size: 0.78rem;
   /* Raised from .5: wine is a lighter backdrop than the old near-black, and
@@ -305,7 +305,7 @@ import { BUSINESS } from "~~/shared/shop";
   background: rgba(240, 231, 210, 0.06);
 }
 .footer-payments-label {
-  font-family: 'Manrope', system-ui;
+  font-family: var(--font-body);
   font-weight: 700;
   font-size: 0.65rem;
   letter-spacing: 0.22em;

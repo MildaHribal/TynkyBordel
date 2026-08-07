@@ -87,7 +87,7 @@ const { needsDecision, accept, reject } = useCookieConsent()
 .cookie-text { flex-grow: 1; min-width: 0; }
 
 .cookie-title {
-  font-family: 'Manrope', system-ui;
+  font-family: var(--font-body);
   font-weight: 700;
   font-size: 0.95rem;
   margin: 0 0 0.3rem;
@@ -95,7 +95,7 @@ const { needsDecision, accept, reject } = useCookieConsent()
 }
 
 .cookie-desc {
-  font-family: 'Manrope', system-ui;
+  font-family: var(--font-body);
   font-weight: 500;
   font-size: 0.82rem;
   line-height: 1.55;
@@ -123,7 +123,7 @@ const { needsDecision, accept, reject } = useCookieConsent()
 .cookie-btn {
   padding: 0.7rem 1.35rem;
   border-radius: 9999px;
-  font-family: 'Manrope', system-ui;
+  font-family: var(--font-body);
   font-weight: 700;
   font-size: 0.78rem;
   letter-spacing: 0.1em;

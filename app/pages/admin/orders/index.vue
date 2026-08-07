@@ -265,7 +265,7 @@ const selectedOrder = ref<any>(null)
   gap: 0.5rem;
   color: rgba(42, 19, 64, 0.5);
   font-style: italic;
-  font-family: 'Petrona', Georgia, serif;
+  font-family: var(--font-body);
   padding: 2rem 0;
 }
 
@@ -320,7 +320,7 @@ const selectedOrder = ref<any>(null)
 .line-info { flex: 1; }
 .line-name { font-size: 0.9rem; font-weight: 600; }
 .line-qty { font-size: 0.78rem; color: rgba(42, 19, 64, 0.55); }
-.line-price { font-family: 'Gloock', Georgia, serif; font-size: 0.95rem; }
+.line-price { font-family: var(--font-mono); font-size: 0.95rem; }
 
 .total-row {
   display: flex;
@@ -334,7 +334,7 @@ const selectedOrder = ref<any>(null)
   font-weight: 600;
 }
 .total-amount {
-  font-family: 'Gloock', Georgia, serif;
+  font-family: var(--font-mono);
   font-size: 1.4rem;
   color: #2a1340;
 }

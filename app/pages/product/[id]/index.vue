@@ -386,11 +386,11 @@ const submitReview = async () => {
         <span class="text-sm">Zpět</span>
       </div>
 
-      <div class="glass-card-strong overflow-hidden animate-pulse">
+      <div class="pdp-panel overflow-hidden animate-pulse">
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-0">
-          
+
           <!-- Image Skeleton -->
-          <div class="p-4 md:p-8 bg-white/[0.02]">
+          <div class="pdp-gallery p-4 md:p-8">
             <div class="w-full aspect-square rounded-xl md:rounded-2xl bg-white/5 mb-3 md:mb-4"></div>
             <div class="flex gap-2 md:gap-3 overflow-hidden h-16 md:h-20">
               <div class="w-16 md:w-20 rounded-lg md:rounded-xl bg-white/5 flex-shrink-0"></div>
@@ -425,7 +425,7 @@ const submitReview = async () => {
     </div>
 
     <!-- Error -->
-    <div v-else-if="error" class="glass-card-strong p-8 md:p-12 text-center">
+    <div v-else-if="error" class="pdp-panel pdp-panel--dark p-8 md:p-12 text-center">
       <div class="text-4xl mb-4">😵</div>
       <p class="font-bold text-lg text-white mb-2">Chyba při načítání</p>
       <p class="text-white/50">{{ error.message }}</p>
@@ -444,13 +444,13 @@ const submitReview = async () => {
         <span class="text-xs md:text-sm font-semibold tracking-wide uppercase">Zpět</span>
       </NuxtLink>
 
-      <div class="glass-card-strong overflow-hidden" v-fly="{ direction: 'up', distance: 42 }">
+      <div class="pdp-panel overflow-hidden" v-fly="{ direction: 'up', distance: 42 }">
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-0">
 
           <!-- Image Section -->
-          <div class="p-4 md:p-8 bg-white/[0.02]">
+          <div class="pdp-gallery p-4 md:p-8">
             <!-- Main Image -->
-            <div ref="mainImageWrapRef" class="relative w-full aspect-square rounded-xl md:rounded-2xl overflow-hidden bg-black/20 mb-3 md:mb-4 group/main">
+            <div ref="mainImageWrapRef" class="pdp-frame relative w-full aspect-square overflow-hidden mb-3 md:mb-4 group/main">
               <Transition :name="imageTransitionName" mode="out-in">
                 <div
                   :key="selectedImage ? `${selectedImage}-${selectedImageIndex}` : `fallback-${selectedImageIndex}`"
@@ -495,10 +495,8 @@ const submitReview = async () => {
                 v-for="(img, idx) in allImages"
                 :key="idx"
                 @click="setSelectedImage(idx)"
-                class="relative flex-shrink-0 w-16 h-16 md:w-20 md:h-20 rounded-lg md:rounded-xl overflow-hidden border-2 transition-all duration-300 micro-lift"
-                :class="selectedImageIndex === idx
-                  ? 'border-primary-500 ring-2 ring-primary-400/55 shadow-lg shadow-primary-500/30'
-                  : 'border-white/10 hover:border-white/30 opacity-60 hover:opacity-100'"
+                class="pdp-thumb relative flex-shrink-0 w-16 h-16 md:w-20 md:h-20 overflow-hidden transition-all duration-300 micro-lift"
+                :class="selectedImageIndex === idx ? 'pdp-thumb--on' : 'pdp-thumb--off'"
               >
                 <NuxtImg
                   v-if="!thumbnailError[idx]"
@@ -546,7 +544,7 @@ const submitReview = async () => {
             <!-- Price -->
             <div class="flex items-baseline gap-2 mb-5 md:mb-8">
               <span class="text-3xl md:text-4xl font-black neon-text-rainbow">{{ product.price }}</span>
-              <span class="text-lg md:text-xl text-white/40">Kč</span>
+              <span class="pdp-currency text-lg md:text-xl">Kč</span>
             </div>
 
             <!-- Description -->
@@ -558,7 +556,7 @@ const submitReview = async () => {
             <div class="border-t border-white/10 pt-5 md:pt-8">
               <div class="flex items-center justify-between mb-5 md:mb-8">
                 <div class="flex items-center gap-2">
-                  <div class="flex items-center glass-card px-3 md:px-4 py-2 md:py-2.5 rounded-lg md:rounded-xl">
+                  <div class="pdp-chip flex items-center px-3 md:px-4 py-2 md:py-2.5">
                     <div
                       class="h-2 w-2 md:h-2.5 md:w-2.5 rounded-full mr-2 md:mr-3 shadow-[0_0_10px_currentColor]"
                       :class="product.stock > 0 ? 'bg-green-400 text-green-400' : 'bg-red-500 text-red-500'"
@@ -573,10 +571,8 @@ const submitReview = async () => {
                   <button
                     @click="toggleFavorite"
                     :disabled="isTogglingFavorite"
-                    class="flex items-center justify-center w-10 h-10 rounded-xl border transition-all duration-300 micro-lift"
-                    :class="isFavorite
-                      ? 'border-secondary-500/50 bg-secondary-500/20 text-secondary-400'
-                      : 'border-white/10 hover:border-secondary-500/30 text-white/50 hover:text-secondary-400'"
+                    class="pdp-fav flex items-center justify-center w-10 h-10 transition-all duration-300 micro-lift"
+                    :class="isFavorite ? 'pdp-fav--on' : 'pdp-fav--off'"
                     :title="isFavorite ? 'Odebrat z oblíbených' : 'Přidat do oblíbených'"
                   >
                     <Icon v-if="isTogglingFavorite" name="lucide:loader-2" class="animate-spin" height="20" />
@@ -588,11 +584,11 @@ const submitReview = async () => {
               <!-- Quantity Selector -->
               <div v-if="product.stock > 0" class="flex items-center gap-4 mb-6">
                 <span class="text-sm font-semibold text-white/50 uppercase tracking-wider">Množství:</span>
-                <div class="flex items-center glass-card px-2 py-1 rounded-xl border border-white/10">
+                <div class="pdp-chip pdp-chip--stepper flex items-center px-2 py-1">
                   <button 
                     @click="selectedQuantity = Math.max(1, selectedQuantity - 1)"
                     type="button"
-                    class="w-10 h-10 flex items-center justify-center text-white/50 hover:text-white transition-colors"
+                    class="pdp-step w-10 h-10 flex items-center justify-center transition-colors"
                   >
                     <Icon name="mdi:minus" height="20" />
                   </button>
@@ -601,12 +597,12 @@ const submitReview = async () => {
                     type="number"
                     min="1"
                     :max="product.stock"
-                    class="w-12 text-center bg-transparent border-none focus:ring-0 text-white font-bold"
+                    class="pdp-qty w-12 text-center bg-transparent border-none focus:ring-0 font-bold"
                   />
                   <button 
                     @click="selectedQuantity = Math.min(product.stock, selectedQuantity + 1)"
                     type="button"
-                    class="w-10 h-10 flex items-center justify-center text-white/50 hover:text-white transition-colors"
+                    class="pdp-step w-10 h-10 flex items-center justify-center transition-colors"
                   >
                     <Icon name="mdi:plus" height="20" />
                   </button>
@@ -634,25 +630,25 @@ const submitReview = async () => {
       <!-- Similar Products -->
       <div v-if="similarProducts.length > 0" class="mt-12 md:mt-16">
         <h2 class="text-2xl md:text-3xl font-bold text-white mb-6 md:mb-8 neon-text-cyan flex items-center gap-3">
-          <Icon name="lucide:sparkles" class="text-yellow-300" />
+          <Icon name="lucide:sparkles" class="pdp-spark" />
           Také by se vám mohlo líbit
         </h2>
         <ProductCarousel :products="similarProducts" />
       </div>
 
       <!-- Recenze -->
-      <div class="glass-card-strong p-6 md:p-8 mt-12 md:mt-16 min-h-[500px]" v-fly="{ direction: 'up', delay: 70, distance: 48 }">
-        <h2 class="text-xl font-bold text-white mb-6 pb-4 border-b border-white/10 flex items-center gap-2">
-          <Icon name="mdi:star-outline" class="text-primary-400" height="24" />
+      <div class="pdp-panel p-6 md:p-8 mt-12 md:mt-16 min-h-[500px]" v-fly="{ direction: 'up', delay: 70, distance: 48 }">
+        <h2 class="pdp-reviews-title text-xl font-bold mb-6 pb-4 flex items-center gap-2">
+          <Icon name="mdi:star-outline" class="pdp-star--on" height="24" />
           Recenze ({{ productReviews?.length ?? 0 }})
         </h2>
 
         <!-- Formulář pro přihlášené -->
-        <div class="mb-8 p-5 rounded-xl bg-white/5 border border-white/10">
-          <h3 class="text-sm font-semibold text-white mb-4">Napsat recenzi</h3>
+        <div class="pdp-form mb-8 p-5">
+          <h3 class="pdp-form-title text-sm font-semibold mb-4">Napsat recenzi</h3>
           <form @submit.prevent="submitReview" class="space-y-4">
             <div>
-              <label class="block text-xs text-white/50 mb-2">Hodnocení</label>
+              <label class="pdp-label block text-xs mb-2">Hodnocení</label>
               <div class="flex gap-1">
                 <button
                   v-for="n in 5"
@@ -661,13 +657,13 @@ const submitReview = async () => {
                   @click="reviewRating = n"
                   class="p-1 transition-colors"
                 >
-                  <Icon :name="n <= reviewRating ? 'mdi:star' : 'mdi:star-outline'" height="24" :class="n <= reviewRating ? 'text-yellow-400' : 'text-white/30'" />
+                  <Icon :name="n <= reviewRating ? 'mdi:star' : 'mdi:star-outline'" height="24" :class="n <= reviewRating ? 'pdp-star--ink-on' : 'pdp-star--ink-off'" />
                 </button>
               </div>
             </div>
             <div>
-              <label class="block text-xs text-white/50 mb-2">Komentář (volitelné)</label>
-              <textarea v-model="reviewComment" rows="3" placeholder="Co se vám na produktu líbilo?" class="input-cosmic w-full resize-none" />
+              <label class="pdp-label block text-xs mb-2">Komentář (volitelné)</label>
+              <textarea v-model="reviewComment" rows="3" placeholder="Co se vám na produktu líbilo?" class="input-cosmic pdp-textarea w-full resize-none" />
             </div>
             <button type="submit" :disabled="isSubmittingReview" class="btn-cosmic micro-lift px-6 py-2.5 flex items-center gap-2">
               <Icon v-if="isSubmittingReview" name="lucide:loader-2" class="animate-spin" height="18" />
@@ -679,21 +675,21 @@ const submitReview = async () => {
 
         <!-- Seznam recenzí -->
         <div v-if="reviewsPending" class="space-y-4">
-          <div v-for="i in 3" :key="i" class="p-4 rounded-xl bg-white/5 border border-white/10 animate-pulse h-28"></div>
+          <div v-for="i in 3" :key="i" class="pdp-review pdp-review--ghost p-4 animate-pulse h-28"></div>
         </div>
         <div v-else-if="productReviews && productReviews.length > 0" class="space-y-4">
-          <div v-for="(rev, revIndex) in productReviews" :key="rev.id" class="p-4 rounded-xl bg-white/5 border border-white/10" v-fly="{ direction: 'up', delay: (revIndex % 6) * 40, distance: 24, duration: 620 }">
+          <div v-for="(rev, revIndex) in productReviews" :key="rev.id" class="pdp-review p-4" v-fly="{ direction: 'up', delay: (revIndex % 6) * 40, distance: 24, duration: 620 }">
             <div class="flex items-center justify-between mb-2">
-              <span class="font-medium text-white">{{ rev.userName }}</span>
-              <div class="flex text-yellow-400">
-                <Icon v-for="n in 5" :key="n" :name="n <= rev.rating ? 'mdi:star' : 'mdi:star-outline'" height="14" />
+              <span class="pdp-review-author font-medium">{{ rev.userName }}</span>
+              <div class="flex">
+                <Icon v-for="n in 5" :key="n" :name="n <= rev.rating ? 'mdi:star' : 'mdi:star-outline'" height="14" :class="n <= rev.rating ? 'pdp-star--on' : 'pdp-star--off'" />
               </div>
             </div>
-            <p v-if="rev.comment" class="text-sm text-white/70">&bdquo;{{ rev.comment }}&ldquo;</p>
-            <div class="text-[11px] text-white/40 mt-2">{{ rev.createdAt ? new Date(rev.createdAt).toLocaleDateString('cs-CZ') : '' }}</div>
+            <p v-if="rev.comment" class="pdp-review-body text-sm">&bdquo;{{ rev.comment }}&ldquo;</p>
+            <div class="pdp-review-date text-[11px] mt-2">{{ rev.createdAt ? new Date(rev.createdAt).toLocaleDateString('cs-CZ') : '' }}</div>
           </div>
         </div>
-        <div v-else class="text-center py-8 text-white/50 text-sm">Zatím zde nejsou žádné recenze.</div>
+        <div v-else class="pdp-review-empty text-center py-8 text-sm">Zatím zde nejsou žádné recenze.</div>
       </div>
 
       <!-- Contact Form / Newsletter -->
@@ -703,7 +699,7 @@ const submitReview = async () => {
     </div>
 
     <!-- Not Found -->
-    <div v-else class="glass-card-strong p-8 md:p-12 text-center" v-fly="{ direction: 'up', distance: 32 }">
+    <div v-else class="pdp-panel pdp-panel--dark p-8 md:p-12 text-center" v-fly="{ direction: 'up', distance: 32 }">
       <div class="text-4xl md:text-5xl mb-4">🌑</div>
       <h2 class="text-2xl md:text-3xl font-bold text-white mb-4 neon-text">Produkt nenalezen</h2>
       <p class="text-white/40 mb-6 md:mb-8 text-sm md:text-base">Tento produkt se ztratil ve vesmíru...</p>
@@ -716,11 +712,39 @@ const submitReview = async () => {
 </template>
 
 <style scoped>
-/* ── Pastel theme override for product detail page ──
-   The original markup uses Tailwind utility classes hardcoded for the dark
-   cosmic theme (text-white, glass-card, bg-white/X). On the pastel page bg
-   these become unreadable. We surgically override descendant utilities via
-   attribute selectors instead of rewriting the 600+ lines of markup.    */
+/* ══════════════════════════════════════════════════════════════════════════
+   PDP SURFACES — one palette, five roles
+   ─────────────────────────────────────────────────────────────────────────
+   olive        --pop-plum    the product panels. The detail page is the
+                              product card blown up, so it keeps the card's
+                              ground (and its chrome: 2px ink border, hard
+                              offset shadow, no blur).
+   raised olive --pop-plum-2  a surface sitting ON an olive panel: the gallery
+                              half, and every review entry.
+   cream        --pop-cream   "paper stickers" pasted onto the olive — the
+                              stock pill, the quantity stepper, the review
+                              form. This is what keeps the page from becoming
+                              a wall of green, and it borrows the page's own
+                              paper rather than introducing a new colour.
+   black        #000000       photo frames only, exactly like ProductCard's
+                              .card-image — the product shots are shot on
+                              black and blend into it.
+   near-black   --pop-panel   reserved for the error / not-found states, so a
+                              failure reads as a different kind of surface.
+   The page ground itself is untouched cream paper: the back link, the
+   "podobné kousky" heading and the carousel below it still sit on it.
+
+   The markup is still the old dark-cosmic Tailwind (text-white, bg-white/X),
+   so descendant utilities are re-pointed via attribute selectors rather than
+   rewriting 300 lines of template. Two ladders: page ground → ink, inside a
+   panel → on-dark, inside a cream sticker → ink again.
+
+   NOTE: the previous version of these selectors wrote the Tailwind slash as
+   `text-white\\/40`, which in a CSS string is backslash+slash and matched
+   nothing. Plain tokens here — no escaping is needed inside quotes.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* ── 1. Page ground: cream paper ──────────────────────────────────────── */
 .product-detail :is(h1, h2, h3) {
   color: var(--pop-ink, #14231a) !important;
 }
@@ -728,99 +752,286 @@ const submitReview = async () => {
 .product-detail [class*="text-white/"] {
   color: var(--pop-ink, #14231a) !important;
 }
-/* Light tints originally used for muted text — keep them muted on light bg. */
-.product-detail [class~="text-white\\/40"],
-.product-detail [class~="text-white\\/50"],
-.product-detail [class~="text-white\\/55"] {
-  color: rgba(20, 35, 26, 0.6) !important;
+/* 5.16:1 — the back link is small uppercase text, so the muted tint has to
+   clear AA for normal text, not just large. */
+.product-detail [class~="text-white/40"],
+.product-detail [class~="text-white/50"] {
+  color: rgba(20, 35, 26, 0.68) !important;
 }
-.product-detail [class~="text-white\\/30"],
-.product-detail [class~="text-white\\/20"] {
-  color: rgba(20, 35, 26, 0.45) !important;
+/* Tailwind's hover variant is the token `hover:text-white`, which no
+   [class~="text-white"] selector catches — so the back link used to flip to
+   pure white (1.1:1 on paper) the moment you pointed at it. */
+.product-detail [class*="hover:text-white"]:hover {
+  color: var(--pop-ink, #14231a) !important;
 }
-.product-detail [class~="text-white\\/70"] {
-  color: rgba(20, 35, 26, 0.78) !important;
-}
-
-/* "Glass" cards become solid cream zine cards (hard border + offset shadow). */
-.product-detail :deep(.glass-card-strong) {
-  background: #fbf7ee !important;
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
-  border: 2px solid var(--pop-ink, #14231a) !important;
-  border-radius: 16px !important;
-  box-shadow: 6px 6px 0 rgba(20, 35, 26, 0.85) !important;
-}
-.product-detail :deep(.glass-card) {
-  background: #fbf7ee !important;
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
-  border: 2px solid rgba(20, 35, 26, 0.35) !important;
-  box-shadow: none !important;
-}
-
-/* Cosmic gradient title + neon text are unreadable on light — fall back to ink. */
-.product-detail :deep(.neon-text),
-.product-detail :deep(.neon-text-cyan),
-.product-detail :deep(.neon-text-rainbow) {
+/* Neon gradients are unreadable on paper — flatten to ink. */
+.product-detail .neon-text,
+.product-detail .neon-text-cyan,
+.product-detail .neon-text-rainbow {
   color: var(--pop-ink, #14231a) !important;
   background: none !important;
-  -webkit-text-fill-color: var(--pop-ink, #14231a) !important;
+  background-clip: unset !important;
+  -webkit-background-clip: unset !important;
+  -webkit-text-fill-color: currentColor !important;
   text-shadow: none !important;
 }
-.product-detail :deep(.cosmic-badge) {
-  background: rgba(20, 35, 26, 0.08) !important;
-  color: var(--pop-ink, #14231a) !important;
-  border: 1px solid rgba(20, 35, 26, 0.18) !important;
-  text-shadow: none !important;
+/* The sparkle beside "Také by se vám mohlo líbit" was text-yellow-300, which
+   is 1.15:1 on cream. Rose-ink is the palette's on-cream accent: 4.12:1. */
+.pdp-spark {
+  color: var(--pop-pink-ink, #b34a72);
 }
 
-/* Translucent white surfaces → translucent ink. */
-.product-detail [class*="bg-white/"] {
-  background: rgba(255, 255, 255, 0.6) !important;
-}
-.product-detail [class*="bg-black/"] {
-  background: rgba(20, 35, 26, 0.06) !important;
-}
-
-/* Borders that were rgba(white) on dark → rgba(ink) on light. */
-.product-detail [class*="border-white/"] {
-  border-color: rgba(20, 35, 26, 0.15) !important;
-}
-
-/* Description "neon left bar" turns into a subtle ink bar. */
-.product-detail [class*="border-primary-500/"] {
-  border-color: rgba(179, 50, 76, 0.4) !important;
-}
-
-/* Status pill (skladem / vyprodáno) — keep semantic colors but dark on light. */
-.product-detail :deep(.text-green-300) { color: #1f7a3a !important; }
-.product-detail :deep(.text-red-300)   { color: #8a2a2a !important; }
-
-/* Main heading: bigger + display font on top of dark color. Bricolage Grotesque
-   (the zine display face) has proper Czech latin-ext glyphs — Caprasimo mangled
-   the diacritics (ě/č/ř/ů sat detached and oversized). */
-.product-detail :deep(h1) {
-  font-family: var(--font-zine), 'Bricolage Grotesque', system-ui, sans-serif !important;
+/* Main heading: display face on top of the colour. Bricolage Grotesque has
+   proper Czech latin-ext glyphs — Caprasimo mangled the diacritics. */
+.product-detail h1 {
+  font-family: var(--font-zine), sans-serif !important;
   font-weight: 800 !important;
   letter-spacing: -0.02em;
 }
-.product-detail :deep(h2) {
-  font-family: 'Gloock', Georgia, serif !important;
+.product-detail h2 {
+  font-family: var(--font-mono) !important;
 }
 
-/* Price — switch the rainbow gradient to a clean dark display number. */
-.product-detail :deep(.neon-text-rainbow) {
-  font-family: 'Gloock', Georgia, serif !important;
-  background-clip: unset !important;
-  -webkit-background-clip: unset !important;
+/* ── 2. Panels ─────────────────────────────────────────────────────────── */
+.pdp-panel {
+  background: var(--pop-plum, #3b5222);
+  border: 2px solid var(--pop-ink, #14231a);
+  border-radius: 16px;
+  box-shadow: 6px 6px 0 rgba(20, 35, 26, 0.85);
+}
+/* Error / not-found keep the near-black zine panel so a failed load doesn't
+   look like a product. */
+.pdp-panel--dark {
+  background: var(--pop-panel, #201c19);
+}
+/* Gallery half sits one step up from the buy box, the way a mounted photo
+   sits on a board. */
+.pdp-gallery {
+  background: var(--pop-plum-2, #4c6330);
+}
+@media (min-width: 1024px) {
+  .pdp-gallery {
+    border-right: 2px solid rgba(253, 247, 236, 0.28);
+  }
 }
 
-/* Add-to-cart button (still dark/colorful gradient is OK against pastel). */
-.product-detail :deep(.btn-cosmic),
-.product-detail :deep(.btn-cosmic-outline) {
-  color: #fff !important;
+/* ── 3. Foregrounds inside a panel (on-dark) ───────────────────────────
+   Values are the ones already contrast-checked for the olive "about" panel
+   on the homepage, so the two pages agree. */
+.product-detail .pdp-panel :is(h1, h2, h3) {
+  color: #FDF7EC !important; /* 8.15:1 on olive */
+}
+.product-detail .pdp-panel [class~="text-white"],
+.product-detail .pdp-panel [class*="text-white/"] {
+  color: #FDF7EC !important;
+}
+.product-detail .pdp-panel [class~="text-white/40"],
+.product-detail .pdp-panel [class~="text-white/50"],
+.product-detail .pdp-panel [class~="text-white/70"] {
+  color: rgba(240, 231, 210, 0.85) !important; /* 5.63:1 on olive */
+}
+/* These two only ever appear over the black photo frame (missing-image and
+   thumbnail-error icons); 0.2/0.3 white would vanish, 0.45 cream is 4.20:1. */
+.product-detail .pdp-panel [class~="text-white/20"],
+.product-detail .pdp-panel [class~="text-white/30"] {
+  color: rgba(253, 247, 236, 0.45) !important;
+}
+.product-detail .pdp-panel .neon-text,
+.product-detail .pdp-panel .neon-text-rainbow {
+  color: #FDF7EC !important;
   text-shadow: none !important;
+}
+/* Price → the same acid lime the card uses for its price. 5.77:1 on olive. */
+.product-detail .pdp-panel .neon-text-rainbow,
+.pdp-currency {
+  color: var(--pop-lime, #B9E14B) !important;
+  font-family: var(--font-mono) !important;
+}
+/* Divider hairlines: white/10 disappears on olive, cream/0.28 is the same
+   hairline the homepage olive panel uses for its image border. */
+.product-detail .pdp-panel [class*="border-white/"] {
+  border-color: rgba(253, 247, 236, 0.28) !important;
+}
+/* Description's accent bar — solid pink reads as a deliberate rule (3.42:1),
+   the old 30%-alpha primary was invisible on this ground. */
+.product-detail .pdp-panel [class*="border-primary-500/"] {
+  border-color: var(--pop-pink, #E585AA) !important;
+}
+/* Loading-skeleton blocks. */
+.product-detail .pdp-panel [class*="bg-white/"] {
+  background: rgba(253, 247, 236, 0.14) !important;
+}
+/* Scrims that sit over a photo, so they stay genuinely dark. */
+.product-detail .pdp-panel [class*="bg-black/"] {
+  background: rgba(0, 0, 0, 0.4) !important;
+}
+/* Spinners on those scrims — the leftover cosmic primary isn't in the zine
+   palette; lime is, and it is 13.6:1 on the black frame. */
+.product-detail .pdp-panel [class*="text-primary-300"] {
+  color: var(--pop-lime, #B9E14B) !important;
+}
+/* Category chip + image counter become a blush sticker: ink on blush is
+   11.94:1 and it works on both the olive panel and the black photo. */
+.product-detail .pdp-panel .cosmic-badge {
+  background: var(--pop-blush, #F7D3E0) !important;
+  color: var(--pop-ink, #14231a) !important;
+  border: 2px solid var(--pop-ink, #14231a) !important;
+  font-family: var(--font-mono, monospace) !important;
+  text-shadow: none !important;
+}
+
+/* ── 4. Photo frames — black, exactly like ProductCard .card-image ────── */
+.pdp-frame {
+  background: #000000;
+  border: 2px solid var(--pop-ink, #14231a);
+  border-radius: 0.6rem;
+}
+@media (min-width: 768px) {
+  .pdp-frame { border-radius: 0.85rem; }
+}
+
+.pdp-thumb {
+  background: #000000;
+  border: 2px solid;
+  border-radius: 0.5rem;
+}
+@media (min-width: 768px) {
+  .pdp-thumb { border-radius: 0.6rem; }
+}
+.pdp-thumb--off {
+  border-color: rgba(253, 247, 236, 0.28);
+  opacity: 0.62;
+}
+.pdp-thumb--off:hover {
+  border-color: rgba(253, 247, 236, 0.6);
+  opacity: 1;
+}
+/* Lime, not pink, for the selected thumbnail: it sits on the raised olive
+   gallery half where pink only reaches 2.64:1 but lime clears 4.45:1. */
+.pdp-thumb--on {
+  border-color: var(--pop-lime, #B9E14B);
+  opacity: 1;
+  box-shadow: 0 0 0 2px rgba(185, 225, 75, 0.35);
+}
+
+/* ── 5. Cream "paper stickers" on the olive ───────────────────────────── */
+.pdp-chip {
+  background: var(--pop-cream, #F0E7D2);
+  border: 2px solid var(--pop-ink, #14231a);
+  border-radius: 0.7rem;
+  box-shadow: 3px 3px 0 rgba(20, 35, 26, 0.55);
+}
+.pdp-chip--stepper {
+  border-radius: 0.8rem;
+}
+/* Back to ink inside the sticker — these win over the on-dark block above on
+   specificity (4 classes vs 3), so order here is not load-bearing. */
+.product-detail .pdp-panel .pdp-chip [class~="text-green-300"] {
+  color: #1b6b33 !important; /* 5.34:1 on cream; the old #1f7a3a was 4.37:1 */
+}
+.product-detail .pdp-panel .pdp-chip [class~="text-red-300"] {
+  color: #8a2a2a !important; /* 6.98:1 */
+}
+/* The status dot inherits the same value so the pill reads as one object. */
+.product-detail .pdp-panel .pdp-chip [class~="bg-green-400"] {
+  background: #1b6b33 !important;
+  color: #1b6b33 !important;
+}
+.product-detail .pdp-panel .pdp-chip [class~="bg-red-500"] {
+  background: #8a2a2a !important;
+  color: #8a2a2a !important;
+}
+.pdp-step {
+  color: rgba(20, 35, 26, 0.72); /* 5.84:1 on cream */
+}
+.pdp-step:hover {
+  color: var(--pop-ink, #14231a);
+}
+.pdp-qty {
+  color: var(--pop-ink, #14231a);
+  font-family: var(--font-mono, monospace);
+}
+
+/* Favourites toggle sits directly on the olive, not on a sticker. */
+.pdp-fav {
+  border: 2px solid rgba(253, 247, 236, 0.28);
+  border-radius: 0.7rem;
+}
+.pdp-fav--off {
+  color: rgba(240, 231, 210, 0.85); /* 5.63:1 */
+}
+.pdp-fav--off:hover {
+  color: var(--pop-pink, #E585AA); /* 3.42:1 — icon, so the 3:1 bar applies */
+  border-color: var(--pop-pink, #E585AA);
+}
+.pdp-fav--on {
+  background: var(--pop-pink, #E585AA);
+  border-color: var(--pop-ink, #14231a);
+  color: var(--pop-ink, #14231a); /* 6.43:1 */
+}
+
+/* ── 6. Reviews ────────────────────────────────────────────────────────── */
+.pdp-reviews-title {
+  border-bottom: 2px solid rgba(253, 247, 236, 0.28);
+}
+/* The write-a-review block is a paper form pinned to the olive board. Cream
+   also gives the .input-cosmic field (which zine.css paints #fbf7ee) a ground
+   it was designed for, and makes the pink btn-cosmic pop. */
+.pdp-form {
+  background: var(--pop-cream, #F0E7D2);
+  border: 2px solid var(--pop-ink, #14231a);
+  border-radius: 12px;
+  box-shadow: 4px 5px 0 rgba(20, 35, 26, 0.55);
+}
+.product-detail .pdp-panel .pdp-form .pdp-form-title {
+  color: var(--pop-ink, #14231a) !important; /* 13.28:1 */
+  font-family: var(--font-mono, monospace);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.pdp-label {
+  color: rgba(20, 35, 26, 0.72); /* 5.84:1 */
+  font-family: var(--font-mono, monospace);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+/* zine.css ships the shared placeholder at 40% ink, which is 2.42:1 on the
+   cream field — fine as a hint on a dark panel, not on this one. */
+.product-detail .pdp-textarea::placeholder {
+  color: rgba(20, 35, 26, 0.62) !important; /* 4.54:1 */
+}
+
+/* Stars: one family (lime) on both grounds, so the form and the list agree.
+   Bright lime on the dark surfaces, lime-ink on the cream form. */
+.pdp-star--on      { color: var(--pop-lime, #B9E14B); }      /* 5.77 olive / 4.45 plum-2 */
+.pdp-star--off     { color: rgba(253, 247, 236, 0.6); }      /* 3.41:1 on plum-2 */
+.pdp-star--ink-on  { color: var(--pop-lime-ink, #4d6b0e); }  /* 4.98:1 on cream */
+.pdp-star--ink-off { color: rgba(20, 35, 26, 0.6); }         /* 4.06:1 on cream */
+
+.pdp-review {
+  background: var(--pop-plum-2, #4c6330);
+  border: 2px solid rgba(253, 247, 236, 0.28);
+  border-radius: 12px;
+}
+.pdp-review--ghost {
+  background: rgba(253, 247, 236, 0.1);
+  border-style: dashed;
+}
+.pdp-review-author {
+  color: #FDF7EC; /* 6.28:1 on plum-2 */
+}
+/* The homepage olive panel uses cream at 0.85, but plum-2 is a lighter ground
+   and 0.85 drops to 4.45:1 — just under AA. 0.92 puts it back at 4.90:1. */
+.pdp-review-body,
+.pdp-review-date {
+  color: rgba(240, 231, 210, 0.92);
+}
+.pdp-review-date {
+  font-family: var(--font-mono, monospace);
+}
+.pdp-review-empty {
+  color: rgba(240, 231, 210, 0.85); /* 5.63:1 — this one sits on plain olive */
+  font-family: var(--font-mono, monospace);
 }
 
 .hide-scrollbar {
@@ -896,10 +1107,14 @@ const submitReview = async () => {
   color: var(--pop-ink, #14231a);
   box-shadow: 5px 5px 0 var(--pop-lime-ink, #4d6b0e);
 }
+/* Disabled state used to be 6%-white on 35%-white, which was invisible on
+   every ground. A darkened patch of the panel's own olive reads as "switched
+   off" while still carrying its label at 5.52:1. */
 .pdp-buy--off {
-  background: rgba(255, 255, 255, 0.06);
-  color: rgba(255, 255, 255, 0.35);
-  border-color: rgba(255, 255, 255, 0.15);
+  background: rgba(20, 35, 26, 0.35);
+  color: rgba(240, 231, 210, 0.72);
+  border-color: rgba(253, 247, 236, 0.25);
+  box-shadow: none;
   cursor: not-allowed;
 }
 </style>

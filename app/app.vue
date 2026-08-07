@@ -21,11 +21,10 @@ const organizationSchema = {
   logo: {
     '@type': 'ImageObject',
     url: `${siteUrl}/hero/logo-mushroom.png`,
-    // Must match the file's real pixel size — this asset is 200×145, not the
-    // 512×512 square previously declared here (it was never square). Google
-    // requires a logo of at least 112×112, which this clears.
-    width: 200,
-    height: 145,
+    // Must match the file's real pixel size. Google requires a logo of at
+    // least 112×112, which this clears.
+    width: 240,
+    height: 180,
   },
   image: `${siteUrl}/hero/logo-mushroom.png`,
   description: 'Autorský eshop s ručně dělanými originály — obrazy, sochy a klíčenky. Každý kousek je unikát.',

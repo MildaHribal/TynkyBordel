@@ -247,7 +247,7 @@ defineExpose({ next, prev });
 }
 
 .slide-eyebrow {
-  font-family: 'Manrope', system-ui;
+  font-family: var(--font-body);
   font-size: 0.7rem;
   letter-spacing: 0.22em;
   text-transform: uppercase;
@@ -257,7 +257,7 @@ defineExpose({ next, prev });
 }
 
 .slide-title {
-  font-family: 'Fraunces', Georgia, serif;
+  font-family: var(--font-body);
   font-weight: 700;
   font-size: 1.55rem;
   line-height: 1.1;
@@ -270,7 +270,7 @@ defineExpose({ next, prev });
 }
 
 .slide-desc {
-  font-family: 'Manrope', system-ui;
+  font-family: var(--font-body);
   font-weight: 500;
   font-size: 0.92rem;
   line-height: 1.55;
@@ -294,7 +294,7 @@ defineExpose({ next, prev });
   padding-top: 0.9rem;
 }
 .slide-price {
-  font-family: 'Fraunces', Georgia, serif;
+  font-family: var(--font-body);
   font-weight: 700;
   font-size: 1.35rem;
   color: var(--pop-ink);
@@ -308,7 +308,7 @@ defineExpose({ next, prev });
   background: #1a0f28;
   color: #ffffff;
   border-radius: 9999px;
-  font-family: 'Manrope', system-ui;
+  font-family: var(--font-body);
   font-weight: 700;
   font-size: 0.72rem;
   letter-spacing: 0.16em;

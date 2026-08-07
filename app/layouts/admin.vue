@@ -171,7 +171,7 @@ onUnmounted(() => {
 }
 
 .logo-text {
-  font-family: 'Berkshire Swash', cursive;
+  font-family: var(--font-zine);
   font-size: 1.25rem;
   letter-spacing: -0.02em;
 }

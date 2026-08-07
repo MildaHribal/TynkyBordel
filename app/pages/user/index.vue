@@ -3,6 +3,13 @@
 import { ref, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuth } from '~~/app/composables/useAuth'
+// Imported explicitly because the order items render it through `<component :is>`.
+// Nuxt auto-imports components by rewriting the *static* `resolveComponent("X")`
+// call the template compiler emits; a dynamic `:is="'NuxtLink'"` compiles to
+// `resolveDynamicComponent("NuxtLink")` instead, which Nuxt does not rewrite and
+// Vue cannot resolve (NuxtLink is not globally registered) — it silently fell
+// back to rendering a literal, unclickable <NuxtLink> element.
+import { NuxtLink } from '#components'
 
 definePageMeta({
   middleware: ['auth']
@@ -131,7 +138,11 @@ const shippingLabel = (m?: string | null) => {
   }
   return (m && (map[m] || m)) || '—'
 }
-const itemLink = (item: any) => (item?.productId ? `/product/${item.productId}` : null)
+// The API only fills `productUrl` when the product still exists AND is in stock,
+// i.e. when /product/<slug> would actually render. Everything else (sold one-off
+// originals, deleted products) stays plain text — clicking through to a 404 from
+// your own order history is worse than not linking at all.
+const itemLink = (item: any): string | null => item?.productUrl || null
 </script>
 
 <template>
@@ -325,11 +336,12 @@ const itemLink = (item: any) => (item?.productId ? `/product/${item.productId}` 
                 <div class="text-sm font-medium text-white/70 mb-3">Položky ({{ order.items?.length || 0 }}):</div>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <component
-                    :is="itemLink(item) ? 'NuxtLink' : 'div'"
+                    :is="itemLink(item) ? NuxtLink : 'div'"
                     v-for="item in order.items" :key="item.id"
                     :to="itemLink(item) || undefined"
                     class="flex items-center gap-3 rounded-lg p-2 -m-2 transition-colors"
-                    :class="itemLink(item) ? 'hover:bg-white/10 cursor-pointer' : ''"
+                    :class="itemLink(item) ? 'group hover:bg-white/10 cursor-pointer' : ''"
+                    :title="itemLink(item) ? `Zobrazit produkt: ${item.title}` : undefined"
                   >
                     <div class="w-11 h-11 rounded-md bg-white/5 overflow-hidden flex-shrink-0">
                       <NuxtImg
@@ -340,10 +352,19 @@ const itemLink = (item: any) => (item?.productId ? `/product/${item.productId}` 
                       />
                     </div>
                     <div class="min-w-0 flex-1">
-                      <div class="text-sm text-white truncate">{{ item.title }}</div>
+                      <div
+                        class="text-sm truncate transition-colors"
+                        :class="itemLink(item) ? 'text-white group-hover:text-primary-300' : 'text-white'"
+                      >{{ item.title }}</div>
                       <div class="text-xs text-white/40">{{ item.quantity }} × {{ item.price }} Kč</div>
+                      <div v-if="!itemLink(item)" class="text-[11px] text-white/30 mt-0.5">
+                        Originál je fuč — už není v prodeji
+                      </div>
                     </div>
-                    <Icon v-if="itemLink(item)" name="mdi:arrow-right" height="16" class="text-white/30 flex-shrink-0" />
+                    <Icon
+                      v-if="itemLink(item)" name="mdi:arrow-right" height="16"
+                      class="text-white/30 flex-shrink-0 transition-all group-hover:text-primary-300 group-hover:translate-x-0.5"
+                    />
                   </component>
                 </div>
               </div>

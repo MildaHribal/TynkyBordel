@@ -571,7 +571,7 @@ watch(paymentMethod, async (m) => {
 }
 
 .checkout-title {
-  font-family: 'Berkshire Swash', 'Petrona', cursive;
+  font-family: var(--font-zine);
   font-size: clamp(1.6rem, 4vw, 2.2rem);
   line-height: 1;
   color: var(--pop-ink, #14231a);
@@ -839,7 +839,7 @@ watch(paymentMethod, async (m) => {
   text-align: left;
 }
 .bank-title {
-  font-family: 'Fraunces', Georgia, serif;
+  font-family: var(--font-body);
   font-weight: 700;
   font-size: 1.4rem;
   color: var(--pop-ink);
@@ -1054,7 +1054,7 @@ watch(paymentMethod, async (m) => {
   box-shadow: 0 12px 30px rgba(179, 50, 76, 0.35);
 }
 .success-title {
-  font-family: 'Berkshire Swash', 'Petrona', cursive;
+  font-family: var(--font-zine);
   font-size: clamp(2rem, 6vw, 3rem);
   color: var(--pop-ink, #14231a);
   margin-bottom: 0.5rem;

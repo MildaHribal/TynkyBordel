@@ -758,7 +758,7 @@ onBeforeUnmount(() => {
 
 .cr-counter {
   margin-left: 0.5rem;
-  font-family: 'Manrope', system-ui, sans-serif;
+  font-family: var(--font-body), sans-serif;
   font-size: 0.75rem;
   font-weight: 600;
   color: #b3324c;

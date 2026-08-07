@@ -125,7 +125,7 @@ const STATUS_CLASS: Record<string, string> = {
   gap: 0.5rem;
   color: rgba(42, 19, 64, 0.5);
   font-style: italic;
-  font-family: 'Petrona', Georgia, serif;
+  font-family: var(--font-body);
   padding: 2rem 0;
 }
 .spin { animation: spin 0.8s linear infinite; }

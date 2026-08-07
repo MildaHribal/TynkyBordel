@@ -172,10 +172,10 @@ const toggleFavorite = async () => {
         class="card-img w-full h-full object-cover"
         :class="[ isImageLoading ? 'is-loading' : '' ]"
         width="500"
-        height="625"
+        height="400"
         format="webp"
         quality="72"
-        sizes="sm:50vw md:33vw lg:25vw xl:20vw"
+        sizes="45vw sm:31vw md:31vw lg:23vw xl:19vw"
         :loading="isPriority ? 'eager' : 'lazy'"
         :preload="isPriority || undefined"
         :fetchpriority="isPriority ? 'high' : 'auto'"
@@ -190,10 +190,10 @@ const toggleFavorite = async () => {
         :alt="product.title"
         class="card-img card-img--hover w-full h-full object-cover"
         width="500"
-        height="625"
+        height="400"
         format="webp"
         quality="72"
-        sizes="sm:50vw md:33vw lg:25vw xl:20vw"
+        sizes="45vw sm:31vw md:31vw lg:23vw xl:19vw"
         loading="lazy"
         aria-hidden="true"
       />
@@ -366,7 +366,7 @@ const toggleFavorite = async () => {
 
 /* Short description in the space freed up by the shorter landscape image. */
 .card-desc {
-  font-family: 'Manrope', system-ui;
+  font-family: var(--font-body);
   font-weight: 500;
   font-size: 0.82rem;
   line-height: 1.45;
