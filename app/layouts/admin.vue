@@ -63,11 +63,31 @@ onMounted(() => {
   window.addEventListener('beforeinstallprompt', onBIP)
   window.addEventListener('appinstalled', onAppInstalled)
 
-  // Register the service worker (scoped to /admin/).
+  // Register the service worker (scoped to /admin/) — PRODUCTION ONLY.
+  //
+  // Same correctness fix as the storefront SW (plugins/sw.client.ts): admin-sw.js
+  // serves cache-first, and in `nuxt dev` the /_nuxt/ chunk paths are unhashed and
+  // stable, so a worker registered on localhost pins the first version of every
+  // admin component it ever saw — the classic "my changes don't show up / localhost
+  // is more broken than production". On dev we instead tear down any worker a
+  // previous run installed under /admin/ and drop its cache.
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker
-      .register('/admin-sw.js', { scope: '/admin/' })
-      .catch((err) => console.warn('[pwa] SW register failed', err))
+    if (import.meta.dev) {
+      navigator.serviceWorker.getRegistrations()
+        .then((regs) => Promise.all(
+          regs.filter((r) => r.scope.endsWith('/admin/')).map((r) => r.unregister()),
+        ))
+        .then((results) => {
+          if (!results.some(Boolean)) return
+          console.info('[pwa] dev: unregistered stale admin service worker')
+          return caches?.delete('tynky-admin-v1')
+        })
+        .catch((err) => console.warn('[pwa] dev SW cleanup failed', err))
+    } else {
+      navigator.serviceWorker
+        .register('/admin-sw.js', { scope: '/admin/' })
+        .catch((err) => console.warn('[pwa] SW register failed', err))
+    }
   }
 })
 onUnmounted(() => {
