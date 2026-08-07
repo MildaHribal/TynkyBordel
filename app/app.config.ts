@@ -10,5 +10,12 @@ export default defineAppConfig({
     // leak. All collections used by the app are installed locally as
     // @iconify-json/* packages.
     serverBundle: 'local',
+    // Render real <svg> elements rather than <span>s masked in CSS. Every call
+    // site in this app sizes its icon with `height="18"`-style attributes, and
+    // an attribute like that is meaningless on a span — CSS mode silently
+    // dropped it and fell back to 1em of the inherited font-size, so the same
+    // icon came out a different size on mobile than on desktop. SVG mode also
+    // drops the per-icon mask-image CSS that was being inlined into every page.
+    mode: 'svg',
   },
 })

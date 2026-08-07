@@ -236,7 +236,17 @@ export default defineNuxtConfig({
         '/_nuxt/**':    { headers: { 'cache-control': 'public, max-age=31536000, immutable' } },
         // Derived/uploaded images: long but not immutable (a product image can be
         // re-uploaded under the same name), so 30 days is the safe sweet spot.
-        '/_ipx/**':     { headers: { 'cache-control': 'public, max-age=2592000' } },
+        // IPX re-encodes with sharp on EVERY request — it keeps no cache of its
+        // own, so a hard refresh (which bypasses the browser cache) made the
+        // server rebuild every single variant on the page again. Measured: the
+        // homepage's 56 variants cost the same 1.2s on the second pass as on the
+        // first, and on a small VPS that is tens of seconds of queued CPU work.
+        // `cache` puts Nitro's storage in front of the handler so each variant is
+        // encoded once and then served from disk.
+        '/_ipx/**': {
+            cache: { maxAge: 2592000, swr: true },
+            headers: { 'cache-control': 'public, max-age=2592000' },
+        },
         '/uploads/**':  { headers: { 'cache-control': 'public, max-age=2592000' } },
     },
 

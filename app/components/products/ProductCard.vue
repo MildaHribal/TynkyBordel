@@ -175,7 +175,7 @@ const toggleFavorite = async () => {
         height="400"
         format="webp"
         quality="72"
-        sizes="45vw sm:31vw md:31vw lg:23vw xl:19vw"
+        sizes="45vw md:31vw lg:23vw"
         :loading="isPriority ? 'eager' : 'lazy'"
         :preload="isPriority || undefined"
         :fetchpriority="isPriority ? 'high' : 'auto'"
@@ -193,7 +193,7 @@ const toggleFavorite = async () => {
         height="400"
         format="webp"
         quality="72"
-        sizes="45vw sm:31vw md:31vw lg:23vw xl:19vw"
+        sizes="45vw md:31vw lg:23vw"
         loading="lazy"
         aria-hidden="true"
       />

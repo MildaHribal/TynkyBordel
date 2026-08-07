@@ -408,7 +408,10 @@ onUnmounted(() => {
 @media (min-width: 768px) { .brand-art { width: 38px; height: 38px; } }
 .brand-text {
   font-family: var(--font-zine);
-  font-weight: 400;
+  /* Bricolage is sliced to wght 600-800 (scripts/build-fonts.py), so the old
+     400 had no master in the file — the browser faux-thinned it and the brand
+     read washed out. 800 is the display weight the rest of the identity uses. */
+  font-weight: 800;
   font-size: 1.3rem;
   letter-spacing: -0.01em;
   text-transform: none;
@@ -632,6 +635,10 @@ onUnmounted(() => {
 
 /* ── Hamburger (mobile) ──────────────────────────────── */
 /* Mobile cart button — matches the hamburger so the pair reads as one control set. */
+/* Same sticker treatment as .nav-avatar-btn on desktop — white fill, 2px ink
+   border, hard offset shadow. These were still the old cosmic design: a dark
+   purple disc with a blurred drop shadow, which read as a foreign element
+   floating over the cream paper. */
 .mobile-icon-btn {
   display: inline-flex;
   align-items: center;
@@ -639,15 +646,15 @@ onUnmounted(() => {
   width: 44px;
   height: 44px;
   border-radius: 9999px;
-  background: #1a0f28;
-  color: #fbf4ea;
-  border: none;
+  background: #ffffff;
+  color: var(--pop-ink, #14231a);
+  border: 2px solid var(--pop-ink, #14231a);
   cursor: pointer;
-  box-shadow: 0 4px 14px rgba(20, 35, 26, 0.2);
-  transition: background 0.2s ease, transform 0.15s ease;
+  box-shadow: 2px 2px 0 rgba(20, 35, 26, 0.85);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.2s ease;
 }
-.mobile-icon-btn:hover { background: #14231a; }
-.mobile-icon-btn:active { transform: scale(0.93); }
+.mobile-icon-btn:hover { background: var(--pop-pink, #E585AA); transform: translate(-1px, -1px); box-shadow: 3px 3px 0 rgba(20, 35, 26, 0.85); }
+.mobile-icon-btn:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 rgba(20, 35, 26, 0.85); }
 /* Scoped display above outranks Tailwind's `md:hidden`, so enforce hide on
    desktop explicitly — otherwise the mobile cart shows next to the desktop one. */
 @media (min-width: 768px) { .mobile-icon-btn { display: none; } }
@@ -661,22 +668,23 @@ onUnmounted(() => {
   width: 44px;
   height: 44px;
   border-radius: 9999px;
-  background: #1a0f28;
-  border: none;
+  background: #ffffff;
+  border: 2px solid var(--pop-ink, #14231a);
   cursor: pointer;
-  box-shadow: 0 4px 14px rgba(20, 35, 26, 0.2);
-  transition: background 0.2s ease;
+  box-shadow: 2px 2px 0 rgba(20, 35, 26, 0.85);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.2s ease;
   padding: 0;
 }
-.hamburger-btn:hover { background: #14231a; }
+.hamburger-btn:hover { background: var(--pop-pink, #E585AA); transform: translate(-1px, -1px); box-shadow: 3px 3px 0 rgba(20, 35, 26, 0.85); }
+.hamburger-btn:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 rgba(20, 35, 26, 0.85); }
 /* Phones only — hidden from tablet/desktop up (scoped rule outranks `md:hidden`). */
 @media (min-width: 768px) { .hamburger-btn { display: none; } }
 
 .hamburger-line {
   display: block;
   width: 18px;
-  height: 2px;
-  background: #ffffff;
+  height: 2.5px;
+  background: var(--pop-ink, #14231a);
   border-radius: 2px;
   transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1),
               opacity 0.2s ease;
@@ -893,10 +901,10 @@ onUnmounted(() => {
    navbar buttons); it stays top-right while scroll-to-top sits bottom-right. */
 @media (max-width: 767px) {
   .cart-float-btn {
-    background: #1a0f28;
-    color: #fbf4ea;
-    border: none;
-    box-shadow: 0 6px 18px rgba(20, 8, 36, 0.32);
+    background: #ffffff;
+    color: var(--pop-ink, #14231a);
+    border: 2px solid var(--pop-ink, #14231a);
+    box-shadow: 3px 3px 0 rgba(20, 35, 26, 0.85);
   }
 }
 .cart-float-badge {
