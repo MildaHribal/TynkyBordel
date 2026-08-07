@@ -1,4 +1,4 @@
-import { BUSINESS } from '~~/shared/shop'
+import { BUSINESS, INVOICE_SELLER } from '~~/shared/shop'
 
 // A simple Czech invoice ("faktura") for a non-VAT sole trader. Generated as a
 // PDF with pdfkit and an embedded DejaVu Sans (the built-in PDF fonts can't render
@@ -28,6 +28,8 @@ const date = (d: Date) => d.toLocaleDateString('cs-CZ')
 // Cache the embedded font buffers across invocations (they don't change).
 let fontRegular: Buffer | null = null
 let fontBold: Buffer | null = null
+// Cache the logo buffer too. `undefined` = not tried yet, `null` = tried & failed.
+let logo: Buffer | null | undefined = undefined
 
 async function loadFonts() {
   if (fontRegular && fontBold) return
@@ -38,6 +40,17 @@ async function loadFonts() {
   ])
   fontRegular = Buffer.isBuffer(r) ? r : Buffer.from(r as ArrayBuffer)
   fontBold = Buffer.isBuffer(b) ? b : Buffer.from(b as ArrayBuffer)
+}
+
+async function loadLogo(): Promise<Buffer | null> {
+  if (logo !== undefined) return logo
+  try {
+    const raw = await useStorage('assets:server').getItemRaw('invoice/logo.png')
+    logo = Buffer.isBuffer(raw) ? raw : Buffer.from(raw as ArrayBuffer)
+  } catch {
+    logo = null
+  }
+  return logo
 }
 
 export async function generateInvoicePdf(data: InvoiceData): Promise<Buffer> {
@@ -60,9 +73,21 @@ export async function generateInvoicePdf(data: InvoiceData): Promise<Buffer> {
   const right = 545
 
   // ── Header ──────────────────────────────────────────────────────────────
-  doc.fillColor(ACCENT).font('bold').fontSize(24).text('FAKTURA', left, 50)
+  // Optional eshop logo, top-left. Never let a logo failure break the PDF.
+  let titleX = left
+  try {
+    const logoBuf = await loadLogo()
+    if (logoBuf) {
+      doc.image(logoBuf, left, 44, { width: 54 })
+      titleX = left + 54 + 14
+    }
+  } catch {
+    titleX = left
+  }
+
+  doc.fillColor(ACCENT).font('bold').fontSize(24).text('FAKTURA', titleX, 50)
   doc.font('body').fontSize(11).fillColor(MUTED)
-    .text(`č. ${data.number}`, left, 80)
+    .text(`č. ${data.number}`, titleX, 80)
   doc.fillColor(INK).font('body').fontSize(10)
     .text('Tynky Bordel', right - 200, 52, { width: 200, align: 'right' })
     .fillColor(MUTED)
@@ -77,15 +102,15 @@ export async function generateInvoicePdf(data: InvoiceData): Promise<Buffer> {
   doc.text('ODBĚRATEL', col2, y)
   y += 16
   doc.font('body').fontSize(11).fillColor(INK)
-  doc.text(BUSINESS.legalName, left, y, { width: 240 })
+  doc.text(INVOICE_SELLER.name, left, y, { width: 240 })
   doc.text(data.customerName, col2, y, { width: 225 })
   y += 16
   doc.fontSize(10).fillColor(MUTED)
   const sellerLines = [
-    BUSINESS.address.street,
-    `${BUSINESS.address.zip} ${BUSINESS.address.city}`,
-    `IČO: ${BUSINESS.ico}`,
-    BUSINESS.isVatPayer && BUSINESS.dic ? `DIČ: ${BUSINESS.dic}` : 'Neplátce DPH',
+    INVOICE_SELLER.address.street,
+    `${INVOICE_SELLER.address.zip} ${INVOICE_SELLER.address.city}`,
+    `IČO: ${INVOICE_SELLER.ico}`,
+    INVOICE_SELLER.isVatPayer ? `DIČ: ${BUSINESS.dic}` : 'Neplátce DPH',
   ]
   const buyerLines = String(data.customerAddress || '').split('\n').filter(Boolean)
   const sellerTop = y
@@ -139,7 +164,7 @@ export async function generateInvoicePdf(data: InvoiceData): Promise<Buffer> {
   const footY = 760
   doc.font('body').fontSize(8).fillColor(MUTED)
   doc.text(
-    `${BUSINESS.legalName} · IČO ${BUSINESS.ico} · ${BUSINESS.address.street}, ${BUSINESS.address.zip} ${BUSINESS.address.city} · Neplátce DPH · ${BUSINESS.email}`,
+    `${INVOICE_SELLER.name} · IČO ${INVOICE_SELLER.ico} · ${INVOICE_SELLER.address.street}, ${INVOICE_SELLER.address.zip} ${INVOICE_SELLER.address.city} · Neplátce DPH · ${INVOICE_SELLER.email}`,
     left, footY, { width: right - left, align: 'center' },
   )
 

@@ -41,6 +41,19 @@ export const BUSINESS = {
   tradeAuthority: 'Živnostenský úřad příslušný podle sídla podnikatele',
 } as const
 
+// ─── Invoice seller ──────────────────────────────────────────────────────────
+// The PDF invoice ("faktura") is issued under a different name than the public
+// storefront brand, while keeping the SAME IČO and registered address. The
+// storefront and legal pages keep showing BUSINESS.legalName (Kristýna); only
+// the generated invoice uses this identity.
+export const INVOICE_SELLER = {
+  name: 'Miroslav Turhobr',
+  ico: BUSINESS.ico,
+  address: BUSINESS.address,
+  email: BUSINESS.email,
+  isVatPayer: false,
+} as const
+
 /** Renders a value or a visible placeholder, so gaps can't pass unnoticed. */
 export function orPlaceholder(value: string | undefined | null, label: string): string {
   const trimmed = (value ?? '').trim()
