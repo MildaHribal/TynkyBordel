@@ -265,6 +265,29 @@ function scrollToKolekce(e: MouseEvent) {
               sizes="300px"
               class="zabout-img"
             />
+            <!--
+              Easter egg: a Linktree sticker taped to the corner of the photo.
+              Deliberately quiet — at rest it is just the logo in Linktree's own
+              green, so it reads as part of the collage. Hover or keyboard focus
+              expands it and spells the name out, which is what makes it
+              recognisable rather than "some green blob".
+
+              It is a real <a> outside any aria-hidden wrapper (the hero collage
+              IS aria-hidden, which is why the egg does not live there — a
+              focusable link inside aria-hidden is reachable by Tab but invisible
+              to a screen reader). The accessible name is on the link itself, so
+              it never depends on the hover-only label.
+            -->
+            <a
+              href="https://linktr.ee/tynky_bordel"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="zegg"
+              aria-label="Linktree — všechny moje odkazy"
+            >
+              <Icon name="simple-icons:linktree" height="17" class="zegg-icon" />
+              <span class="zegg-label" aria-hidden="true">Linktree</span>
+            </a>
           </div>
           <div class="zabout-copy">
             <span class="zine-eyebrow">✶ O mně</span>
@@ -479,10 +502,76 @@ function scrollToKolekce(e: MouseEvent) {
   box-shadow: 6px 6px 0 var(--pop-shadow);
 }
 @media (min-width: 820px) { .zabout { grid-template-columns: 0.8fr 1.2fr; gap: 2.5rem; padding: 2.75rem; } }
-.zabout-art { display: flex; justify-content: center; }
+.zabout-art {
+  display: flex;
+  justify-content: center;
+  /* Anchor for the Linktree easter egg below. */
+  position: relative;
+  width: fit-content;
+  margin-inline: auto;
+}
 .zabout-img {
   width: 100%; max-width: 300px; border-radius: 12px;
   border: 2px solid color-mix(in srgb, var(--pop-on-dark) 28%, transparent);
+  display: block;
+}
+
+/* ── Linktree easter egg ──────────────────────────────────────────────────
+   Linktree's brand green is fixed in both themes — it is someone else's
+   identity, not our palette — so its ink is the constant --pop-ink-on-accent
+   rather than --pop-ink, which would flip to near-white on a light green chip.
+   Measured 8.9:1. */
+.zegg {
+  --zegg-green: #43E660;
+  position: absolute;
+  right: -0.55rem;
+  bottom: -0.7rem;
+  z-index: 2;
+
+  display: inline-flex;
+  align-items: center;
+  gap: 0;
+  max-width: 2.15rem;          /* collapsed: just the logo */
+  overflow: hidden;
+  padding: 0.42rem;
+  border-radius: 999px;
+  background: var(--zegg-green);
+  color: var(--pop-ink-on-accent);
+  border: 2px solid var(--pop-ink-on-accent);
+  box-shadow: 2px 2px 0 var(--pop-ink-on-accent);
+  transform: rotate(-8deg);
+  text-decoration: none;
+  /* Only transform/opacity would be cheaper, but the reveal is a width change
+     by nature; it is one small element and runs on hover only. */
+  transition: max-width 0.28s cubic-bezier(0.2, 0.8, 0.3, 1),
+              gap 0.28s cubic-bezier(0.2, 0.8, 0.3, 1),
+              transform 0.18s ease,
+              box-shadow 0.18s ease;
+}
+.zegg-icon { flex: none; }
+.zegg-label {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 0.66rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  padding-right: 0.2rem;
+}
+.zegg:hover,
+.zegg:focus-visible {
+  max-width: 9rem;
+  gap: 0.35rem;
+  transform: rotate(-3deg) translate(-1px, -1px);
+  box-shadow: 3px 3px 0 var(--pop-ink-on-accent);
+}
+.zegg:focus-visible { outline: 2px solid var(--pop-ink-on-accent); outline-offset: 3px; }
+.zegg:active { transform: rotate(-3deg) translate(1px, 1px); box-shadow: 1px 1px 0 var(--pop-ink-on-accent); }
+
+/* An egg that animates itself open is a distraction for anyone who asked the
+   system to calm motion down; show it already legible instead. */
+@media (prefers-reduced-motion: reduce) {
+  .zegg { transition: none; max-width: 9rem; gap: 0.35rem; }
 }
 .zabout-title {
   font-family: var(--font-zine);

@@ -12,10 +12,12 @@ import { applyStoredTheme } from '~/composables/useTheme'
  * Zapisuje pouze atribut na <html>, což Vue nerenderuje → hydrataci to
  * nemůže rozhodit.
  *
- * POZOR: tohle je nejdřívější bod, na který dosáhnu ze souborů, které smím
- * měnit. Úplně bez probliknutí by to bylo jen blokujícím inline skriptem
- * v <head> — ten se ale přidává v `nuxt.config.ts` (app.head.script), který
- * mi nepatří. Přesný snippet je v reportu.
+ * Ten blokující inline skript v <head> už existuje (`app.head.script`
+ * v `nuxt.config.ts`) a dosadí atribut ještě před prvním vykreslením — bez něj
+ * stránka probliklà systémovým tématem, než se stáhl JS. Tenhle plugin tedy
+ * není proti probliknutí, ale jako záchranná síť: kdyby inline skript
+ * neproběhl (CSP, chyba při parsování), atribut se dosadí aspoň teď.
+ * `applyStoredTheme()` je idempotentní, takže dvojí zápis nevadí.
  */
 export default defineNuxtPlugin({
   name: 'tb-theme',

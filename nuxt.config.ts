@@ -44,6 +44,31 @@ export default defineNuxtConfig({
                 { name: 'description', content: 'Tynky Bordel — ručně dělané originály: obrazy, sochy, klíčenky. Každý kousek je unikát.' },
                 { name: 'robots', content: 'index,follow,max-image-preview:large' },
             ],
+            // Anti-FOUC for the theme toggle. The palette itself is pure CSS
+            // (`light-dark()` + `color-scheme`), so a visitor who just follows
+            // their OS is already correct in the first painted frame with no JS
+            // at all. The exception is someone who picked the OPPOSITE of their
+            // system in the toggle: that choice lives in localStorage, and until
+            // now it was applied by a Nuxt plugin — which cannot run before the
+            // JS bundle has loaded and executed. So a dark-system visitor who
+            // chose light watched the page paint dark and then snap to light on
+            // every single reload.
+            //
+            // This has to be a blocking, non-deferred inline script in <head>:
+            // it must execute before the first paint, and it must not be a
+            // module (modules are implicitly deferred). It only sets an
+            // attribute on <html>, which Vue never renders, so it cannot cause
+            // a hydration mismatch. Keep the storage key in sync with
+            // THEME_STORAGE_KEY in app/composables/useTheme.ts.
+            script: [
+                {
+                    tagPosition: 'head',
+                    tagPriority: 'critical',
+                    innerHTML:
+                        `try{var t=localStorage.getItem('tb-theme');` +
+                        `if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t)}catch(e){}`,
+                },
+            ],
             // Preload the three faces painted above the fold (hero display,
             // body, price/label mono). These have to be real <link> tags in the
             // document head: a font referenced only from a stylesheet isn't

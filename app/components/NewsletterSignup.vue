@@ -145,8 +145,7 @@ const submit = async () => {
   gap: 0.35rem;
   padding: 0.5rem 0.8rem;
   border-radius: 7px;
-  /* Lime stays light in dark mode, so the glyph on it must stay dark ink —
-     --pop-ink would flip to near-white and disappear on the lime. */
+
   border: 2px solid var(--pop-ink-on-accent, #14231a);
   cursor: pointer;
   background: var(--pop-lime, #B9E14B);
