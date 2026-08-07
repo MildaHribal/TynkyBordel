@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useCartStore } from "~/stores/cart";
-import { Icon } from "@iconify/vue";
+
 
 const cart = useCartStore()
 </script>

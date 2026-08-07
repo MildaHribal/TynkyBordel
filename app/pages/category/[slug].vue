@@ -2,7 +2,7 @@
 import { useRoute } from 'vue-router'
 import ProductCard from "~/components/products/ProductCard.vue"
 import Sidebar from "~/components/Sidebar.vue"
-import { Icon } from "@iconify/vue"
+
 import type { Product } from '~~/types'
 
 definePageMeta({

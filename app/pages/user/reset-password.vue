@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useAuth } from '~/composables/useAuth'
-import { Icon } from '@iconify/vue'
+
 
 const { resetPassword } = useAuth()
 const route = useRoute()

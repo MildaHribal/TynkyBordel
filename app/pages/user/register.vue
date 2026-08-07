@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useAuth } from '~/composables/useAuth'
-import { Icon } from '@iconify/vue'
+
 
 const { signUpWithPassword, signInWithGoogle } = useAuth()
 const router = useRouter()

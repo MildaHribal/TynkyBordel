@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useCartStore } from "~/stores/cart";
-import { Icon } from "@iconify/vue";
+
 import ContactForm from "~/components/ContactForm.vue";
 
 const route = useRoute();

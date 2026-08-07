@@ -1,6 +1,6 @@
     <script setup lang="ts">
 import { ref } from 'vue'
-import { Icon } from '@iconify/vue'
+
 
 const email = ref('')
 const state = ref<'idle' | 'loading' | 'done' | 'error'>('idle')
@@ -74,25 +74,32 @@ const submit = async () => {
 
 <style scoped>
 .nl-section {
-  max-width: 1400px;
-  margin: 0 auto;
-  padding: 1rem 1rem 2.5rem;
+  width: 100%;
+  background: var(--pop-panel, #331825);
+  position: relative;
+  padding: 4rem 1.25rem 2.5rem;
+}
+.nl-section::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  inset-inline: 0;
+  height: 4px;
+  background: repeating-linear-gradient(
+    90deg,
+    var(--pop-pink, #E585AA) 0, var(--pop-pink, #E585AA) 28px,
+    var(--pop-lime, #B9E14B) 28px, var(--pop-lime, #B9E14B) 56px
+  );
+  opacity: 0.85;
 }
 @media (min-width: 768px) {
-  .nl-section { padding: 2rem 2rem 3.5rem; }
+  .nl-section { padding: 5rem 2rem 3.5rem; }
 }
 
 .nl-card {
   position: relative;
-  overflow: hidden;
-  border-radius: 16px;
-  padding: 2rem 1.5rem;
-  background: var(--pop-panel, #331825);
-  border: 2px solid var(--pop-ink, #14231a);
-  box-shadow: 6px 6px 0 rgba(20, 35, 26, 0.85);
-}
-@media (min-width: 768px) {
-  .nl-card { padding: 3rem 3rem; }
+  max-width: 1400px;
+  margin: 0 auto;
 }
 
 /* Flat zine accent bars instead of blurred blobs */

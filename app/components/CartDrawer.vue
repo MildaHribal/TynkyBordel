@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { watch } from 'vue'
-import { Icon } from '@iconify/vue'
+
 import { useCartStore } from '~/stores/cart'
 
 const cart = useCartStore()

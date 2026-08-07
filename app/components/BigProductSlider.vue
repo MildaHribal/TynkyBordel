@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Icon } from "@iconify/vue";
+
 import type { Product } from '~~/types';
 
 const props = defineProps<{

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useCartStore } from "~/stores/cart";
-import { Icon } from "@iconify/vue";
+
 import type { Product } from "~~/types";
 
 const cart = useCartStore();
@@ -359,7 +359,7 @@ const toggleFavorite = async () => {
   font-weight: 500;
   font-size: 0.82rem;
   line-height: 1.45;
-  color: rgba(255, 255, 255, 0.82);
+  color: #ffffff;
   margin: 0;
   display: -webkit-box;
   -webkit-line-clamp: 2;

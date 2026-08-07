@@ -8,10 +8,13 @@ export default defineNuxtConfig({
         '@pinia/nuxt',
         '@nuxt/icon',
         '@nuxt/image',
+        '@nuxt/fonts',
         '@nuxtjs/seo',
         '@nuxtjs/robots',
         '@nuxtjs/sitemap',
     ],
+
+    features: { inlineStyles: true },
 
     app: {
         head: {
@@ -36,10 +39,10 @@ export default defineNuxtConfig({
     experimental: {
         defaults: {
             nuxtLink: {
-                // Prefetch a link's route chunk + data as soon as it scrolls into
-                // view, so tapping it navigates instantly (chunks are ~1 KB each).
-                prefetch: true,
-                prefetchOn: { visibility: true },
+                // Prefetch on hover/focus, NOT visibility — with 40 product tiles
+                // on the homepage, visibility-based prefetch fires dozens of
+                // requests that compete with the LCP image for bandwidth.
+                prefetchOn: { interaction: true, visibility: false },
             }
         },
         // Split the payload into a separate cacheable file (and let the SW cache
@@ -118,8 +121,8 @@ export default defineNuxtConfig({
 
     image: {
         provider: 'ipx',
-        format: ['webp'],
-        quality: 72,
+        format: ['avif', 'webp'],
+        quality: 78,
         // Serve 1x — avoids shipping 2× pixels to retina phones (big byte saving,
         // negligible visual difference for these photos). Bumps the perf score.
         densities: [1],
@@ -131,7 +134,15 @@ export default defineNuxtConfig({
             lg: 1024,
             xl: 1280,
             xxl: 1536,
-        }
+        },
+        presets: {
+            thumb: { modifiers: { width: 360, height: 360, fit: 'cover' } },
+            hero:  { modifiers: { width: 1400, quality: 82 } },
+        },
+        // IPX maxAge: assets are content-hashed, so cache for 1 year. The default
+        // 60s means the server re-encodes the same image on every request after
+        // expiry and the first visitor waits on sharp.
+        ipx: { maxAge: 60 * 60 * 24 * 365 },
     },
 
     ignore: [
@@ -159,25 +170,36 @@ export default defineNuxtConfig({
         // (observed as cf-cache-status: HIT on get-session). no-store tells
         // Cloudflare + browsers not to cache any API response.
         '/api/**': { headers: { 'cache-control': 'no-store, no-cache, must-revalidate' } },
-        '/': { swr: true },
-        '/product/**': { swr: true },
-        '/cart': { swr: false },
-        '/checkout': { swr: false },
+
+        // ── Page rendering strategies ──
+        // Content changes rarely — use SWR with explicit durations so stale
+        // pages are served instantly and revalidated in the background.
+        '/':               { swr: 3600 },                       // homepage, 1 hour
+        '/product/**':      { swr: 3600 },                       // product detail, 1 hour
+        // Static legal pages: content almost never changes, cache for 24 hours.
+        '/obchodni-podminky':      { swr: 86400 },
+        '/ochrana-osobnich-udaju':  { swr: 86400 },
+        '/reklamace':               { swr: 86400 },
+        // Cart/checkout are user-specific — no SSR, no caching.
+        '/cart':            { ssr: false },
+        '/checkout':        { ssr: false },
         // Auth-guarded account pages are client-only: the auth middleware only
         // has session state in the browser, so SSR would redirect a logged-in
         // user back to /login on a full page load (same reason /admin is ssr:false).
-        '/my-account': { ssr: false },
-        '/user': { ssr: false },
-        '/user/**': { ssr: false },
-        '/admin/**': { ssr: false },
-        // Long-lived caching for immutable/content-stable assets (was ~1 min,
-        // which Lighthouse flagged — costs repeat-view performance).
-        '/hero/**': { headers: { 'cache-control': 'public, max-age=31536000, immutable' } },
-        '/_fonts/**': { headers: { 'cache-control': 'public, max-age=31536000, immutable' } },
+        '/my-account':      { ssr: false },
+        '/user':            { ssr: false },
+        '/user/**':         { ssr: false },
+        '/admin/**':        { ssr: false },
+
+        // ── Asset caching ──
+        // Long-lived caching for immutable/content-stable assets.
+        '/hero/**':     { headers: { 'cache-control': 'public, max-age=31536000, immutable' } },
+        '/_fonts/**':   { headers: { 'cache-control': 'public, max-age=31536000, immutable' } },
+        '/_nuxt/**':    { headers: { 'cache-control': 'public, max-age=31536000, immutable' } },
         // Derived/uploaded images: long but not immutable (a product image can be
         // re-uploaded under the same name), so 30 days is the safe sweet spot.
-        '/_ipx/**': { headers: { 'cache-control': 'public, max-age=2592000' } },
-        '/uploads/**': { headers: { 'cache-control': 'public, max-age=2592000' } },
+        '/_ipx/**':     { headers: { 'cache-control': 'public, max-age=2592000' } },
+        '/uploads/**':  { headers: { 'cache-control': 'public, max-age=2592000' } },
     },
 
     linkChecker: {

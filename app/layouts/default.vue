@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import Navbar from "~/components/Navbar.vue";
 import CartDrawer from "~/components/CartDrawer.vue";
-import { Icon } from "@iconify/vue";
+
 import { BUSINESS } from "~~/shared/shop";
 </script>
 
@@ -17,6 +17,7 @@ import { BUSINESS } from "~~/shared/shop";
 
       <!-- Footer -->
       <footer class="site-footer">
+        <LazyNewsletterSignup hydrate-on-visible />
         <div class="site-footer-inner">
           <!-- Big brand row -->
           <div class="footer-brand-row">
@@ -95,27 +96,13 @@ import { BUSINESS } from "~~/shared/shop";
 
 /* ── Footer ──────────────────────────────────────────── */
 .site-footer {
-  margin-top: 6rem;
   background: var(--pop-panel, #331825);
   color: #F1EBDF;
-  padding: 4rem 1.25rem 2rem;
+  padding: 0 1.25rem 2rem;
   position: relative;
 }
-.site-footer::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  inset-inline: 0;
-  height: 4px;
-  background: repeating-linear-gradient(
-    90deg,
-    var(--pop-pink, #E585AA) 0, var(--pop-pink, #E585AA) 28px,
-    var(--pop-lime, #B9E14B) 28px, var(--pop-lime, #B9E14B) 56px
-  );
-  opacity: 0.85;
-}
 @media (min-width: 768px) {
-  .site-footer { padding: 5.5rem 2rem 2rem; }
+  .site-footer { padding: 0 2rem 2rem; }
 }
 
 .site-footer-inner {
@@ -187,7 +174,7 @@ import { BUSINESS } from "~~/shared/shop";
   font-size: 0.68rem;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: var(--pop-pink, #E585AA);
+  color: var(--pop-cream, #F0E7D2);
   margin: 0 0 1.25rem;
 }
 

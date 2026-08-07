@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Icon } from "@iconify/vue";
+
 import { BUSINESS, CARD_PAYMENT_ENABLED, formattedAddress, orPlaceholder } from "~~/shared/shop";
 
 useSeoMeta({

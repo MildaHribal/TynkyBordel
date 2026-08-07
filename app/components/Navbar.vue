@@ -2,7 +2,7 @@
 import { useCartStore } from "~/stores/cart";
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
 import { useAuth } from '~/composables/useAuth';
-import { Icon } from '@iconify/vue';
+
 
 const cart = useCartStore();
 const { currentUser, signOut } = useAuth();

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useCartStore } from "~/stores/cart";
-import { Icon } from "@iconify/vue";
+
 import { useAuth } from "~/composables/useAuth";
 import { CARD_PAYMENT_ENABLED, COD_FEE, SHIPPING_FEE } from "~~/shared/shop";
 

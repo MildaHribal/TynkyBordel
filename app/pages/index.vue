@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import ProductCard from "~/components/products/ProductCard.vue";
-import { Icon } from "@iconify/vue";
 import type { Product } from '~~/types';
 
 const config = useRuntimeConfig()
@@ -18,7 +17,12 @@ useSeoMeta({
   twitterCard: 'summary_large_image',
 })
 
-const { data: allProducts, pending, error } = await useFetch<Product[]>('/api/products?limit=40')
+const { data: allProducts, pending, error } = await useFetch<Product[]>('/api/products?limit=40', {
+  // Only carry the fields rendered on the homepage into the SSR payload.
+  // Every extra column (description, updatedAt, ...) is serialized into HTML
+  // and parsed again during hydration — paid for twice.
+  pick: ['id', 'title', 'name', 'slug', 'price', 'image', 'images', 'stock', 'category'],
+})
 
 const collection = computed(() =>
   (allProducts.value ?? []).map((p, i) => ({ ...p, id: p.id || `col-${i}` }))
@@ -219,7 +223,7 @@ function scrollToKolekce(e: MouseEvent) {
       </section>
 
       <!-- ═══ ABOUT ═══ -->
-      <section id="about" class="zsection">
+      <section id="about" class="zsection below-fold">
         <div class="zabout zine-panel">
           <div class="zabout-art">
             <NuxtImg
@@ -242,7 +246,7 @@ function scrollToKolekce(e: MouseEvent) {
       </section>
 
       <!-- ═══ INFO TILES ═══ -->
-      <section class="zsection">
+      <section class="zsection below-fold">
         <div class="ztiles">
           <div class="ztile">
             <span class="ztile-num">01</span>
@@ -261,9 +265,6 @@ function scrollToKolekce(e: MouseEvent) {
           </div>
         </div>
       </section>
-
-      <!-- ═══ NEWSLETTER ═══ -->
-      <NewsletterSignup />
     </template>
   </div>
 </template>
@@ -439,14 +440,14 @@ function scrollToKolekce(e: MouseEvent) {
 @media (min-width: 720px) { .ztiles { grid-template-columns: repeat(3, 1fr); } }
 .ztile {
   position: relative;
-  background: #fbf7ee;
+  background: var(--pop-cream, #F0E7D2);
   border: 2px solid var(--pop-ink);
   border-radius: 12px;
   padding: 1.5rem 1.5rem 1.4rem;
-  box-shadow: 4px 4px 0 rgba(20, 35, 26, 0.85);
+  box-shadow: 4px 5px 0 rgba(32, 8, 40, 0.55);
   transition: transform 0.16s ease, box-shadow 0.16s ease;
 }
-.ztile:hover { transform: translate(-1px, -1px); box-shadow: 6px 6px 0 rgba(20, 35, 26, 0.85); }
+.ztile:hover { transform: translate(-1px, -1px); box-shadow: 7px 9px 0 var(--pop-pink, #E7488B); }
 .ztile-num {
   font-family: var(--font-mono);
   font-weight: 700;

@@ -110,6 +110,9 @@ body {
     radial-gradient(rgba(32, 17, 52, 0.07) 1px, transparent 1.2px);
   background-size: 26px 26px, 52px 52px;
   background-position: 0 0, 13px 13px;
+  /* Fixed attachment creates a full-viewport composited layer that repaints on
+     every scroll frame on mobile — devastating for scroll perf. Use scroll on
+     phones (the pattern tiles anyway), keep fixed on desktop for the parallax. */
   background-attachment: fixed;
   min-height: 100vh;
   font-family: 'Manrope', 'Inter', system-ui, sans-serif;
@@ -118,6 +121,9 @@ body {
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+@media (max-width: 768px) {
+  body { background-attachment: scroll; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1380,4 +1386,12 @@ body :where(h1, h2, h3, h4, h5, h6) {
 }
 @media (min-width: 1280px) {
   .psy-section { padding: 6rem 4.5rem; }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   CONTENT-VISIBILITY — skip layout/paint for offscreen sections
+   ══════════════════════════════════════════════════════════════ */
+.below-fold {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 800px;
 }

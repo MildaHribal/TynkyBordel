@@ -1,4 +1,4 @@
-import posthog from 'posthog-js'
+import type { PostHog } from 'posthog-js'
 
 /**
  * PostHog product analytics (client-side).
@@ -23,10 +23,11 @@ export default defineNuxtPlugin(() => {
 
   const { analyticsAllowed } = useCookieConsent()
 
-  let client: ReturnType<typeof posthog.init> | undefined
+  let client: PostHog | undefined
 
-  const start = () => {
+  const start = async () => {
     if (client) return
+    const { default: posthog } = await import('posthog-js')
     client = posthog.init(key, {
       api_host: host,
       defaults: '2025-05-24',

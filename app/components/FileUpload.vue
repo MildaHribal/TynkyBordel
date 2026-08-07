@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Icon } from '@iconify/vue'
+
 
 const emit = defineEmits<{
   (e: 'upload-success', url: string): void

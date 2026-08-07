@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Icon } from '@iconify/vue'
+
 
 // Analytics stays off until "Souhlasím" is clicked — see useCookieConsent.
 const { needsDecision, accept, reject } = useCookieConsent()

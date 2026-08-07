@@ -2,7 +2,7 @@ import { db } from '../../utils/db';
 import { products, categories } from '../../database/schema';
 import { and, eq, ilike, or, sql, desc, gt } from 'drizzle-orm';
 
-export default defineEventHandler(async (event) => {
+export default defineCachedEventHandler(async (event) => {
   const query = getQuery(event);
   const search = typeof query.search === 'string' ? query.search.trim() : '';
   // Filter by category NAME (matches what the product detail page passes when
@@ -57,4 +57,4 @@ export default defineEventHandler(async (event) => {
   }
 
   return await queryBuilder;
-});
+}, { maxAge: 60 * 60 });
