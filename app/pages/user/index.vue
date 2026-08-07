@@ -92,12 +92,46 @@ const statusClass = (status: string) => {
   const map: Record<string, string> = {
     pending: 'bg-yellow-500/20 text-yellow-400',
     paid: 'bg-blue-500/20 text-blue-400',
-    shipped: 'bg-purple-500/20 text-purple-400',
+    shipped: 'bg-sky-500/20 text-sky-300',
     delivered: 'bg-green-500/20 text-green-400',
     cancelled: 'bg-red-500/20 text-red-400'
   }
   return map[status] || 'bg-white/10 text-white/70'
 }
+
+// Order detail is collapsed by default; clicking a card expands it.
+const expandedOrder = ref<number | null>(null)
+const toggleOrder = (id: number) => {
+  expandedOrder.value = expandedOrder.value === id ? null : id
+}
+
+const paymentLabel = (m?: string | null) => {
+  const map: Record<string, string> = {
+    cash: 'Dobírka',
+    'bank-transfer': 'Převodem na účet',
+    card: 'Kartou přes PayPal',
+    paypal: 'PayPal',
+  }
+  return (m && (map[m] || m)) || '—'
+}
+const paymentStatusLabel = (s?: string | null) => {
+  const map: Record<string, string> = {
+    unpaid: 'Nezaplaceno',
+    paid: 'Zaplaceno',
+    refunded: 'Vráceno',
+  }
+  return (s && (map[s] || s)) || '—'
+}
+const shippingLabel = (m?: string | null) => {
+  const map: Record<string, string> = {
+    'packeta-zbox': 'Zásilkovna — Z-BOX',
+    packeta: 'Zásilkovna',
+    balikovna: 'Balíkovna (Česká pošta)',
+    personal: 'Osobní odběr',
+  }
+  return (m && (map[m] || m)) || '—'
+}
+const itemLink = (item: any) => (item?.productId ? `/product/${item.productId}` : null)
 </script>
 
 <template>
@@ -226,40 +260,91 @@ const statusClass = (status: string) => {
             <div v-for="i in 3" :key="i" class="p-5 rounded-xl border border-white/10 bg-white/5 animate-pulse h-32"></div>
           </div>
           <div v-else-if="orders && orders.length > 0" class="space-y-4">
-            <div v-for="order in orders" :key="order.id" class="p-5 rounded-xl border border-white/10 bg-white/5 transition-all hover:bg-white/10">
-              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
+            <div v-for="order in orders" :key="order.id" class="rounded-xl border border-white/10 bg-white/5 transition-all overflow-hidden">
+              <!-- Clickable header — toggles the detail -->
+              <button
+                type="button"
+                @click="toggleOrder(order.id)"
+                class="w-full text-left p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-white/5 transition-colors"
+                :aria-expanded="expandedOrder === order.id"
+              >
                 <div>
                   <div class="font-mono text-primary-400 font-bold mb-1">Objednávka #{{ order.orderNumber || order.id }}</div>
-                  <div class="text-sm text-white/50">{{ order.createdAt ? new Date(order.createdAt).toLocaleDateString('cs-CZ') : '' }}</div>
+                  <div class="text-sm text-white/50">
+                    {{ order.createdAt ? new Date(order.createdAt).toLocaleDateString('cs-CZ') : '' }}
+                    · {{ order.items?.length || 0 }} {{ (order.items?.length || 0) === 1 ? 'položka' : 'položek' }}
+                  </div>
                 </div>
                 <div class="flex items-center gap-3">
                   <span class="text-lg font-black text-white">{{ order.totalPrice }} Kč</span>
                   <span :class="['px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider', statusClass(order.status)]">
                     {{ statusLabel(order.status) }}
                   </span>
+                  <Icon
+                    icon="mdi:chevron-down" height="22"
+                    class="text-white/40 transition-transform duration-200 flex-shrink-0"
+                    :class="{ 'rotate-180': expandedOrder === order.id }"
+                  />
                 </div>
-              </div>
+              </button>
 
-              <div class="border-t border-white/5 pt-4">
+              <!-- Expandable detail -->
+              <div v-show="expandedOrder === order.id" class="px-5 pb-5">
+                <!-- Order meta -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 border-t border-white/10 pt-4 mb-5">
+                  <div>
+                    <div class="text-xs uppercase tracking-wider text-white/40 mb-1">Způsob platby</div>
+                    <div class="text-sm text-white">{{ paymentLabel(order.paymentMethod) }}</div>
+                  </div>
+                  <div>
+                    <div class="text-xs uppercase tracking-wider text-white/40 mb-1">Stav platby</div>
+                    <div class="text-sm text-white">{{ paymentStatusLabel(order.paymentStatus) }}</div>
+                  </div>
+                  <div>
+                    <div class="text-xs uppercase tracking-wider text-white/40 mb-1">Doprava</div>
+                    <div class="text-sm text-white">
+                      {{ shippingLabel(order.shippingMethod) }}
+                      <span v-if="order.packetaBranchName" class="text-white/50">· {{ order.packetaBranchName }}</span>
+                    </div>
+                  </div>
+                  <div>
+                    <div class="text-xs uppercase tracking-wider text-white/40 mb-1">Doručovací adresa</div>
+                    <div class="text-sm text-white whitespace-pre-line">{{ order.shippingAddress || '—' }}</div>
+                  </div>
+                  <div v-if="order.customerPhone">
+                    <div class="text-xs uppercase tracking-wider text-white/40 mb-1">Telefon</div>
+                    <div class="text-sm text-white">{{ order.customerPhone }}</div>
+                  </div>
+                  <div v-if="order.variableSymbol">
+                    <div class="text-xs uppercase tracking-wider text-white/40 mb-1">Variabilní symbol</div>
+                    <div class="text-sm text-white font-mono">{{ order.variableSymbol }}</div>
+                  </div>
+                </div>
+
+                <!-- Items — clickable through to the product -->
                 <div class="text-sm font-medium text-white/70 mb-3">Položky ({{ order.items?.length || 0 }}):</div>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div v-for="item in order.items" :key="item.id" class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-md bg-white/5 overflow-hidden flex-shrink-0">
+                  <component
+                    :is="itemLink(item) ? 'NuxtLink' : 'div'"
+                    v-for="item in order.items" :key="item.id"
+                    :to="itemLink(item) || undefined"
+                    class="flex items-center gap-3 rounded-lg p-2 -m-2 transition-colors"
+                    :class="itemLink(item) ? 'hover:bg-white/10 cursor-pointer' : ''"
+                  >
+                    <div class="w-11 h-11 rounded-md bg-white/5 overflow-hidden flex-shrink-0">
                       <NuxtImg
                         v-if="item.image"
                         :src="item.image.startsWith('http') ? item.image : `/${item.image}`"
                         class="w-full h-full object-cover"
-                        width="80"
-                        height="80"
-                        format="webp"
-                        loading="lazy"
+                        width="88" height="88" format="webp" loading="lazy"
                       />
                     </div>
-                    <div class="min-w-0">
+                    <div class="min-w-0 flex-1">
                       <div class="text-sm text-white truncate">{{ item.title }}</div>
                       <div class="text-xs text-white/40">{{ item.quantity }} × {{ item.price }} Kč</div>
                     </div>
-                  </div>
+                    <Icon v-if="itemLink(item)" icon="mdi:arrow-right" height="16" class="text-white/30 flex-shrink-0" />
+                  </component>
                 </div>
               </div>
             </div>
