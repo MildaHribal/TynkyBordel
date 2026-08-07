@@ -49,6 +49,8 @@ set_setting "0rtt" on
 set_setting http3 on
 set_setting rocket_loader off             # OFF — Rocket Loader breaks Vue hydration
 set_setting security_level medium
+set_setting always_online on              # serve a cached copy if the VPS is down
+set_setting crawler_hints on              # tell search engines when content changes (SEO/AI discovery)
 
 echo "→ Tiered Cache (fewer origin hits) ..."
 echo -n "  tiered_caching "
@@ -96,9 +98,13 @@ cf -X PUT "$API/zones/$ZONE/rulesets/phases/http_ratelimit/entrypoint" --data '{
   }]
 }' | ok || true
 
-echo "→ Bot Fight Mode ..."
+# Bot Fight Mode is intentionally OFF: on the free plan it's a blunt instrument
+# that can challenge AI crawlers (GPTBot, ClaudeBot, PerplexityBot…) and hurt
+# discoverability, which the shop WANTS. Brute-force protection is handled by the
+# /api/auth rate-limit above instead.
+echo "→ Bot Fight Mode (OFF — keep AI crawlers welcome) ..."
 echo -n "  bot_fight_mode "
-cf -X PUT "$API/zones/$ZONE/bot_management" --data '{"fight_mode": true}' | ok || echo "  (skip — enable manually in Security → Bots if this failed)"
+cf -X PUT "$API/zones/$ZONE/bot_management" --data '{"fight_mode": false}' | ok || echo "  (skip — toggle manually in Security → Bots if this failed)"
 
 echo ""
 echo "✅ Done. Still do by hand in the dashboard (can't be safely scripted):"
