@@ -108,10 +108,10 @@ const handleSubmit = async () => {
 <style scoped>
 .contact-card {
   background: #ffffff;
-  border: 1px solid rgba(42, 19, 64, 0.1);
+  border: 1px solid rgba(20, 35, 26, 0.1);
   border-radius: 1.5rem;
   padding: 2rem 1.5rem;
-  box-shadow: 0 12px 32px rgba(42, 19, 64, 0.08);
+  box-shadow: 0 12px 32px rgba(20, 35, 26, 0.08);
 }
 @media (min-width: 768px) {
   .contact-card { padding: 3rem 2.5rem; }
@@ -177,7 +177,7 @@ const handleSubmit = async () => {
   height: 42px;
   border-radius: 9999px;
   background: #F1EBDF;
-  border: 1px solid rgba(42, 19, 64, 0.1);
+  border: 1px solid rgba(20, 35, 26, 0.1);
   color: var(--pop-ink);
   display: inline-flex;
   align-items: center;
@@ -218,13 +218,13 @@ const handleSubmit = async () => {
   font-size: 0.68rem;
   letter-spacing: 0.22em;
   text-transform: uppercase;
-  color: rgba(42, 19, 64, 0.6);
+  color: rgba(20, 35, 26, 0.6);
   margin-left: 0.2rem;
 }
 .form-input {
   width: 100%;
   background: #F1EBDF;
-  border: 1px solid rgba(42, 19, 64, 0.15);
+  border: 1px solid rgba(20, 35, 26, 0.15);
   border-radius: 0.85rem;
   padding: 0.9rem 1rem;
   color: var(--pop-ink);
@@ -234,13 +234,13 @@ const handleSubmit = async () => {
   transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
 }
 .form-input::placeholder {
-  color: rgba(42, 19, 64, 0.4);
+  color: rgba(20, 35, 26, 0.4);
 }
 .form-input:focus {
   outline: none;
   border-color: var(--pop-ink);
   background: #ffffff;
-  box-shadow: 0 0 0 3px rgba(42, 19, 64, 0.1);
+  box-shadow: 0 0 0 3px rgba(20, 35, 26, 0.1);
 }
 .form-textarea { resize: vertical; min-height: 130px; line-height: 1.5; }
 
@@ -264,7 +264,7 @@ const handleSubmit = async () => {
   margin-top: 0.5rem;
 }
 .form-submit:hover:not(:disabled) {
-  background: #33291f;
+  background: #21382a;
   transform: translateY(-2px);
 }
 .form-submit:disabled { opacity: 0.7; cursor: wait; }

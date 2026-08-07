@@ -559,22 +559,22 @@ watch(paymentMethod, async (m) => {
 <style scoped>
 /* ── Palette overrides (checkout uses dark text on pastel body) ── */
 .checkout-page {
-  color: var(--pop-ink, #221d19);
+  color: var(--pop-ink, #14231a);
 }
 
 .checkout-back {
-  color: rgba(42, 19, 64, 0.45);
+  color: rgba(20, 35, 26, 0.45);
   transition: color 0.2s;
 }
 .checkout-back:hover {
-  color: var(--pop-ink, #221d19);
+  color: var(--pop-ink, #14231a);
 }
 
 .checkout-title {
   font-family: 'Berkshire Swash', 'Petrona', cursive;
   font-size: clamp(1.6rem, 4vw, 2.2rem);
   line-height: 1;
-  color: var(--pop-ink, #221d19);
+  color: var(--pop-ink, #14231a);
   letter-spacing: -0.02em;
 }
 
@@ -582,10 +582,10 @@ watch(paymentMethod, async (m) => {
 .checkout-card {
   background: rgba(255, 255, 255, 0.7);
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(42, 19, 64, 0.1);
+  border: 1px solid rgba(20, 35, 26, 0.1);
   border-radius: 1.25rem;
   padding: 1.25rem 1.25rem;
-  box-shadow: 0 2px 12px rgba(42, 19, 64, 0.06);
+  box-shadow: 0 2px 12px rgba(20, 35, 26, 0.06);
 }
 @media (min-width: 768px) {
   .checkout-card { padding: 1.5rem 1.5rem; }
@@ -597,10 +597,10 @@ watch(paymentMethod, async (m) => {
   gap: 0.5rem;
   font-size: 0.95rem;
   font-weight: 700;
-  color: var(--pop-ink, #221d19);
+  color: var(--pop-ink, #14231a);
   margin-bottom: 1rem;
   padding-bottom: 0.75rem;
-  border-bottom: 1px solid rgba(42, 19, 64, 0.08);
+  border-bottom: 1px solid rgba(20, 35, 26, 0.08);
 }
 .checkout-section-icon {
   color: var(--pop-lavender, #b34a72);
@@ -610,7 +610,7 @@ watch(paymentMethod, async (m) => {
   display: block;
   font-size: 0.72rem;
   font-weight: 600;
-  color: rgba(42, 19, 64, 0.6);
+  color: rgba(20, 35, 26, 0.6);
   margin-bottom: 0.35rem;
   letter-spacing: 0.02em;
 }
@@ -618,33 +618,33 @@ watch(paymentMethod, async (m) => {
 .checkout-input {
   width: 100%;
   padding: 0.75rem 0.9rem;
-  border: 1px solid rgba(42, 19, 64, 0.15);
+  border: 1px solid rgba(20, 35, 26, 0.15);
   background: rgba(255, 255, 255, 0.85);
   border-radius: 0.65rem;
-  color: var(--pop-ink, #221d19);
+  color: var(--pop-ink, #14231a);
   font-size: 0.95rem;
   transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
 }
 .checkout-input::placeholder {
-  color: rgba(42, 19, 64, 0.35);
+  color: rgba(20, 35, 26, 0.35);
 }
 .checkout-input:focus {
   outline: none;
-  border-color: rgba(107, 78, 167, 0.55);
+  border-color: rgba(179, 50, 76, 0.55);
   background: #fff;
-  box-shadow: 0 0 0 3px rgba(107, 78, 167, 0.12);
+  box-shadow: 0 0 0 3px rgba(179, 50, 76, 0.12);
 }
 
 .checkout-note {
   font-size: 0.85rem;
-  color: rgba(42, 19, 64, 0.65);
+  color: rgba(20, 35, 26, 0.65);
   margin-bottom: 1rem;
 }
 .checkout-caption {
   font-size: 0.7rem;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: rgba(42, 19, 64, 0.55);
+  color: rgba(20, 35, 26, 0.55);
   font-weight: 700;
   margin-bottom: 0.15rem;
 }
@@ -677,19 +677,19 @@ watch(paymentMethod, async (m) => {
   justify-content: space-between;
   padding: 0.75rem 1rem;
   font-weight: 700;
-  color: #221d19;
-  border-bottom: 1px solid rgba(42, 19, 64, 0.1);
+  color: #14231a;
+  border-bottom: 1px solid rgba(20, 35, 26, 0.1);
 }
 .balikovna-close {
   border: 0;
   background: transparent;
   font-size: 1.1rem;
   cursor: pointer;
-  color: rgba(42, 19, 64, 0.6);
+  color: rgba(20, 35, 26, 0.6);
   padding: 4px 8px;
   border-radius: 8px;
 }
-.balikovna-close:hover { background: rgba(42, 19, 64, 0.08); }
+.balikovna-close:hover { background: rgba(20, 35, 26, 0.08); }
 .balikovna-iframe {
   flex-grow: 1;
   width: 100%;
@@ -704,8 +704,8 @@ watch(paymentMethod, async (m) => {
   align-items: stretch;
   padding: 0.9rem 1rem;
   border-radius: 0.9rem;
-  background: rgba(189, 166, 206, 0.18);
-  border: 1px solid rgba(107, 78, 167, 0.2);
+  background: rgba(169, 203, 191, 0.18);
+  border: 1px solid rgba(179, 50, 76, 0.2);
 }
 @media (min-width: 640px) {
   .zbox-row {
@@ -728,7 +728,7 @@ watch(paymentMethod, async (m) => {
 }
 .zbox-name {
   font-weight: 700;
-  color: var(--pop-ink, #221d19);
+  color: var(--pop-ink, #14231a);
   display: flex;
   align-items: center;
   gap: 0.35rem;
@@ -739,7 +739,7 @@ watch(paymentMethod, async (m) => {
 }
 .zbox-address {
   font-size: 0.8rem;
-  color: rgba(42, 19, 64, 0.7);
+  color: rgba(20, 35, 26, 0.7);
   margin-top: 2px;
 }
 .zbox-empty {
@@ -757,11 +757,11 @@ watch(paymentMethod, async (m) => {
   padding: 0.85rem 1rem;
   border-radius: 0.9rem;
   background: rgba(255, 255, 255, 0.55);
-  border: 1px solid rgba(42, 19, 64, 0.12);
+  border: 1px solid rgba(20, 35, 26, 0.12);
   cursor: pointer;
   transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
 }
-.payment-option:hover { border-color: rgba(42, 19, 64, 0.3); }
+.payment-option:hover { border-color: rgba(20, 35, 26, 0.3); }
 .payment-option.is-active {
   border-color: #b3324c;
   background: rgba(179, 50, 76, 0.06);
@@ -786,7 +786,7 @@ watch(paymentMethod, async (m) => {
   justify-content: center;
 }
 .payment-icon--bank {
-  background: rgba(107, 78, 167, 0.15);
+  background: rgba(179, 50, 76, 0.15);
   color: #b34a72;
 }
 .payment-icon--card {
@@ -795,9 +795,9 @@ watch(paymentMethod, async (m) => {
 }
 .paypal-hint {
   font-size: 0.85rem;
-  color: rgba(42, 19, 64, 0.6);
-  background: rgba(42, 19, 64, 0.05);
-  border: 1px solid rgba(42, 19, 64, 0.1);
+  color: rgba(20, 35, 26, 0.6);
+  background: rgba(20, 35, 26, 0.05);
+  border: 1px solid rgba(20, 35, 26, 0.1);
   border-radius: 12px;
   padding: 0.85rem 1rem;
   margin-bottom: 0.75rem;
@@ -813,7 +813,7 @@ watch(paymentMethod, async (m) => {
 }
 .payment-title {
   font-weight: 700;
-  color: var(--pop-ink, #221d19);
+  color: var(--pop-ink, #14231a);
   font-size: 0.98rem;
   display: inline-flex;
   align-items: center;
@@ -831,7 +831,7 @@ watch(paymentMethod, async (m) => {
 }
 .payment-note {
   font-size: 0.8rem;
-  color: rgba(42, 19, 64, 0.7);
+  color: rgba(20, 35, 26, 0.7);
 }
 
 /* ── Bank transfer success panel ── */
@@ -849,7 +849,7 @@ watch(paymentMethod, async (m) => {
 .bank-lead {
   font-size: 0.92rem;
   line-height: 1.55;
-  color: rgba(42, 19, 64, 0.75);
+  color: rgba(20, 35, 26, 0.75);
   margin: 0 0 1.25rem;
   text-align: center;
 }
@@ -862,22 +862,22 @@ watch(paymentMethod, async (m) => {
   border-radius: 0.75rem;
   background: #ffffff;
   padding: 0.75rem;
-  box-shadow: 0 4px 18px rgba(42, 19, 64, 0.14);
-  border: 1px solid rgba(42, 19, 64, 0.1);
+  box-shadow: 0 4px 18px rgba(20, 35, 26, 0.14);
+  border: 1px solid rgba(20, 35, 26, 0.1);
 }
 .bank-details {
   display: flex;
   flex-direction: column;
   gap: 0.55rem;
   padding-top: 0.85rem;
-  border-top: 1px solid rgba(42, 19, 64, 0.1);
+  border-top: 1px solid rgba(20, 35, 26, 0.1);
 }
 .bank-row {
   display: flex;
   justify-content: space-between;
   gap: 1rem;
   font-size: 0.9rem;
-  color: rgba(42, 19, 64, 0.7);
+  color: rgba(20, 35, 26, 0.7);
 }
 .bank-row strong {
   color: var(--pop-ink);
@@ -899,9 +899,9 @@ watch(paymentMethod, async (m) => {
 .bank-footer {
   margin-top: 1.25rem;
   padding-top: 0.85rem;
-  border-top: 1px solid rgba(42, 19, 64, 0.08);
+  border-top: 1px solid rgba(20, 35, 26, 0.08);
   font-size: 0.82rem;
-  color: rgba(42, 19, 64, 0.6);
+  color: rgba(20, 35, 26, 0.6);
   text-align: center;
 }
 
@@ -923,7 +923,7 @@ watch(paymentMethod, async (m) => {
 }
 .terms-text {
   font-size: 0.85rem;
-  color: rgba(42, 19, 64, 0.75);
+  color: rgba(20, 35, 26, 0.75);
   line-height: 1.5;
 }
 .terms-link {
@@ -948,11 +948,11 @@ watch(paymentMethod, async (m) => {
   border: none;
   cursor: pointer;
   transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
-  box-shadow: 0 4px 18px rgba(107, 78, 167, 0.3);
+  box-shadow: 0 4px 18px rgba(179, 50, 76, 0.3);
 }
 .btn-primary-pop:hover:not(:disabled) {
   transform: translateY(-1px);
-  box-shadow: 0 6px 22px rgba(107, 78, 167, 0.4);
+  box-shadow: 0 6px 22px rgba(179, 50, 76, 0.4);
 }
 .btn-primary-pop:disabled {
   opacity: 0.4;
@@ -964,15 +964,15 @@ watch(paymentMethod, async (m) => {
 .summary-card {
   background: rgba(255, 255, 255, 0.75);
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(42, 19, 64, 0.1);
+  border: 1px solid rgba(20, 35, 26, 0.1);
   border-radius: 1.25rem;
   padding: 1.25rem;
-  box-shadow: 0 4px 20px rgba(42, 19, 64, 0.08);
+  box-shadow: 0 4px 20px rgba(20, 35, 26, 0.08);
 }
 .summary-title {
   font-size: 1rem;
   font-weight: 700;
-  color: var(--pop-ink, #221d19);
+  color: var(--pop-ink, #14231a);
   margin-bottom: 1rem;
 }
 .summary-items {
@@ -995,7 +995,7 @@ watch(paymentMethod, async (m) => {
   border-radius: 10px;
   overflow: hidden;
   flex-shrink: 0;
-  background: rgba(42, 19, 64, 0.06);
+  background: rgba(20, 35, 26, 0.06);
 }
 .summary-thumb-empty {
   width: 100%;
@@ -1003,22 +1003,22 @@ watch(paymentMethod, async (m) => {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: rgba(42, 19, 64, 0.3);
+  color: rgba(20, 35, 26, 0.3);
 }
 .summary-item-title {
   font-size: 0.85rem;
   font-weight: 600;
-  color: var(--pop-ink, #221d19);
+  color: var(--pop-ink, #14231a);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 .summary-item-qty {
   font-size: 0.72rem;
-  color: rgba(42, 19, 64, 0.55);
+  color: rgba(20, 35, 26, 0.55);
 }
 .summary-totals {
-  border-top: 1px solid rgba(42, 19, 64, 0.1);
+  border-top: 1px solid rgba(20, 35, 26, 0.1);
   padding-top: 0.85rem;
   display: flex;
   flex-direction: column;
@@ -1028,14 +1028,14 @@ watch(paymentMethod, async (m) => {
   display: flex;
   justify-content: space-between;
   font-size: 0.85rem;
-  color: rgba(42, 19, 64, 0.65);
+  color: rgba(20, 35, 26, 0.65);
 }
 .summary-total {
   padding-top: 0.6rem;
-  border-top: 1px solid rgba(42, 19, 64, 0.1);
+  border-top: 1px solid rgba(20, 35, 26, 0.1);
   font-size: 1.05rem;
   font-weight: 800;
-  color: var(--pop-ink, #221d19);
+  color: var(--pop-ink, #14231a);
   margin-top: 0.2rem;
 }
 
@@ -1051,18 +1051,18 @@ watch(paymentMethod, async (m) => {
   align-items: center;
   justify-content: center;
   margin: 0 auto 2rem;
-  box-shadow: 0 12px 30px rgba(107, 78, 167, 0.35);
+  box-shadow: 0 12px 30px rgba(179, 50, 76, 0.35);
 }
 .success-title {
   font-family: 'Berkshire Swash', 'Petrona', cursive;
   font-size: clamp(2rem, 6vw, 3rem);
-  color: var(--pop-ink, #221d19);
+  color: var(--pop-ink, #14231a);
   margin-bottom: 0.5rem;
   letter-spacing: -0.02em;
 }
 .success-subtitle {
   font-size: 1.05rem;
-  color: rgba(42, 19, 64, 0.7);
+  color: rgba(20, 35, 26, 0.7);
   margin-bottom: 1.75rem;
 }
 .success-code {
@@ -1072,10 +1072,10 @@ watch(paymentMethod, async (m) => {
 }
 .success-panel {
   background: rgba(255, 255, 255, 0.75);
-  border: 1px solid rgba(42, 19, 64, 0.1);
+  border: 1px solid rgba(20, 35, 26, 0.1);
   border-radius: 1rem;
   padding: 1rem 1.25rem;
-  color: rgba(42, 19, 64, 0.75);
+  color: rgba(20, 35, 26, 0.75);
   font-size: 0.95rem;
   margin-bottom: 2rem;
   text-align: left;

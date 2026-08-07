@@ -56,11 +56,11 @@ const { needsDecision, accept, reject } = useCookieConsent()
   flex-direction: column;
   gap: 1rem;
   padding: 1.15rem 1.25rem;
-  background: #1a0f28;
+  background: #182a1c;
   color: #F1EBDF;
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 1.15rem;
-  box-shadow: 0 18px 50px rgba(10, 4, 20, 0.45);
+  box-shadow: 0 18px 50px rgba(8, 20, 12, 0.45);
 }
 @media (min-width: 860px) {
   .cookie-inner {
@@ -147,7 +147,7 @@ const { needsDecision, accept, reject } = useCookieConsent()
 
 .cookie-btn--primary {
   background: #F1EBDF;
-  color: #1a0f28;
+  color: #182a1c;
   border: 1px solid transparent;
 }
 .cookie-btn--primary:hover { background: #ffffff; }

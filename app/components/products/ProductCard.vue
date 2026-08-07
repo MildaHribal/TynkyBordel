@@ -239,8 +239,8 @@ const toggleFavorite = async () => {
 .product-card {
   text-decoration: none;
   color: inherit;
-  background: var(--pop-plum, #241f1b);
-  border: 2px solid var(--pop-ink, #221d19);
+  background: var(--pop-plum, #182a1c);
+  border: 2px solid var(--pop-ink, #14231a);
   border-radius: 0.85rem;
   padding: 0.5rem 0.5rem 0.6rem;
   transform: rotate(var(--tilt, 0deg));
@@ -256,7 +256,7 @@ const toggleFavorite = async () => {
 /* ── Image frame — black so the product photos (shot on black) blend in ── */
 .card-image {
   background: #000000;
-  border: 2px solid var(--pop-ink, #221d19);
+  border: 2px solid var(--pop-ink, #14231a);
   border-radius: 0.6rem;
   transition: border-color 0.3s ease;
 }

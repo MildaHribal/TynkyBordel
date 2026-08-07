@@ -34,8 +34,8 @@
   margin: 0 auto;
   border-radius: 1.5rem;
   overflow: hidden;
-  box-shadow: 0 12px 40px rgba(42, 19, 64, 0.14);
-  border: 1px solid rgba(42, 19, 64, 0.08);
+  box-shadow: 0 12px 40px rgba(20, 35, 26, 0.14);
+  border: 1px solid rgba(20, 35, 26, 0.08);
   background: #1a0f28;
   aspect-ratio: 24 / 9;
 }

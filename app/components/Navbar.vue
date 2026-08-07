@@ -369,7 +369,7 @@ onUnmounted(() => {
   text-transform: none;
   line-height: 1;
   white-space: nowrap;
-  color: #221d19;
+  color: #14231a;
 }
 @media (min-width: 768px) { .brand-text { font-size: 1.5rem; } }
 
@@ -378,15 +378,15 @@ onUnmounted(() => {
   align-items: center;
   gap: 0.25rem;
   padding: 0.4rem 0.5rem 0.4rem 1rem;
-  background: var(--pop-plum, #241f1b);
-  border: 2px solid var(--pop-ink, #221d19);
+  background: var(--pop-plum, #182a1c);
+  border: 2px solid var(--pop-ink, #14231a);
   border-radius: 9999px;
   color: #ffffff;
-  box-shadow: 3px 3px 0 rgba(34, 29, 25, 0.85);
+  box-shadow: 3px 3px 0 rgba(20, 35, 26, 0.85);
   transition: box-shadow 0.25s ease;
   position: relative;
 }
-.navbar--scrolled { box-shadow: 4px 4px 0 rgba(34, 29, 25, 0.85); }
+.navbar--scrolled { box-shadow: 4px 4px 0 rgba(20, 35, 26, 0.85); }
 
 .nav-link {
   display: inline-flex;
@@ -403,7 +403,7 @@ onUnmounted(() => {
   transition: background 0.2s ease, color 0.2s ease;
   white-space: nowrap;
 }
-.nav-link:hover { background: var(--pop-pink, #E585AA); color: var(--pop-ink, #221d19); }
+.nav-link:hover { background: var(--pop-pink, #E585AA); color: var(--pop-ink, #14231a); }
 
 /* ── Inline search (desktop) ─────────────────────────── */
 .nav-search {
@@ -426,7 +426,7 @@ onUnmounted(() => {
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
 }
 .nav-search-icon { color: rgba(255, 255, 255, 0.7); flex-shrink: 0; }
-.nav-search:focus-within .nav-search-icon { color: rgba(42, 19, 64, 0.55); }
+.nav-search:focus-within .nav-search-icon { color: rgba(20, 35, 26, 0.55); }
 .nav-search-input {
   flex: 1;
   min-width: 0;
@@ -440,7 +440,7 @@ onUnmounted(() => {
 }
 .nav-search-input::placeholder { color: rgba(255, 255, 255, 0.6); }
 .nav-search:focus-within .nav-search-input { color: var(--pop-ink); }
-.nav-search:focus-within .nav-search-input::placeholder { color: rgba(42, 19, 64, 0.35); }
+.nav-search:focus-within .nav-search-input::placeholder { color: rgba(20, 35, 26, 0.35); }
 
 /* ── Search dropdown ─────────────────────────────────── */
 .search-dropdown {
@@ -452,9 +452,9 @@ onUnmounted(() => {
   max-height: 60vh;
   overflow-y: auto;
   background: #ffffff;
-  border: 1px solid rgba(42, 19, 64, 0.1);
+  border: 1px solid rgba(20, 35, 26, 0.1);
   border-radius: 1rem;
-  box-shadow: 0 18px 44px rgba(42, 19, 64, 0.25);
+  box-shadow: 0 18px 44px rgba(20, 35, 26, 0.25);
   padding: 0.4rem;
 }
 
@@ -463,7 +463,7 @@ onUnmounted(() => {
   font-family: 'Manrope', system-ui;
   font-weight: 500;
   font-size: 0.88rem;
-  color: rgba(42, 19, 64, 0.6);
+  color: rgba(20, 35, 26, 0.6);
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -493,7 +493,7 @@ onUnmounted(() => {
   transition: background 0.15s ease;
   color: var(--pop-ink);
 }
-.search-item:hover { background: rgba(42, 19, 64, 0.06); }
+.search-item:hover { background: rgba(20, 35, 26, 0.06); }
 .search-thumb {
   width: 40px;
   height: 40px;
@@ -524,7 +524,7 @@ onUnmounted(() => {
   font-size: 0.66rem;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: rgba(42, 19, 64, 0.5);
+  color: rgba(20, 35, 26, 0.5);
 }
 .search-item-price {
   font-family: 'Fraunces', Georgia, serif;
@@ -553,9 +553,9 @@ onUnmounted(() => {
   height: 42px;
   border-radius: 9999px;
   background: #ffffff;
-  border: 2px solid var(--pop-ink, #221d19);
+  border: 2px solid var(--pop-ink, #14231a);
   color: var(--pop-ink);
-  box-shadow: 2px 2px 0 rgba(34, 29, 25, 0.85);
+  box-shadow: 2px 2px 0 rgba(20, 35, 26, 0.85);
   transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.2s ease;
   text-decoration: none;
   position: relative;
@@ -564,7 +564,7 @@ onUnmounted(() => {
 .nav-avatar-btn:hover {
   transform: translate(-1px, -1px);
   background: var(--pop-pink, #E585AA);
-  box-shadow: 3px 3px 0 rgba(34, 29, 25, 0.85);
+  box-shadow: 3px 3px 0 rgba(20, 35, 26, 0.85);
 }
 
 .cart-badge-small {
@@ -598,10 +598,10 @@ onUnmounted(() => {
   color: #fbf4ea;
   border: none;
   cursor: pointer;
-  box-shadow: 0 4px 14px rgba(42, 19, 64, 0.2);
+  box-shadow: 0 4px 14px rgba(20, 35, 26, 0.2);
   transition: background 0.2s ease, transform 0.15s ease;
 }
-.mobile-icon-btn:hover { background: #221d19; }
+.mobile-icon-btn:hover { background: #14231a; }
 .mobile-icon-btn:active { transform: scale(0.93); }
 /* Scoped display above outranks Tailwind's `md:hidden`, so enforce hide on
    desktop explicitly — otherwise the mobile cart shows next to the desktop one. */
@@ -619,11 +619,11 @@ onUnmounted(() => {
   background: #1a0f28;
   border: none;
   cursor: pointer;
-  box-shadow: 0 4px 14px rgba(42, 19, 64, 0.2);
+  box-shadow: 0 4px 14px rgba(20, 35, 26, 0.2);
   transition: background 0.2s ease;
   padding: 0;
 }
-.hamburger-btn:hover { background: #221d19; }
+.hamburger-btn:hover { background: #14231a; }
 /* Phones only — hidden from tablet/desktop up (scoped rule outranks `md:hidden`). */
 @media (min-width: 768px) { .hamburger-btn { display: none; } }
 
@@ -670,7 +670,7 @@ onUnmounted(() => {
 .mobile-menu-brand {
   font-family: 'Berkshire Swash', cursive;
   font-size: 1.5rem;
-  color: #221d19;
+  color: #14231a;
   text-decoration: none;
   letter-spacing: -0.01em;
 }
@@ -681,14 +681,14 @@ onUnmounted(() => {
   width: 44px;
   height: 44px;
   border-radius: 999px;
-  background: rgba(42, 19, 64, 0.06);
-  color: #221d19;
+  background: rgba(20, 35, 26, 0.06);
+  color: #14231a;
   border: none;
   cursor: pointer;
   transition: background 0.2s ease, transform 0.2s ease;
 }
 .mobile-close-btn:hover {
-  background: rgba(42, 19, 64, 0.12);
+  background: rgba(20, 35, 26, 0.12);
   transform: rotate(90deg);
 }
 
@@ -698,10 +698,10 @@ onUnmounted(() => {
   gap: 0.6rem;
   padding: 0.85rem 1rem;
   background: #f1ebdf;
-  border: 1px solid rgba(42, 19, 64, 0.1);
+  border: 1px solid rgba(20, 35, 26, 0.1);
   border-radius: 1rem;
 }
-.mobile-search-icon { color: rgba(42, 19, 64, 0.55); flex-shrink: 0; }
+.mobile-search-icon { color: rgba(20, 35, 26, 0.55); flex-shrink: 0; }
 .mobile-search-input {
   flex: 1;
   border: none;
@@ -712,7 +712,7 @@ onUnmounted(() => {
   font-size: 1rem;
   color: var(--pop-ink);
 }
-.mobile-search-input::placeholder { color: rgba(42, 19, 64, 0.4); }
+.mobile-search-input::placeholder { color: rgba(20, 35, 26, 0.4); }
 .mobile-search-clear {
   display: inline-flex;
   align-items: center;
@@ -720,15 +720,15 @@ onUnmounted(() => {
   width: 24px;
   height: 24px;
   border-radius: 9999px;
-  background: rgba(42, 19, 64, 0.1);
+  background: rgba(20, 35, 26, 0.1);
   border: none;
-  color: rgba(42, 19, 64, 0.6);
+  color: rgba(20, 35, 26, 0.6);
   cursor: pointer;
 }
 
 .mobile-results {
   background: #ffffff;
-  border: 1px solid rgba(42, 19, 64, 0.08);
+  border: 1px solid rgba(20, 35, 26, 0.08);
   border-radius: 1rem;
   padding: 0.4rem;
   max-height: 45vh;
@@ -746,7 +746,7 @@ onUnmounted(() => {
   gap: 0.9rem;
   padding: 1rem 1.1rem;
   background: #f1ebdf;
-  border: 1px solid rgba(42, 19, 64, 0.06);
+  border: 1px solid rgba(20, 35, 26, 0.06);
   border-radius: 0.9rem;
   text-decoration: none;
   font-family: 'Manrope', system-ui;
@@ -781,7 +781,7 @@ onUnmounted(() => {
   text-align: center;
   font-family: 'Manrope', system-ui;
   font-size: 0.72rem;
-  color: rgba(42, 19, 64, 0.4);
+  color: rgba(20, 35, 26, 0.4);
   padding-top: 1rem;
 }
 
@@ -801,11 +801,11 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 8px 22px rgba(42, 19, 64, 0.28);
+  box-shadow: 0 8px 22px rgba(20, 35, 26, 0.28);
   transition: transform 0.25s ease, background 0.25s ease;
 }
 .scroll-top-btn:hover {
-  background: #221d19;
+  background: #14231a;
   transform: translateY(-2px) scale(1.05);
 }
 @media (min-width: 768px) {
@@ -822,17 +822,17 @@ onUnmounted(() => {
   border-radius: 9999px;
   background: #ffffff;
   color: var(--pop-ink);
-  border: 1px solid rgba(42, 19, 64, 0.15);
+  border: 1px solid rgba(20, 35, 26, 0.15);
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 6px 18px rgba(42, 19, 64, 0.18);
+  box-shadow: 0 6px 18px rgba(20, 35, 26, 0.18);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
   text-decoration: none;
 }
 .cart-float-btn:hover {
   transform: translateY(-2px) scale(1.05);
-  box-shadow: 0 10px 24px rgba(42, 19, 64, 0.24);
+  box-shadow: 0 10px 24px rgba(20, 35, 26, 0.24);
 }
 @media (min-width: 768px) {
   .cart-float-btn { top: 1.25rem; right: 1.5rem; width: 50px; height: 50px; }

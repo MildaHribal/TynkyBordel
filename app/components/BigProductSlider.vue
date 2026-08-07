@@ -163,8 +163,8 @@ defineExpose({ next, prev });
   border-radius: 1.75rem;
   overflow: hidden;
   background: #000000;
-  box-shadow: 0 14px 40px rgba(42, 19, 64, 0.18);
-  border: 1px solid rgba(42, 19, 64, 0.1);
+  box-shadow: 0 14px 40px rgba(20, 35, 26, 0.18);
+  border: 1px solid rgba(20, 35, 26, 0.1);
 }
 
 /* Mobile: stacked — a square image on top (product fully visible on black), the
@@ -251,7 +251,7 @@ defineExpose({ next, prev });
   font-size: 0.7rem;
   letter-spacing: 0.22em;
   text-transform: uppercase;
-  color: rgba(42, 19, 64, 0.6);
+  color: rgba(20, 35, 26, 0.6);
   font-weight: 700;
   margin-bottom: 0.65rem;
 }
@@ -274,7 +274,7 @@ defineExpose({ next, prev });
   font-weight: 500;
   font-size: 0.92rem;
   line-height: 1.55;
-  color: rgba(42, 19, 64, 0.78);
+  color: rgba(20, 35, 26, 0.78);
   margin: 0 0 1.25rem;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -290,7 +290,7 @@ defineExpose({ next, prev });
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  border-top: 1px solid rgba(42, 19, 64, 0.1);
+  border-top: 1px solid rgba(20, 35, 26, 0.1);
   padding-top: 0.9rem;
 }
 .slide-price {
@@ -317,7 +317,7 @@ defineExpose({ next, prev });
   transition: background 0.2s ease, transform 0.2s ease;
 }
 .slide-cta:hover {
-  background: #221d19;
+  background: #14231a;
   transform: translateY(-1px);
 }
 

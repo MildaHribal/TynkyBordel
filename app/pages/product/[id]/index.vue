@@ -722,24 +722,24 @@ const submitReview = async () => {
    these become unreadable. We surgically override descendant utilities via
    attribute selectors instead of rewriting the 600+ lines of markup.    */
 .product-detail :is(h1, h2, h3) {
-  color: var(--pop-ink, #221d19) !important;
+  color: var(--pop-ink, #14231a) !important;
 }
 .product-detail [class~="text-white"],
 .product-detail [class*="text-white/"] {
-  color: var(--pop-ink, #221d19) !important;
+  color: var(--pop-ink, #14231a) !important;
 }
 /* Light tints originally used for muted text — keep them muted on light bg. */
 .product-detail [class~="text-white\\/40"],
 .product-detail [class~="text-white\\/50"],
 .product-detail [class~="text-white\\/55"] {
-  color: rgba(42, 19, 64, 0.6) !important;
+  color: rgba(20, 35, 26, 0.6) !important;
 }
 .product-detail [class~="text-white\\/30"],
 .product-detail [class~="text-white\\/20"] {
-  color: rgba(42, 19, 64, 0.45) !important;
+  color: rgba(20, 35, 26, 0.45) !important;
 }
 .product-detail [class~="text-white\\/70"] {
-  color: rgba(42, 19, 64, 0.78) !important;
+  color: rgba(20, 35, 26, 0.78) !important;
 }
 
 /* "Glass" cards become solid cream zine cards (hard border + offset shadow). */
@@ -747,15 +747,15 @@ const submitReview = async () => {
   background: #fbf7ee !important;
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
-  border: 2px solid var(--pop-ink, #221d19) !important;
+  border: 2px solid var(--pop-ink, #14231a) !important;
   border-radius: 16px !important;
-  box-shadow: 6px 6px 0 rgba(34, 29, 25, 0.85) !important;
+  box-shadow: 6px 6px 0 rgba(20, 35, 26, 0.85) !important;
 }
 .product-detail :deep(.glass-card) {
   background: #fbf7ee !important;
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
-  border: 2px solid rgba(34, 29, 25, 0.35) !important;
+  border: 2px solid rgba(20, 35, 26, 0.35) !important;
   box-shadow: none !important;
 }
 
@@ -763,15 +763,15 @@ const submitReview = async () => {
 .product-detail :deep(.neon-text),
 .product-detail :deep(.neon-text-cyan),
 .product-detail :deep(.neon-text-rainbow) {
-  color: var(--pop-ink, #221d19) !important;
+  color: var(--pop-ink, #14231a) !important;
   background: none !important;
-  -webkit-text-fill-color: var(--pop-ink, #221d19) !important;
+  -webkit-text-fill-color: var(--pop-ink, #14231a) !important;
   text-shadow: none !important;
 }
 .product-detail :deep(.cosmic-badge) {
-  background: rgba(42, 19, 64, 0.08) !important;
-  color: var(--pop-ink, #221d19) !important;
-  border: 1px solid rgba(42, 19, 64, 0.18) !important;
+  background: rgba(20, 35, 26, 0.08) !important;
+  color: var(--pop-ink, #14231a) !important;
+  border: 1px solid rgba(20, 35, 26, 0.18) !important;
   text-shadow: none !important;
 }
 
@@ -780,12 +780,12 @@ const submitReview = async () => {
   background: rgba(255, 255, 255, 0.6) !important;
 }
 .product-detail [class*="bg-black/"] {
-  background: rgba(42, 19, 64, 0.06) !important;
+  background: rgba(20, 35, 26, 0.06) !important;
 }
 
 /* Borders that were rgba(white) on dark → rgba(ink) on light. */
 .product-detail [class*="border-white/"] {
-  border-color: rgba(42, 19, 64, 0.15) !important;
+  border-color: rgba(20, 35, 26, 0.15) !important;
 }
 
 /* Description "neon left bar" turns into a subtle ink bar. */
@@ -883,14 +883,14 @@ const submitReview = async () => {
 }
 .pdp-buy--go {
   background: var(--pop-pink, #E585AA);
-  color: var(--pop-ink, #221d19);
+  color: var(--pop-ink, #14231a);
   box-shadow: 5px 5px 0 var(--pop-pink-ink, #b34a72);
 }
 .pdp-buy--go:hover { transform: translate(-1px, -1px); box-shadow: 6px 6px 0 var(--pop-pink-ink, #b5185f); }
 .pdp-buy--go:active { transform: translate(3px, 3px); box-shadow: 2px 2px 0 var(--pop-pink-ink, #b5185f); }
 .pdp-buy--added {
   background: var(--pop-lime, #B9E14B);
-  color: var(--pop-ink, #221d19);
+  color: var(--pop-ink, #14231a);
   box-shadow: 5px 5px 0 var(--pop-lime-ink, #4d6b0e);
 }
 .pdp-buy--off {

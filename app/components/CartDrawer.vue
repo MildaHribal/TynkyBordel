@@ -128,7 +128,7 @@ onUnmounted(() => {
   align-items: center;
   justify-content: space-between;
   padding: 1.15rem 1.25rem;
-  border-bottom: 1px solid rgba(42, 19, 64, 0.1);
+  border-bottom: 1px solid rgba(20, 35, 26, 0.1);
 }
 .cart-head-title {
   display: flex;
@@ -137,13 +137,13 @@ onUnmounted(() => {
   font-family: 'Fraunces', Georgia, serif;
   font-weight: 700;
   font-size: 1.2rem;
-  color: #221d19;
+  color: #14231a;
 }
 .cart-head-count {
   font-family: 'Manrope', system-ui;
   font-size: 0.72rem;
   font-weight: 700;
-  background: #221d19;
+  background: #14231a;
   color: #fff;
   border-radius: 999px;
   padding: 0.1rem 0.5rem;
@@ -156,12 +156,12 @@ onUnmounted(() => {
   height: 40px;
   border-radius: 999px;
   border: none;
-  background: rgba(42, 19, 64, 0.06);
-  color: #221d19;
+  background: rgba(20, 35, 26, 0.06);
+  color: #14231a;
   cursor: pointer;
   transition: background 0.2s ease, transform 0.2s ease;
 }
-.cart-close:hover { background: rgba(42, 19, 64, 0.12); transform: rotate(90deg); }
+.cart-close:hover { background: rgba(20, 35, 26, 0.12); transform: rotate(90deg); }
 
 /* Empty */
 .cart-empty {
@@ -175,12 +175,12 @@ onUnmounted(() => {
   text-align: center;
 }
 .cart-empty-emoji { font-size: 2.75rem; opacity: 0.7; }
-.cart-empty-text { color: rgba(42, 19, 64, 0.6); font-family: 'Manrope', system-ui; }
+.cart-empty-text { color: rgba(20, 35, 26, 0.6); font-family: 'Manrope', system-ui; }
 .cart-empty-cta {
   margin-top: 0.5rem;
   padding: 0.75rem 1.4rem;
   border-radius: 999px;
-  background: #221d19;
+  background: #14231a;
   color: #fff;
   text-decoration: none;
   font-family: 'Manrope', system-ui;
@@ -204,7 +204,7 @@ onUnmounted(() => {
   gap: 0.85rem;
   padding: 0.7rem;
   background: #fff;
-  border: 1px solid rgba(42, 19, 64, 0.08);
+  border: 1px solid rgba(20, 35, 26, 0.08);
   border-radius: 14px;
 }
 .cart-thumb {
@@ -222,7 +222,7 @@ onUnmounted(() => {
   font-family: 'Fraunces', Georgia, serif;
   font-weight: 600;
   font-size: 0.95rem;
-  color: #221d19;
+  color: #14231a;
   line-height: 1.2;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -245,7 +245,7 @@ onUnmounted(() => {
   display: inline-flex;
   align-items: center;
   gap: 0.15rem;
-  border: 1px solid rgba(42, 19, 64, 0.15);
+  border: 1px solid rgba(20, 35, 26, 0.15);
   border-radius: 999px;
   padding: 0.1rem;
 }
@@ -255,20 +255,20 @@ onUnmounted(() => {
   border-radius: 999px;
   border: none;
   background: transparent;
-  color: #221d19;
+  color: #14231a;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   transition: background 0.15s ease;
 }
-.cart-qty-btn:hover:not(:disabled) { background: rgba(42, 19, 64, 0.08); }
+.cart-qty-btn:hover:not(:disabled) { background: rgba(20, 35, 26, 0.08); }
 .cart-qty-btn:disabled { opacity: 0.35; cursor: not-allowed; }
-.cart-qty-val { min-width: 22px; text-align: center; font-weight: 700; font-size: 0.85rem; color: #221d19; }
+.cart-qty-val { min-width: 22px; text-align: center; font-weight: 700; font-size: 0.85rem; color: #14231a; }
 .cart-remove {
   border: none;
   background: transparent;
-  color: rgba(42, 19, 64, 0.45);
+  color: rgba(20, 35, 26, 0.45);
   cursor: pointer;
   padding: 0.35rem;
   border-radius: 8px;
@@ -278,7 +278,7 @@ onUnmounted(() => {
 
 /* Footer */
 .cart-foot {
-  border-top: 1px solid rgba(42, 19, 64, 0.1);
+  border-top: 1px solid rgba(20, 35, 26, 0.1);
   padding: 1rem 1.25rem 1.25rem;
   display: flex;
   flex-direction: column;
@@ -291,13 +291,13 @@ onUnmounted(() => {
   justify-content: space-between;
   font-family: 'Manrope', system-ui;
   font-weight: 600;
-  color: rgba(42, 19, 64, 0.7);
+  color: rgba(20, 35, 26, 0.7);
 }
 .cart-total-amount {
   font-family: 'Fraunces', Georgia, serif;
   font-weight: 700;
   font-size: 1.5rem;
-  color: #221d19;
+  color: #14231a;
 }
 .cart-checkout {
   display: inline-flex;
@@ -306,7 +306,7 @@ onUnmounted(() => {
   gap: 0.5rem;
   padding: 0.9rem;
   border-radius: 999px;
-  background: #221d19;
+  background: #14231a;
   color: #fff;
   text-decoration: none;
   font-family: 'Manrope', system-ui;
@@ -316,15 +316,15 @@ onUnmounted(() => {
   text-transform: uppercase;
   transition: background 0.2s ease, transform 0.2s ease;
 }
-.cart-checkout:hover { background: #33291f; transform: translateY(-1px); }
+.cart-checkout:hover { background: #21382a; transform: translateY(-1px); }
 .cart-view-link {
   text-align: center;
-  color: rgba(42, 19, 64, 0.65);
+  color: rgba(20, 35, 26, 0.65);
   text-decoration: underline;
   font-family: 'Manrope', system-ui;
   font-size: 0.85rem;
 }
-.cart-view-link:hover { color: #221d19; }
+.cart-view-link:hover { color: #14231a; }
 
 /* Transitions */
 .cart-fade-enter-active,

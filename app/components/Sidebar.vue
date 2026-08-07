@@ -158,16 +158,16 @@ const isActiveBranch = (cat: any): boolean => {
 
 .category-btn--active {
     color: white;
-    border-color: rgba(139, 92, 246, 0.38);
-    box-shadow: 0 8px 28px rgba(139, 92, 246, 0.14);
+    border-color: rgba(179, 50, 76, 0.38);
+    box-shadow: 0 8px 28px rgba(179, 50, 76, 0.14);
 }
 
 .category-btn__active-bg {
     position: absolute;
     inset: 2px;
     border-radius: 0.62rem;
-    background: linear-gradient(120deg, rgba(139, 92, 246, 0.3), rgba(236, 72, 153, 0.32));
-    border: 1px solid rgba(139, 92, 246, 0.32);
+    background: linear-gradient(120deg, rgba(179, 50, 76, 0.3), rgba(236, 72, 153, 0.32));
+    border: 1px solid rgba(179, 50, 76, 0.32);
     pointer-events: none;
     z-index: 0;
 }
