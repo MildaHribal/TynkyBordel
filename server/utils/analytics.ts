@@ -22,6 +22,17 @@ import { pageViews, pageViewVisitors } from '../database/schema';
  * wait on an analytics write, and a busy minute must not become a write storm.
  */
 
+/**
+ * Browsers carrying this cookie are never counted.
+ *
+ * The shop owner checks her own shop constantly — opening the storefront to see
+ * how a photo looks, walking through checkout to test an order. Those are the
+ * visits she is least interested in, and on a small shop they are a large share
+ * of all traffic, so the numbers mislead until they're excluded. `requireAdmin`
+ * sets this on every browser that opens the admin, so it needs no remembering.
+ */
+export const EXCLUDE_COOKIE = 'tb_no_track';
+
 const FLUSH_INTERVAL_MS = 30_000;
 /** Safety valve: flush early if a burst fills the buffer. */
 const MAX_BUFFERED_PATHS = 500;

@@ -12,6 +12,8 @@ type Traffic = {
   series: Array<{ day: string; views: number; visitors: number }>
   topPages: Array<{ path: string; views: number }>
   totals: Record<'today' | 'last7' | 'last30', { views: number; visitors: number }>
+  /** Whether this browser is marked as the shop's own and skipped by the counter. */
+  excluded: boolean
 }
 const { data: traffic } = await useLazyFetch<Traffic>('/api/admin/traffic')
 
@@ -93,7 +95,10 @@ const STATUS_CLASS: Record<string, string> = {
       <div class="admin-card section-block">
         <div class="card-header">
           <h2 class="card-title">Návštěvnost</h2>
-          <span class="card-note">bez cookies · počítáno na serveru</span>
+          <span class="card-note">
+            <template v-if="traffic?.excluded">tvoje návštěvy se nepočítají</template>
+            <template v-else>bez cookies · počítáno na serveru</template>
+          </span>
         </div>
 
         <div v-if="!traffic" class="traffic-empty">Načítám…</div>

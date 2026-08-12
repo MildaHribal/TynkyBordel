@@ -1,6 +1,7 @@
 import type { H3Event } from 'h3'
-import { getHeaders } from 'h3'
+import { getCookie, getHeaders, setCookie } from 'h3'
 import { auth } from './auth'
+import { EXCLUDE_COOKIE } from './analytics'
 
 export type AppSession = {
   user: {
@@ -60,5 +61,21 @@ export async function requireAdmin(event: H3Event): Promise<AuthenticatedSession
   if (session.user.role !== 'admin') {
     throw createError({ statusCode: 403, statusMessage: 'Forbidden' })
   }
+
+  // Mark this browser as the shop's own, so the traffic counter skips it
+  // (server/plugins/05-page-views.ts). Done here rather than on a settings page
+  // because it then happens on every device the owner ever opens the admin on,
+  // without anyone having to remember. Owner visits are a large share of a small
+  // shop's traffic and are exactly the ones the numbers should not include.
+  if (getCookie(event, EXCLUDE_COOKIE) !== '1') {
+    setCookie(event, EXCLUDE_COOKIE, '1', {
+      maxAge: 60 * 60 * 24 * 365,
+      path: '/',
+      httpOnly: true,
+      sameSite: 'lax',
+      secure: process.env.NODE_ENV === 'production',
+    })
+  }
+
   return session
 }

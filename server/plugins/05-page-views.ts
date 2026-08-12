@@ -1,4 +1,5 @@
 import {
+  EXCLUDE_COOKIE,
   FLUSH_INTERVAL,
   flush,
   isBot,
@@ -35,6 +36,10 @@ export default defineNitroPlugin((nitroApp) => {
       // normalised into its page path above before the asset filter runs.
       if (!rawPath.includes('/_payload.json') && !isCountablePath(rawPath)) return
       if (!isCountablePath(path)) return
+
+      // The shop's own people. Checked before anything else — it is the cheapest
+      // test and the one most likely to match on this site.
+      if (getCookie(event, EXCLUDE_COOKIE) === '1') return
 
       const headers = getRequestHeaders(event)
       const userAgent = headers['user-agent'] || ''
