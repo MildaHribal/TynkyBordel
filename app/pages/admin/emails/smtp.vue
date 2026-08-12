@@ -18,12 +18,16 @@ type MailSettings = {
   updatedAt: Record<string, string>
 }
 
+type ProbeResult = { label: string; host: string; port: number; ok: boolean; ms: number; error?: string }
+
 type Diagnostic = {
   ok: boolean
   diagnosis: string
   config: { notificationRecipient: string | null; mailFromMatchesUser: boolean }
   verify: { ok: boolean; configured: boolean; error?: string }
   sent: { to: string; ok: boolean } | null
+  // Only present when the connection failed — see server/utils/net-probe.ts.
+  network: { host: string; dns: { v4: string[]; v6: string[] }; results: ProbeResult[]; verdict: string } | null
 }
 
 const toast = useCosmicToast()
@@ -327,6 +331,26 @@ const formatDate = (iso?: string) => {
               </p>
             </div>
           </div>
+
+          <!-- Only rendered when the connection failed: which way out of the
+               server is actually open. Distinguishes a blocked provider from a
+               mail server that simply said no. -->
+          <div v-if="diagnostic?.network" class="probe">
+            <h3 class="probe-title">Průchodnost ze serveru ven</h3>
+            <ul class="probe-list">
+              <li v-for="r in diagnostic.network.results" :key="r.port" class="probe-row">
+                <Icon
+                  :name="r.ok ? 'lucide:check' : 'lucide:x'"
+                  height="15"
+                  :class="r.ok ? 'probe-ok' : 'probe-bad'"
+                />
+                <span class="probe-label">{{ r.label }}</span>
+                <span class="probe-target">{{ r.host }}:{{ r.port }}</span>
+                <span class="probe-verdict">{{ r.ok ? `spojení OK (${r.ms} ms)` : (r.error || 'selhalo') }}</span>
+              </li>
+            </ul>
+            <p class="probe-note">{{ diagnostic.network.verdict }}</p>
+          </div>
         </div>
       </section>
 
@@ -478,6 +502,45 @@ const formatDate = (iso?: string) => {
   color: var(--ad-muted);
   font-family: ui-monospace, SFMono-Regular, monospace;
   word-break: break-word;
+}
+
+.probe {
+  border: 1px solid var(--ad-border);
+  border-radius: 10px;
+  padding: 0.8rem 0.9rem;
+  background: var(--adx-surface-2);
+}
+.probe-title {
+  margin: 0 0 0.55rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--adx-vink-55);
+  font-weight: 700;
+}
+.probe-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.35rem; }
+.probe-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  font-size: 0.8rem;
+  color: var(--ad-ink);
+}
+.probe-ok { color: light-dark(#2a7a3a, #8FE0A2); flex-shrink: 0; }
+.probe-bad { color: var(--adx-accent); flex-shrink: 0; }
+.probe-label { min-width: 9.5rem; }
+.probe-target {
+  font-family: ui-monospace, SFMono-Regular, monospace;
+  font-size: 0.74rem;
+  color: var(--ad-muted);
+}
+.probe-verdict { color: var(--ad-ink-soft); font-size: 0.78rem; }
+.probe-note {
+  margin: 0.7rem 0 0;
+  font-size: 0.8rem;
+  line-height: 1.45;
+  color: var(--ad-ink);
 }
 
 .saved-note {

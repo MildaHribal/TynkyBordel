@@ -1,5 +1,6 @@
 import { requireAdmin } from '../../utils/session';
 import { verifyMail, sendMail, getMailConfig, getShopNotificationRecipient } from '../../utils/email';
+import { probeOutbound } from '../../utils/net-probe';
 
 /**
  * Admin-only email diagnostic — lets you debug production email from the browser
@@ -31,6 +32,12 @@ export default defineEventHandler(async (event) => {
   // Verify the connection + credentials without sending anything.
   const verify = await verifyMail();
 
+  // On a timeout the interesting question is whether the container can reach the
+  // SMTP ports at all — a provider-level block and a refusing mail server look
+  // the same from nodemailer. Only probed when something is actually wrong, so
+  // the healthy case stays fast.
+  const network = verify.ok ? null : await probeOutbound(config.host);
+
   // Optionally send a real test email.
   let sent: { to: string; ok: boolean } | null = null;
   const to = typeof q.send === 'string' ? q.send.trim() : '';
@@ -51,12 +58,16 @@ export default defineEventHandler(async (event) => {
   } else if (!config.passwordSet) {
     diagnosis = 'SMTP_PASS není nastavené → přihlášení selže. Doplň heslo ke schránce na VPS.';
   } else if (!verify.ok) {
-    diagnosis = `Připojení/přihlášení selhalo: ${verify.error || 'neznámá chyba'}. Časté příčiny: špatné heslo, blokovaný port 465, nepovolený SMTP přístup ve schránce.`;
+    // The port probe already distinguishes "blocked network" from "server said
+    // no", so lead with its verdict instead of listing every possible cause.
+    diagnosis = network
+      ? `Připojení selhalo: ${verify.error || 'neznámá chyba'}. ${network.verdict}`
+      : `Připojení/přihlášení selhalo: ${verify.error || 'neznámá chyba'}.`;
   } else if (!config.mailFromMatchesUser) {
     diagnosis = 'Připojení OK, ale MAIL_FROM ≠ SMTP_USER — Seznam takové emaily odmítá. Nastav MAIL_FROM na stejnou adresu jako SMTP_USER.';
   } else {
     diagnosis = 'Vše vypadá v pořádku. Přidej ?send=tvuj@email.cz a ověř doručení.';
   }
 
-  return { ok: verify.ok, diagnosis, config, verify, sent };
+  return { ok: verify.ok, diagnosis, config, verify, sent, network };
 });
