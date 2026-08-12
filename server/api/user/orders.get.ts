@@ -3,6 +3,7 @@ import { orders, orderItems, products, reviews } from '../../database/schema';
 import { eq, desc, asc, inArray } from 'drizzle-orm';
 import { requireSession } from '../../utils/session';
 import { isReviewableStatus } from '../../utils/reviews';
+import { isCancellableByCustomer } from '../../utils/orders';
 
 export default defineEventHandler(async (event) => {
   const session = await requireSession(event)
@@ -94,5 +95,11 @@ export default defineEventHandler(async (event) => {
     else itemsByOrder.set(item.orderId, [entry]);
   }
 
-  return userOrders.map((order) => ({ ...order, items: itemsByOrder.get(order.id) ?? [] }));
+  return userOrders.map((order) => ({
+    ...order,
+    items: itemsByOrder.get(order.id) ?? [],
+    // Mirrors exactly what POST /api/user/orders/[id]/cancel enforces, so the
+    // profile never shows a button the API would refuse.
+    canCancel: isCancellableByCustomer(order.status, order.paymentStatus),
+  }));
 });

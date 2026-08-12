@@ -112,6 +112,28 @@ const toggleOrder = (id: number) => {
   expandedOrder.value = expandedOrder.value === id ? null : id
 }
 
+// Cancelling is offered only while the API would allow it (order.canCancel —
+// pending + unpaid, see server/utils/orders.ts). Irreversible for the customer,
+// hence the spelled-out confirm.
+const cancellingId = ref<number | null>(null)
+async function cancelOrder(order: any) {
+  if (!confirm(
+    `Opravdu zrušit objednávku #${order.orderNumber || order.id}?\n\n` +
+    'Kousky se hned vrátí do prodeje a může je koupit někdo jiný. Tohle nejde vzít zpět.',
+  )) return
+
+  cancellingId.value = order.id
+  try {
+    await $fetch(`/api/user/orders/${order.id}/cancel`, { method: 'POST' })
+    await refreshOrders()
+    toast.success('Zrušeno', `Objednávka #${order.orderNumber || order.id} byla zrušena.`)
+  } catch (err: any) {
+    toast.error('Nepodařilo se zrušit', err?.data?.statusMessage || 'Zkus to prosím znovu.')
+  } finally {
+    cancellingId.value = null
+  }
+}
+
 const paymentLabel = (m?: string | null) => {
   const map: Record<string, string> = {
     cash: 'Dobírka',
@@ -502,6 +524,24 @@ const itemLink = (item: any): string | null => item?.productUrl || null
                   >
                     <Icon name="mdi:download" height="18" /> Stáhnout
                   </a>
+                </div>
+
+                <!-- Cancel — only while nothing is dispatched and nothing is
+                     paid (order.canCancel mirrors the API's own rule). -->
+                <div v-if="order.canCancel" class="mt-4 pt-4 border-t border-white/10 flex flex-wrap items-center justify-between gap-3">
+                  <span class="text-xs text-white/50">
+                    Objednávka se ještě nevyřizuje, takže ji můžeš zrušit.
+                  </span>
+                  <button
+                    type="button"
+                    :disabled="cancellingId === order.id"
+                    @click="cancelOrder(order)"
+                    class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium border border-red-400/30 text-red-300 hover:bg-red-500/10 hover:border-red-400/60 transition-colors disabled:opacity-50"
+                  >
+                    <Icon v-if="cancellingId === order.id" name="lucide:loader-2" class="animate-spin" height="16" />
+                    <Icon v-else name="mdi:close-circle-outline" height="16" />
+                    {{ cancellingId === order.id ? 'Ruším…' : 'Zrušit objednávku' }}
+                  </button>
                 </div>
               </div>
             </div>

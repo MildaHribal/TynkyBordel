@@ -682,6 +682,65 @@ export async function sendNewOrderNotification(order: NewOrderNotification): Pro
   });
 }
 
+/**
+ * Tells the shop a customer cancelled their own order.
+ *
+ * Not cosmetic: the pieces go straight back on sale and the parcel must not be
+ * packed. Without this the only way to notice would be spotting the status
+ * change in /admin/orders, which is exactly the kind of thing you notice after
+ * posting the package.
+ */
+export async function sendOrderCancelledNotification(order: {
+  orderNumber: string;
+  customerName: string;
+  customerEmail: string;
+  totalPrice: number;
+  items: Array<{ title: string; quantity: number }>;
+}): Promise<boolean> {
+  const to = await getShopNotificationRecipient();
+  if (!to) {
+    console.warn('[mail] order cancellation: no recipient configured.');
+    return false;
+  }
+
+  const itemLines = order.items
+    .map(
+      (i) =>
+        `<tr><td style="padding:7px 0;border-bottom:1px solid rgba(42,19,64,0.08);font-family:${FONT_SERIF};font-size:15px;color:#2a1340;">${esc(i.title)} <span style="color:#9a7fab;">× ${i.quantity}</span></td></tr>`,
+    )
+    .join('');
+
+  const content = `
+    ${statusPill('Zrušeno zákazníkem', 'violet')}
+    <h1 style="margin:14px 0 0;font-family:${FONT_SERIF};font-size:27px;line-height:1.18;color:#2a1340;">Objednávka ${esc(order.orderNumber)} byla zrušena</h1>
+    <p style="margin:12px 0 0;font-family:${FONT_SANS};font-size:15px;line-height:1.5;color:#5a3f6a;">
+      ${esc(order.customerName)} (${esc(order.customerEmail)}) zrušil(a) svou objednávku za
+      ${order.totalPrice.toLocaleString('cs-CZ')} Kč. <strong>Nebal ji.</strong>
+      Kusy se automaticky vrátily na sklad a jsou znovu v prodeji.
+    </p>
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:18px;border-collapse:collapse;">
+      ${itemLines}
+    </table>`;
+
+  return sendMail({
+    to,
+    subject: `✖ Zrušená objednávka ${order.orderNumber}`,
+    html: emailShell({
+      subject: `Zrušená objednávka ${order.orderNumber}`,
+      preheader: `${order.customerName} zrušil(a) objednávku — kusy jsou zpět na skladě`,
+      content,
+    }),
+    text: [
+      `Objednávka ${order.orderNumber} byla zrušena zákazníkem.`,
+      `${order.customerName} · ${order.customerEmail}`,
+      'Nebal ji — kusy se vrátily na sklad.',
+      '',
+      ...order.items.map((i) => `${i.title} × ${i.quantity}`),
+    ].join('\n'),
+    replyTo: order.customerEmail,
+  });
+}
+
 /** Delivers a contact-form message to the shop mailbox. */
 export async function sendContactMessage(msg: {
   name: string;
