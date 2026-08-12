@@ -557,6 +557,8 @@ export async function sendOrderStatusEmail(
           variableSymbol: order.variableSymbol,
           items: order.items,
           total: order.totalPrice,
+          // On the 'paid' email the payment QR would be an invitation to pay twice.
+          paid: status === 'paid',
         }),
         new Promise<never>((_, reject) =>
           setTimeout(() => reject(new Error('invoice PDF generation timed out after 15s')), 15_000).unref?.(),

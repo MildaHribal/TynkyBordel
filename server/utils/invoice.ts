@@ -13,6 +13,32 @@ export type InvoiceData = {
   variableSymbol?: string | number | null
   items: Array<{ title: string; quantity: number; price: number }>
   total: number
+  // Already paid → the payment QR is left out (nothing left to scan for).
+  paid?: boolean
+}
+
+/**
+ * Turn the stored shipping address into buyer-block lines.
+ *
+ * `orders.shipping_address` is a transport string: segments joined with " | ",
+ * including `Tel: …` and `Doprava: …`, and for Zásilkovna orders the pickup
+ * point often appears twice (once as the branch name, once as the street the
+ * checkout filled in). Rendered raw it produced an unreadable blob that also
+ * overflowed into the payment-method label. An invoice's ODBĚRATEL block is a
+ * name and an address — contact and shipping details have their own places.
+ */
+function buyerAddressLines(raw: string): string[] {
+  const seen = new Set<string>()
+  return String(raw || '')
+    .split(/\s*\|\s*|\n/)
+    .map((s) => s.trim())
+    .filter((s) => s && !/^tel:/i.test(s) && !/^doprava:/i.test(s))
+    .filter((s) => {
+      const key = s.toLowerCase()
+      if (seen.has(key)) return false
+      seen.add(key)
+      return true
+    })
 }
 
 const PAYMENT_LABELS: Record<string, string> = {
@@ -126,12 +152,24 @@ export async function generateInvoicePdf(data: InvoiceData): Promise<Buffer> {
     `IČO: ${INVOICE_SELLER.ico}`,
     INVOICE_SELLER.isVatPayer ? `DIČ: ${BUSINESS.dic}` : 'Neplátce DPH',
   ]
-  const buyerLines = String(data.customerAddress || '').split('\n').filter(Boolean)
+  const buyerLines = buyerAddressLines(data.customerAddress)
   const sellerTop = y
-  sellerLines.forEach((l, i) => doc.text(l, left, sellerTop + i * 14, { width: 240 }))
-  buyerLines.forEach((l, i) => doc.text(l, col2, sellerTop + i * 14, { width: 225 }))
 
-  y = sellerTop + Math.max(sellerLines.length, buyerLines.length) * 14 + 22
+  // Advance by the MEASURED height of each line, not a fixed 14pt step: a long
+  // pickup-point line wraps inside its 225pt column, and pretending it is one
+  // line tall made the whole block overlap the meta row below it.
+  let sellerY = sellerTop
+  for (const line of sellerLines) {
+    doc.text(line, left, sellerY, { width: 240 })
+    sellerY += Math.max(14, doc.heightOfString(line, { width: 240 }))
+  }
+  let buyerY = sellerTop
+  for (const line of buyerLines) {
+    doc.text(line, col2, buyerY, { width: 225 })
+    buyerY += Math.max(14, doc.heightOfString(line, { width: 225 }))
+  }
+
+  y = Math.max(sellerY, buyerY) + 22
 
   // ── Meta row (issue date / VS / payment) ─────────────────────────────────
   doc.fontSize(9).fillColor(MUTED).font('bold')
@@ -173,6 +211,47 @@ export async function generateInvoicePdf(data: InvoiceData): Promise<Buffer> {
   doc.font('bold').fontSize(13).fillColor(ACCENT)
   doc.text('Celkem k úhradě', cols.unit - 120, y, { width: 180, align: 'right' })
   doc.text(czk(data.total), cols.total - 40, y, { width: 95, align: 'right' })
+
+  // ── Payment QR (QR Platba) ─────────────────────────────────────────────
+  // Only for unpaid bank transfers — the one case where the reader still has a
+  // payment to make. Failures skip the box rather than break the invoice.
+  if (data.paymentMethod === 'bank-transfer' && !data.paid) {
+    try {
+      const { buildSpayd, spaydToBuffer, getBankAccount } = await import('./spayd')
+      const { iban, localFormat } = getBankAccount()
+      const spayd = buildSpayd({
+        amount: data.total,
+        variableSymbol: data.variableSymbol ?? data.number,
+        message: `Objednavka ${data.number}`,
+      })
+      const qr = spayd ? await spaydToBuffer(spayd) : null
+      if (qr) {
+        y += 40
+        const boxH = 128
+        doc.roundedRect(left, y, right - left, boxH, 8).strokeColor('#d8d8d8').stroke()
+        doc.image(qr, left + 12, y + 12, { width: 104, height: 104 })
+
+        const infoX = left + 132
+        doc.font('bold').fontSize(11).fillColor(ACCENT).text('QR Platba', infoX, y + 14)
+        doc.font('body').fontSize(9).fillColor(MUTED)
+          .text('Naskenuj v bankovní aplikaci — částka, účet i variabilní symbol se vyplní samy.', infoX, y + 30, { width: right - infoX - 14 })
+
+        const rows: Array<[string, string]> = [
+          ['Účet', localFormat || iban],
+          ['Variabilní symbol', String(data.variableSymbol ?? data.number)],
+          ['Částka', czk(data.total)],
+        ]
+        let ry = y + 56
+        for (const [label, value] of rows) {
+          doc.font('body').fontSize(9).fillColor(MUTED).text(label, infoX, ry, { width: 110 })
+          doc.font('bold').fontSize(10).fillColor(INK).text(value, infoX + 115, ry - 1, { width: right - infoX - 129 })
+          ry += 20
+        }
+      }
+    } catch (err) {
+      console.error('[invoice] payment QR skipped:', err)
+    }
+  }
 
   // ── Footer ─────────────────────────────────────────────────────────────
   const footY = 760

@@ -58,7 +58,9 @@ export default defineEventHandler(async (event) => {
   // when the order was placed rather than "now", so re-opening it doesn't
   // re-date the document.
   const pdf = await generateInvoicePdf({
-    number: order.id,
+    // The customer-facing number, same as the e-mailed document's `č. …` — the
+    // bare DB id would make the two copies of one invoice disagree.
+    number: order.orderNumber || order.id,
     issuedAt: order.createdAt ?? new Date(),
     customerName: order.customerName,
     customerAddress: order.shippingAddress,
@@ -66,6 +68,7 @@ export default defineEventHandler(async (event) => {
     variableSymbol: order.variableSymbol,
     items: items.map((i) => ({ title: i.title, quantity: i.quantity, price: i.price })),
     total: order.totalPrice,
+    paid: order.paymentStatus === 'paid',
   });
 
   const download = String(getQuery(event).download ?? '') === '1';
