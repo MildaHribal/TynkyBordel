@@ -16,6 +16,7 @@ type MailSettings = {
   secureSource: string
   canStoreSecrets: boolean
   updatedAt: Record<string, string>
+  bank: { localFormat: string; iban: string; checksumOk: boolean; source: Source }
 }
 
 type ProbeResult = { label: string; host: string; port: number; ok: boolean; ms: number; error?: string }
@@ -42,6 +43,10 @@ const form = reactive({
   mail_from: '',
   order_notification_email: '',
   smtp_pass: '',
+  bank_account_prefix: '',
+  bank_account_number: '',
+  bank_account_bank_code: '',
+  bank_account_holder: '',
 })
 
 // Re-seed from the server on load and after every save (the password box always
@@ -296,6 +301,68 @@ const formatDate = (iso?: string) => {
 
       <section class="admin-card">
         <header class="card-head">
+          <h2 class="card-title">Bankovní účet pro platby</h2>
+          <p class="card-hint">
+            Kam chodí platby převodem — z těchhle údajů se generuje QR kód na potvrzení, v e-mailu i na faktuře.
+          </p>
+        </header>
+
+        <div class="card-body">
+          <div v-if="data?.bank && !data.bank.checksumOk" class="result is-bad">
+            <Icon name="lucide:alert-triangle" height="18" />
+            <div>
+              <p class="result-text">
+                Aktuální číslo účtu <strong>{{ data.bank.localFormat }}</strong> neprochází bankovním
+                kontrolním součtem — takový účet neexistuje a bankovní aplikace QR kód odmítají.
+                Oprav ho níže podle výpisu z banky.
+              </p>
+            </div>
+          </div>
+
+          <div class="bank-grid">
+            <div class="form-group">
+              <label class="form-label">Předčíslí</label>
+              <input v-model="form.bank_account_prefix" type="text" inputmode="numeric" class="form-input" placeholder="(většinou prázdné)" autocomplete="off" />
+            </div>
+            <div class="form-group bank-number">
+              <label class="form-label">
+                Číslo účtu
+                <span class="src-badge" :class="`src-${data?.bank?.source ?? 'none'}`">
+                  {{ SOURCE_LABELS[data?.bank?.source ?? 'none'].text }}
+                </span>
+              </label>
+              <input v-model="form.bank_account_number" type="text" inputmode="numeric" class="form-input" placeholder="8294444956" autocomplete="off" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Kód banky</label>
+              <input v-model="form.bank_account_bank_code" type="text" inputmode="numeric" class="form-input" placeholder="5500" autocomplete="off" />
+            </div>
+          </div>
+          <p class="form-hint">
+            Ukládá se s kontrolou proti překlepům — číslo, které neprojde bankovním součtem, nejde uložit.
+          </p>
+
+          <div class="form-group">
+            <label class="form-label">Majitel účtu (jméno v QR)</label>
+            <input v-model="form.bank_account_holder" type="text" class="form-input" placeholder="Tynky Bordel" autocomplete="off" />
+          </div>
+
+          <p v-if="data?.bank?.iban" class="form-hint">
+            IBAN se dopočítá sám: <span class="mono-inline">{{ data.bank.iban }}</span>
+          </p>
+        </div>
+
+        <footer class="card-foot">
+          <button class="btn-primary" :disabled="saving" @click="save">
+            <Icon v-if="saving" name="lucide:loader-2" class="animate-spin" height="16" />
+            <Icon v-else name="lucide:save" height="16" />
+            Uložit a ověřit
+          </button>
+        </footer>
+      </section>
+
+      <section class="admin-card">
+        <header class="card-head">
           <h2 class="card-title">Kontrola</h2>
           <p class="card-hint">Ověří přihlášení k serveru a případně pošle zkušební e-mail.</p>
         </header>
@@ -502,6 +569,20 @@ const formatDate = (iso?: string) => {
   color: var(--ad-muted);
   font-family: ui-monospace, SFMono-Regular, monospace;
   word-break: break-word;
+}
+
+.bank-grid {
+  display: grid;
+  grid-template-columns: minmax(90px, 1fr) 2.2fr minmax(90px, 1fr);
+  gap: 0.75rem;
+}
+.mono-inline {
+  font-family: ui-monospace, SFMono-Regular, monospace;
+  font-size: 0.82em;
+  color: var(--ad-ink);
+}
+@media (max-width: 560px) {
+  .bank-grid { grid-template-columns: 1fr; }
 }
 
 .probe {

@@ -39,24 +39,68 @@ export function computeCzIban(accountNumber: string, bankCode: string, prefix = 
   return `CZ${check}${bban}`;
 }
 
-export function getBankAccount() {
-  // Prefer explicit IBAN; fall back to computing from local account+bank code.
-  let iban = process.env.BANK_ACCOUNT_IBAN || '';
-  if (!iban) {
-    const number = process.env.BANK_ACCOUNT_NUMBER || '';
-    const bank = process.env.BANK_ACCOUNT_BANK_CODE || '';
-    const prefix = process.env.BANK_ACCOUNT_PREFIX || '';
-    if (number && bank) {
-      iban = computeCzIban(number, bank, prefix);
-    }
+/**
+ * Czech domestic account-number checksum (ČNB vyhláška 169/2011: weights
+ * 6,3,7,9,10,5,8,4,2,1, sum mod 11 must be 0; same rule for the prefix with its
+ * own weights 10,5,8,4,2,1).
+ *
+ * This exists because production shipped with a typo'd account number for
+ * weeks: the QR encoded a syntactically perfect SPAYD whose account fails this
+ * checksum, so every banking app refused it as "invalid" while all our
+ * IBAN/format validation passed — the IBAN check digits are computed OVER the
+ * typo and can't catch it. Banking apps validate the domestic checksum; so
+ * must we, before the number reaches a customer.
+ */
+export function czAccountNumberValid(number: string, prefix = ''): boolean {
+  const check = (digits: string, weights: number[]) => {
+    const d = digits.padStart(weights.length, '0');
+    if (!/^\d+$/.test(d) || d.length > weights.length) return false;
+    return d.split('').reduce((a, c, i) => a + Number(c) * weights[i]!, 0) % 11 === 0;
+  };
+  const numberOk = check(String(number), [6, 3, 7, 9, 10, 5, 8, 4, 2, 1]);
+  const prefixOk = !prefix || check(String(prefix), [10, 5, 8, 4, 2, 1]);
+  return numberOk && prefixOk;
+}
+
+/** Same env-quote hygiene as the mailer — a Docker env_file keeps quotes. */
+function cleanEnv(key: string): string {
+  const raw = process.env[key];
+  if (raw == null) return '';
+  return raw.trim().replace(/^(['"])([\s\S]*)\1$/, '$2').trim();
+}
+
+/**
+ * The destination account, database first, env second.
+ *
+ * The database half exists for the same reason the SMTP settings moved there:
+ * the VPS is deployed as a prebuilt image, `.env.production` needs SSH nobody
+ * here has, and a typo'd BANK_ACCOUNT_NUMBER in it was unfixable — customers
+ * were being handed a payment QR for an account that does not exist. Values
+ * saved from /admin/emails/smtp override the env vars; a box with a correct
+ * env keeps working untouched.
+ */
+export async function getBankAccount() {
+  const { getSetting } = await import('./settings');
+  const pick = async (dbKey: string, envKey: string) => (await getSetting(dbKey)) || cleanEnv(envKey);
+
+  const explicitIban = await pick('bank_account_iban', 'BANK_ACCOUNT_IBAN');
+  const number = await pick('bank_account_number', 'BANK_ACCOUNT_NUMBER');
+  const bank = await pick('bank_account_bank_code', 'BANK_ACCOUNT_BANK_CODE');
+  const prefix = await pick('bank_account_prefix', 'BANK_ACCOUNT_PREFIX');
+  const holder = (await pick('bank_account_holder', 'BANK_ACCOUNT_HOLDER')) || 'Tynky Bordel';
+
+  let iban = explicitIban;
+  if (!iban && number && bank) {
+    iban = computeCzIban(number, bank, prefix);
   }
+
   return {
     iban,
-    holder: process.env.BANK_ACCOUNT_HOLDER || 'Tynky Bordel',
+    holder,
     // Local-format display (e.g. "8294444956/5500") for humans reading the details.
-    localFormat: process.env.BANK_ACCOUNT_NUMBER && process.env.BANK_ACCOUNT_BANK_CODE
-      ? `${process.env.BANK_ACCOUNT_PREFIX ? process.env.BANK_ACCOUNT_PREFIX + '-' : ''}${process.env.BANK_ACCOUNT_NUMBER}/${process.env.BANK_ACCOUNT_BANK_CODE}`
-      : '',
+    localFormat: number && bank ? `${prefix ? prefix + '-' : ''}${number}/${bank}` : '',
+    // Surfaced so diagnostics can say WHY a QR is being refused by banks.
+    checksumOk: number ? czAccountNumberValid(number, prefix) : Boolean(explicitIban),
   };
 }
 
@@ -82,9 +126,16 @@ function asciiField(value: string | undefined, maxLength: number): string {
  * Build SPAYD payment string. Returns empty string if IBAN is not configured.
  * Message is stripped of non-ASCII and truncated to 60 chars per spec.
  */
-export function buildSpayd({ amount, variableSymbol, message }: SpaydArgs): string {
-  const { iban, holder } = getBankAccount();
+export async function buildSpayd({ amount, variableSymbol, message }: SpaydArgs): Promise<string> {
+  const { iban, holder, checksumOk } = await getBankAccount();
   if (!iban) return '';
+  // Refuse to emit a QR for an account banking apps will reject — the details
+  // block (rendered from the same source) at least lets a human spot the typo,
+  // whereas a broken QR just reads as "the shop is broken".
+  if (!checksumOk) {
+    console.error('[spayd] bank account fails the CZ checksum — payment QR suppressed. Fix the account at /admin/emails/smtp.');
+    return '';
+  }
 
   const parts = [
     'SPD*1.0',

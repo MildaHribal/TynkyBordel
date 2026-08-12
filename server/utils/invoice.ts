@@ -218,8 +218,8 @@ export async function generateInvoicePdf(data: InvoiceData): Promise<Buffer> {
   if (data.paymentMethod === 'bank-transfer' && !data.paid) {
     try {
       const { buildSpayd, spaydToBuffer, getBankAccount } = await import('./spayd')
-      const { iban, localFormat } = getBankAccount()
-      const spayd = buildSpayd({
+      const { iban, localFormat } = await getBankAccount()
+      const spayd = await buildSpayd({
         amount: data.total,
         variableSymbol: data.variableSymbol ?? data.number,
         message: `Objednavka ${data.number}`,

@@ -48,11 +48,13 @@ export default defineEventHandler(async (event) => {
 
   // Bank transfer: generate SPAYD + QR + bank info to return + include in email.
   let bank: BankTransferBlock | undefined;
+  let bankHolder = 'Tynky Bordel';
   if (body.paymentMethod === 'bank-transfer') {
-    const { iban, localFormat } = getBankAccount();
+    const { iban, localFormat, holder } = await getBankAccount();
+    bankHolder = holder;
     if (iban) {
       const variableSymbol = newOrder.variableSymbol || String(newOrder.id);
-      const spayd = buildSpayd({
+      const spayd = await buildSpayd({
         amount: totalPrice,
         variableSymbol,
         message: `Objednavka ${newOrder.orderNumber || newOrder.id}`,
@@ -114,7 +116,7 @@ export default defineEventHandler(async (event) => {
       ? {
           iban: bank.iban,
           accountNumber: bank.accountNumber,
-          holder: getBankAccount().holder,
+          holder: bankHolder,
           amount: bank.amount,
           variableSymbol: bank.variableSymbol,
           qrDataUrl: bank.qrDataUrl,

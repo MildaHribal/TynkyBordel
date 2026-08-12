@@ -1,6 +1,7 @@
 import { requireAdmin } from '../../utils/session';
 import { getMailConfig, getShopNotificationRecipient } from '../../utils/email';
-import { canStoreSecrets, settingsUpdatedAt } from '../../utils/settings';
+import { canStoreSecrets, getSetting, settingsUpdatedAt } from '../../utils/settings';
+import { getBankAccount } from '../../utils/spayd';
 
 /**
  * Current SMTP configuration for /admin/emails/smtp.
@@ -16,6 +17,11 @@ export default defineEventHandler(async (event) => {
   const cfg = await getMailConfig();
   const updatedAt = await settingsUpdatedAt();
 
+  // Bank account for the payment QR — same DB-over-env resolution the QR
+  // generator itself uses, so this page always shows what customers get.
+  const bank = await getBankAccount();
+  const bankSource = async (key: string) => ((await getSetting(key)) ? 'db' : 'env');
+
   return {
     values: {
       smtp_host: cfg.host ?? '',
@@ -24,6 +30,16 @@ export default defineEventHandler(async (event) => {
       smtp_user: cfg.user ?? '',
       mail_from: cfg.mailFrom ?? '',
       order_notification_email: (await getShopNotificationRecipient()) ?? '',
+      bank_account_number: (await getSetting('bank_account_number')) || process.env.BANK_ACCOUNT_NUMBER?.replace(/['"]/g, '') || '',
+      bank_account_bank_code: (await getSetting('bank_account_bank_code')) || process.env.BANK_ACCOUNT_BANK_CODE?.replace(/['"]/g, '') || '',
+      bank_account_prefix: (await getSetting('bank_account_prefix')) || process.env.BANK_ACCOUNT_PREFIX?.replace(/['"]/g, '') || '',
+      bank_account_holder: bank.holder,
+    },
+    bank: {
+      localFormat: bank.localFormat,
+      iban: bank.iban,
+      checksumOk: bank.checksumOk,
+      source: await bankSource('bank_account_number'),
     },
     sources: cfg.sources,
     passwordSet: cfg.passwordSet,

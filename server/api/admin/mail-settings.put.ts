@@ -15,7 +15,7 @@ import { saveSettings } from '../../utils/settings';
  *     the UI never has to round-trip the secret it was never shown
  */
 
-const TEXT_FIELDS = ['smtp_host', 'smtp_user', 'mail_from', 'order_notification_email'] as const;
+const TEXT_FIELDS = ['smtp_host', 'smtp_user', 'mail_from', 'order_notification_email', 'bank_account_holder'] as const;
 
 export default defineEventHandler(async (event) => {
   await requireAdmin(event);
@@ -51,6 +51,39 @@ export default defineEventHandler(async (event) => {
 
   if ('smtp_pass' in body) {
     updates.smtp_pass = String(body.smtp_pass ?? '');
+  }
+
+  // Bank account for the payment QR. Validated with the Czech mod-11 checksum —
+  // production ran for weeks with a typo'd number whose QR every banking app
+  // refused, and nothing in the pipeline could tell. A number that fails the
+  // checksum is refused HERE, with a message naming the digit problem, instead
+  // of being refused silently in a customer's banking app.
+  if ('bank_account_number' in body || 'bank_account_bank_code' in body || 'bank_account_prefix' in body) {
+    const number = String(body.bank_account_number ?? '').replace(/\s/g, '');
+    const bankCode = String(body.bank_account_bank_code ?? '').replace(/\s/g, '');
+    const prefix = String(body.bank_account_prefix ?? '').replace(/\s/g, '');
+
+    if (number || bankCode) {
+      if (!/^\d{2,10}$/.test(number)) {
+        throw createError({ statusCode: 400, statusMessage: 'Číslo účtu musí být 2–10 číslic (bez kódu banky).' });
+      }
+      if (!/^\d{4}$/.test(bankCode)) {
+        throw createError({ statusCode: 400, statusMessage: 'Kód banky jsou přesně 4 číslice (např. 5500).' });
+      }
+      if (prefix && !/^\d{1,6}$/.test(prefix)) {
+        throw createError({ statusCode: 400, statusMessage: 'Předčíslí účtu je max. 6 číslic.' });
+      }
+      const { czAccountNumberValid } = await import('../../utils/spayd');
+      if (!czAccountNumberValid(number, prefix)) {
+        throw createError({
+          statusCode: 400,
+          statusMessage: `Číslo účtu ${prefix ? prefix + '-' : ''}${number} neprochází kontrolním součtem — takový účet neexistuje. Zkontroluj číslice proti výpisu z banky.`,
+        });
+      }
+    }
+    updates.bank_account_number = number;
+    updates.bank_account_bank_code = bankCode;
+    updates.bank_account_prefix = prefix;
   }
 
   for (const field of ['smtp_user', 'order_notification_email'] as const) {
