@@ -1,16 +1,26 @@
 /**
  * Transactional email helper.
  *
- * Configure via env vars (e.g. in .env):
- *   SMTP_HOST=smtp.example.com
- *   SMTP_PORT=587
- *   SMTP_USER=apikey
- *   SMTP_PASS=...
- *   MAIL_FROM="Tynky Bordel <hello@tynky.cz>"
+ * Configuration comes from two places, database first, environment second:
  *
- * If SMTP_HOST is empty, calls become no-ops that log to console. That keeps dev
- * environments from crashing when email isn't wired up.
+ *   1. `app_settings` rows (smtp_host, smtp_port, smtp_secure, smtp_user,
+ *      smtp_pass, mail_from, order_notification_email) — editable at
+ *      /admin/emails/smtp, which is the only way to fix email on a box we
+ *      cannot SSH into.
+ *   2. env vars (e.g. in .env):
+ *        SMTP_HOST=smtp.example.com
+ *        SMTP_PORT=587
+ *        SMTP_USER=apikey
+ *        SMTP_PASS=...
+ *        MAIL_FROM="Tynky Bordel <hello@tynky.cz>"
+ *
+ * With neither host nor user set, calls become no-ops that log to console. That
+ * keeps dev environments from crashing when email isn't wired up.
  */
+
+// Imported explicitly rather than left to Nitro's auto-imports: scripts/test-email.ts
+// loads this module under plain tsx, where an auto-import would be an undefined global.
+import { getSetting } from './settings';
 
 type SendArgs = {
   to: string;
@@ -28,15 +38,103 @@ type SendArgs = {
   }>;
 };
 
+/**
+ * Read an env var the same way in every environment.
+ *
+ * `.env` read by dotenv strips surrounding quotes; a Docker `env_file` (and
+ * `docker run --env-file`) does NOT — it takes everything after `=` literally.
+ * So `MAIL_FROM="Tynky Bordel <info@tynkybordel.shop>"` arrives in the container
+ * WITH the quotes, and Seznam rejects the resulting From header (it demands
+ * From == the login address). Same trap for a quoted SMTP_PASS.
+ *
+ * Stripping here means the shop behaves identically whichever way the value was
+ * written, instead of failing only in production.
+ */
+function env(key: string): string | undefined {
+  const raw = process.env[key];
+  if (raw == null) return undefined;
+  const value = raw.trim().replace(/^(['"])([\s\S]*)\1$/, '$2').trim();
+  return value || undefined;
+}
+
+/**
+ * Resolve one setting: the database wins, the env var is the fallback.
+ *
+ * Production is deployed as a prebuilt image and `.env.production` can only be
+ * edited over SSH, which the shop owner doesn't have. Letting the admin UI store
+ * SMTP credentials in the database means email can be fixed from the browser
+ * instead of being permanently broken by an env var that never arrived.
+ * A box whose env is already correct behaves exactly as before.
+ */
+async function setting(dbKey: string, envKey: string): Promise<{ value?: string; source: 'db' | 'env' | 'none' }> {
+  const fromDb = await getSetting(dbKey);
+  if (fromDb) return { value: fromDb, source: 'db' };
+  const fromEnv = env(envKey);
+  if (fromEnv) return { value: fromEnv, source: 'env' };
+  return { source: 'none' };
+}
+
+/** Everything the transport needs, password included — never expose this directly. */
+async function resolveMail() {
+  const [host, portRaw, secureRaw, user, pass, mailFrom] = await Promise.all([
+    setting('smtp_host', 'SMTP_HOST'),
+    setting('smtp_port', 'SMTP_PORT'),
+    setting('smtp_secure', 'SMTP_SECURE'),
+    setting('smtp_user', 'SMTP_USER'),
+    setting('smtp_pass', 'SMTP_PASS'),
+    setting('mail_from', 'MAIL_FROM'),
+  ]);
+
+  const port = Number(portRaw.value || 587);
+  return {
+    host: host.value || null,
+    port,
+    // Port 465 is implicit TLS and MUST be `secure: true`. Auto-derive it from the
+    // port so a missing/incorrect SMTP_SECURE doesn't silently break sending
+    // (the #1 Seznam footgun: 465 with secure=false connects in plaintext and fails).
+    secure: secureRaw.value ? secureRaw.value === 'true' : port === 465,
+    secureSource: secureRaw.value ? secureRaw.source : 'auto-from-port',
+    user: user.value || null,
+    password: pass.value || null,
+    mailFrom: mailFrom.value || null,
+    sources: {
+      host: host.source,
+      port: portRaw.source,
+      secure: secureRaw.source,
+      user: user.source,
+      password: pass.source,
+      mailFrom: mailFrom.source,
+    },
+  };
+}
+
+/**
+ * Resolved SMTP settings, shared by the transport, the self-check and diagnostics.
+ * The password is reduced to a boolean here so it can't leak through the admin
+ * diagnostic endpoint, which returns this object verbatim.
+ */
+export async function getMailConfig() {
+  const { password, ...rest } = await resolveMail();
+  return { ...rest, passwordSet: Boolean(password) };
+}
+
 let cachedTransport: any = null;
+
+/**
+ * Drop the memoised transport so the next send picks up freshly saved settings.
+ * Without this the admin would have to redeploy for a password change to apply.
+ */
+export function invalidateMailTransport(): void {
+  cachedTransport = null;
+}
 
 async function getTransport() {
   if (cachedTransport !== null) return cachedTransport;
 
-  const host = process.env.SMTP_HOST;
+  const cfg = await resolveMail();
   // Require both host AND user — a half-filled config (host set, no credentials)
   // would otherwise try to connect and hang/fail, slowing down signup/reset.
-  if (!host || !process.env.SMTP_USER) {
+  if (!cfg.host || !cfg.user) {
     cachedTransport = false; // sentinel: no transport configured
     return cachedTransport;
   }
@@ -44,21 +142,11 @@ async function getTransport() {
   // Dynamic import so the lib only loads when actually needed.
   const nodemailer = (await import('nodemailer')).default;
 
-  const port = Number(process.env.SMTP_PORT || 587);
-  // Port 465 is implicit TLS and MUST be `secure: true`. Auto-derive it from the
-  // port so a missing/incorrect SMTP_SECURE doesn't silently break sending
-  // (the #1 Seznam footgun: 465 with secure=false connects in plaintext and fails).
-  const secure = process.env.SMTP_SECURE
-    ? process.env.SMTP_SECURE === 'true'
-    : port === 465;
-
   cachedTransport = nodemailer.createTransport({
-    host,
-    port,
-    secure,
-    auth: process.env.SMTP_USER
-      ? { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS }
-      : undefined,
+    host: cfg.host,
+    port: cfg.port,
+    secure: cfg.secure,
+    auth: { user: cfg.user, pass: cfg.password },
     // Give slow/handshaking SMTP servers room, but don't hang a request forever.
     connectionTimeout: 10_000,
     greetingTimeout: 10_000,
@@ -88,14 +176,26 @@ export async function sendMail({ to, subject, html, text, attachments, replyTo }
   try {
     const transport = await getTransport();
     if (!transport) {
-      console.warn(`[mail] SMTP not configured — would send to ${to}: "${subject}"`);
+      console.warn(
+        `[mail] NOT SENT to ${to} ("${subject}") — SMTP is not configured in this process ` +
+        '(no host/user in app_settings nor SMTP_HOST/SMTP_USER in the environment). ' +
+        'Fix it without SSH at /admin/emails/smtp, or put the vars in .env.production and RECREATE ' +
+        'the container (docker compose up -d) — a restart does not reload env_file.',
+      );
       return false;
     }
-    const from = process.env.MAIL_FROM || 'Tynky Bordel <noreply@localhost>';
-    await transport.sendMail({ from, to, subject, html, text, attachments, replyTo });
+    const from = (await resolveMail()).mailFrom || 'Tynky Bordel <noreply@localhost>';
+    const info: any = await transport.sendMail({ from, to, subject, html, text, attachments, replyTo });
+    // Log successes too. Without this, a production mailbox that never receives
+    // anything is indistinguishable from code that never tried to send.
+    console.log(`[mail] sent to ${to} ("${subject}") id=${info?.messageId ?? '?'} response=${info?.response ?? ''}`);
     return true;
-  } catch (err) {
-    console.error('[mail] send failed:', err);
+  } catch (err: any) {
+    // Include the code/command — that is what separates "wrong password" (EAUTH)
+    // from "the VPS cannot reach the SMTP port" (ETIMEDOUT/ECONNREFUSED).
+    console.error(
+      `[mail] SEND FAILED to ${to} ("${subject}") code=${err?.code ?? '?'} command=${err?.command ?? '?'}: ${err?.message ?? err}`,
+    );
     return false;
   }
 }
@@ -107,18 +207,18 @@ export async function sendMail({ to, subject, html, text, attachments, replyTo }
  * send from, so notifications work out of the box on any correctly configured
  * SMTP setup without another env var to forget.
  */
-export function getShopNotificationRecipient(): string | null {
-  const explicit = process.env.ORDER_NOTIFICATION_EMAIL?.trim();
-  if (explicit) return explicit;
+export async function getShopNotificationRecipient(): Promise<string | null> {
+  const explicit = await setting('order_notification_email', 'ORDER_NOTIFICATION_EMAIL');
+  if (explicit.value) return explicit.value;
+
+  const cfg = await resolveMail();
 
   // MAIL_FROM may be "Name <box@domain.tld>" — pull the address out.
-  const mailFrom = process.env.MAIL_FROM?.trim();
-  const match = mailFrom?.match(/<([^>]+)>/);
+  const match = cfg.mailFrom?.match(/<([^>]+)>/);
   if (match?.[1]) return match[1];
-  if (mailFrom?.includes('@')) return mailFrom;
+  if (cfg.mailFrom?.includes('@')) return cfg.mailFrom;
 
-  const user = process.env.SMTP_USER?.trim();
-  return user?.includes('@') ? user : null;
+  return cfg.user?.includes('@') ? cfg.user : null;
 }
 
 // ── Shared email shell ──────────────────────────────────────────────────────────
@@ -439,16 +539,23 @@ export async function sendOrderStatusEmail(
   if ((status === 'created' || status === 'paid') && order.items?.length) {
     try {
       const { generateInvoicePdf } = await import('./invoice');
-      const pdf = await generateInvoicePdf({
-        number: order.id,
-        issuedAt: new Date(),
-        customerName: order.customerName,
-        customerAddress: order.shippingAddress,
-        paymentMethod: order.paymentMethod,
-        variableSymbol: order.variableSymbol,
-        items: order.items,
-        total: order.totalPrice,
-      });
+      // Race against a timeout: the attachment is a nice-to-have, the email is not.
+      // A stalled PDF must never cost the customer their order confirmation.
+      const pdf = await Promise.race([
+        generateInvoicePdf({
+          number: order.id,
+          issuedAt: new Date(),
+          customerName: order.customerName,
+          customerAddress: order.shippingAddress,
+          paymentMethod: order.paymentMethod,
+          variableSymbol: order.variableSymbol,
+          items: order.items,
+          total: order.totalPrice,
+        }),
+        new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error('invoice PDF generation timed out after 15s')), 15_000).unref?.(),
+        ),
+      ]);
       attachments.push({ filename: `faktura-${order.id}.pdf`, content: pdf, contentType: 'application/pdf' });
     } catch (err) {
       console.error('[email] invoice PDF generation failed (email still sent):', err);
@@ -500,7 +607,7 @@ const PAYMENT_LABELS: Record<string, string> = {
  * stay fire-and-forget.
  */
 export async function sendNewOrderNotification(order: NewOrderNotification): Promise<boolean> {
-  const to = getShopNotificationRecipient();
+  const to = await getShopNotificationRecipient();
   if (!to) {
     console.warn('[mail] no shop notification recipient configured — set ORDER_NOTIFICATION_EMAIL or MAIL_FROM.');
     return false;
@@ -575,7 +682,7 @@ export async function sendContactMessage(msg: {
   email: string;
   message: string;
 }): Promise<boolean> {
-  const to = getShopNotificationRecipient();
+  const to = await getShopNotificationRecipient();
   if (!to) {
     console.warn('[mail] contact form: no recipient configured — set ORDER_NOTIFICATION_EMAIL or MAIL_FROM.');
     return false;

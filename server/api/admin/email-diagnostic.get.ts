@@ -1,5 +1,5 @@
 import { requireAdmin } from '../../utils/session';
-import { verifyMail, sendMail } from '../../utils/email';
+import { verifyMail, sendMail, getMailConfig, getShopNotificationRecipient } from '../../utils/email';
 
 /**
  * Admin-only email diagnostic — lets you debug production email from the browser
@@ -14,21 +14,18 @@ export default defineEventHandler(async (event) => {
   await requireAdmin(event);
 
   const q = getQuery(event);
-  const port = Number(process.env.SMTP_PORT || 587);
-  const secure = process.env.SMTP_SECURE ? process.env.SMTP_SECURE === 'true' : port === 465;
-  const user = process.env.SMTP_USER || null;
-  const mailFrom = process.env.MAIL_FROM || null;
+  // Exactly the values the sender uses — including quote stripping — so this
+  // endpoint can never report a config the mailer doesn't actually use.
+  const resolved = await getMailConfig();
+  const { user, mailFrom } = resolved;
 
   const config = {
-    host: process.env.SMTP_HOST || null,
-    port,
-    secure,
-    secureSource: process.env.SMTP_SECURE ? 'env' : 'auto-from-port',
-    user,
-    passwordSet: Boolean(process.env.SMTP_PASS),
-    mailFrom,
+    ...resolved,
     // Seznam requires MAIL_FROM to equal the login address, or it rejects the send.
     mailFromMatchesUser: Boolean(user && mailFrom && mailFrom.toLowerCase().includes(user.toLowerCase())),
+    notificationRecipient: await getShopNotificationRecipient(),
+    // The raw value still carrying quotes is the classic env_file footgun.
+    mailFromRawHadQuotes: /^\s*['"]/.test(process.env.MAIL_FROM || ''),
   };
 
   // Verify the connection + credentials without sending anything.

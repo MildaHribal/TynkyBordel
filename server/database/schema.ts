@@ -304,3 +304,14 @@ export const newsletterSubscribers = pgTable('newsletter_subscribers', {
   email: text('email').notNull().unique(),
   createdAt: timestamp('created_at').notNull().defaultNow(),
 });
+
+// ── Runtime settings ─────────────────────────────────────────────────────────
+// Config that has to be editable without SSH access to the VPS — currently the
+// SMTP credentials, edited in /admin/emails/smtp. Read through
+// server/utils/settings.ts, which also decrypts the values marked secret.
+// Env vars remain the fallback, so nothing changes for a correctly configured box.
+export const appSettings = pgTable('app_settings', {
+  key: text('key').primaryKey(),
+  value: text('value').notNull(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+});

@@ -38,6 +38,13 @@ async function loadFonts() {
     storage.getItemRaw('invoice/DejaVuSans.ttf'),
     storage.getItemRaw('invoice/DejaVuSans-Bold.ttf'),
   ])
+  // A missing server asset comes back as null, and `Buffer.from(null)` throws an
+  // opaque TypeError. Name the actual problem instead.
+  if (!r || !b) {
+    throw new Error(
+      'Invoice fonts missing from server assets (invoice/DejaVuSans.ttf, invoice/DejaVuSans-Bold.ttf)',
+    )
+  }
   fontRegular = Buffer.isBuffer(r) ? r : Buffer.from(r as ArrayBuffer)
   fontBold = Buffer.isBuffer(b) ? b : Buffer.from(b as ArrayBuffer)
 }
@@ -64,7 +71,14 @@ export async function generateInvoicePdf(data: InvoiceData): Promise<Buffer> {
 
   const chunks: Buffer[] = []
   doc.on('data', (c: Buffer) => chunks.push(c))
-  const done = new Promise<Buffer>((resolve) => doc.on('end', () => resolve(Buffer.concat(chunks))))
+  // MUST reject on error as well as resolve on end. With only the 'end' handler a
+  // pdfkit failure left this promise pending forever — and because the caller
+  // awaits it while building the order-confirmation email, that silently swallowed
+  // the confirmation instead of sending it without the attachment.
+  const done = new Promise<Buffer>((resolve, reject) => {
+    doc.on('end', () => resolve(Buffer.concat(chunks)))
+    doc.on('error', reject)
+  })
 
   const INK = '#1a1a1a'
   const MUTED = '#6b6b6b'

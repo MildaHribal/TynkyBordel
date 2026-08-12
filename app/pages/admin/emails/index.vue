@@ -73,6 +73,10 @@ const formatDate = (iso: string | null) => {
         <h1 class="page-title">E-mailové šablony</h1>
         <p class="page-subtitle">Uprav texty automatických e-mailů, které se posílají zákazníkům.</p>
       </div>
+      <NuxtLink to="/admin/emails/smtp" class="btn-primary">
+        <Icon name="lucide:settings-2" height="16" />
+        Nastavení odesílání
+      </NuxtLink>
     </div>
 
     <div v-if="pending" class="loading-state">

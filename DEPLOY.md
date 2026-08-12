@@ -108,7 +108,47 @@ gunzip -c backups/db-20260727.sql.gz | \
 ## Common issues
 
 - **Caddy fails to get cert** → Cloudflare "orange cloud" must be on and SSL mode "Full (strict)". Or temporarily set to "Full" if Caddy hasn't got a cert yet — LE HTTP-01 challenge needs to reach port 80.
-- **Emails not going out** → Check `docker compose logs app | grep mail`. Seznam requires SMTP_SECURE=true and port 465. Try authenticating manually first.
+- **Emails not going out** → **Fix it in the browser first: `/admin/emails/smtp`.**
+  That page stores the SMTP host, login, password and From address in the database
+  (password encrypted with `BETTER_AUTH_SECRET`), and those values take precedence
+  over the `SMTP_*` env vars. It exists because the container is built by CI and
+  `.env.production` needs SSH — so without it, an env var that never reached the
+  container leaves email permanently broken with no way to repair it. The page
+  verifies the connection on save and sends a test message on request.
+
+  With SSH access, the app also runs an SMTP self-check on every boot:
+
+  ```bash
+  docker compose -f docker-compose.prod.yml logs app | grep '\[mail\]'
+  ```
+
+  - `[mail] DISABLED — no SMTP host/user in app_settings or the environment`
+    → neither source is configured. Either set it at `/admin/emails/smtp`, or fix
+    the env vars — in which case there are two usual reasons they didn't arrive:
+    1. They were added to **`.env`** instead of **`.env.production`**. Only
+       `.env.production` is passed to the app (`env_file:`); the plain `.env` is
+       just Compose's variable-interpolation file for `${POSTGRES_PASSWORD}`.
+    2. The container was **restarted** rather than **recreated**. `docker compose
+       restart` does NOT reload `env_file` — you must run
+       `docker compose -f docker-compose.prod.yml up -d`.
+
+    Confirm what the container actually sees:
+    ```bash
+    docker compose -f docker-compose.prod.yml exec app printenv | grep -E 'SMTP|MAIL_FROM'
+    ```
+  - `[mail] CONNECTION/LOGIN FAILED: ... code=EAUTH` → wrong `SMTP_PASS`, or SMTP
+    access is disabled for the mailbox in Seznam's settings.
+  - `[mail] CONNECTION/LOGIN FAILED: ... code=ETIMEDOUT/ECONNREFUSED` → the VPS
+    cannot reach `smtp.seznam.cz:465`. Many providers block outbound SMTP ports by
+    default; verify with
+    `docker compose -f docker-compose.prod.yml exec app node -e "require('net').connect(465,'smtp.seznam.cz').on('connect',()=>{console.log('open');process.exit(0)}).on('error',e=>{console.log('blocked',e.code);process.exit(1)})"`
+    and open a support ticket if it is blocked.
+  - `[mail] connection + login OK` but customers get nothing → look for the
+    per-message lines. Every send now logs either `[mail] sent to …` with the
+    Seznam queue id, or `[mail] SEND FAILED … code=…`.
+
+  Seznam also requires `SMTP_SECURE=true`, port 465, and `MAIL_FROM` containing the
+  same address as `SMTP_USER` — the self-check warns when they differ.
 - **Uploaded images disappear after rebuild** → confirm the `uploads` named volume in `docker-compose.prod.yml` mounts to `/app/.output/public/uploads`.
 
 ## Local dev (unchanged)
