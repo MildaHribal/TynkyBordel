@@ -1,4 +1,4 @@
-import { pgTable, serial, text, doublePrecision, integer, timestamp, jsonb, boolean, uniqueIndex, check, customType } from 'drizzle-orm/pg-core';
+import { pgTable, serial, text, doublePrecision, integer, timestamp, date, jsonb, boolean, uniqueIndex, primaryKey, check, customType } from 'drizzle-orm/pg-core';
 import { relations, sql } from 'drizzle-orm';
 
 // Drizzle has no built-in bytea column; postgres.js maps it to/from Buffer.
@@ -326,6 +326,26 @@ export const newsletterSubscribers = pgTable('newsletter_subscribers', {
   email: text('email').notNull().unique(),
   createdAt: timestamp('created_at').notNull().defaultNow(),
 });
+
+// ── Traffic counting ─────────────────────────────────────────────────────────
+// Counted on the server (see server/utils/analytics.ts) because posthog-js is
+// gated behind opt-in cookie consent and therefore only ever sees the visitors
+// who accept. No personal data: a visitor is a hash of a daily-rotating salt +
+// IP + user agent, and the IP is never stored. Migration 0013.
+export const pageViews = pgTable('page_views', {
+  day: date('day').notNull(),
+  path: text('path').notNull(),
+  views: integer('views').notNull().default(0),
+}, (t) => [
+  primaryKey({ columns: [t.day, t.path] }),
+]);
+
+export const pageViewVisitors = pgTable('page_view_visitors', {
+  day: date('day').notNull(),
+  hash: text('hash').notNull(),
+}, (t) => [
+  primaryKey({ columns: [t.day, t.hash] }),
+]);
 
 // ── Runtime settings ─────────────────────────────────────────────────────────
 // Config that has to be editable without SSH access to the VPS — currently the
