@@ -501,7 +501,7 @@ const toggleFavorite = async () => {
                       class="text-xs md:text-sm font-semibold tracking-wide uppercase"
                       :class="product.stock > 0 ? 'text-green-300' : 'text-red-300'"
                     >
-                      {{ product.stock > 0 ? 'Skladem' : 'Vyprodáno' }}
+                      {{ product.stock > 0 ? 'Skladem' : 'Prodáno' }}
                     </span>
                   </div>
                   <button
@@ -558,7 +558,7 @@ const toggleFavorite = async () => {
                   : 'pdp-buy--off'"
               >
                 <Icon :name="isAddedToCart ? 'mdi:check-bold' : 'mdi:cart-plus'" height="22" />
-                {{ product.stock > 0 ? (isAddedToCart ? 'Přidáno do košíku' : 'Přidat do košíku') : 'Nedostupné' }}
+                {{ product.stock > 0 ? (isAddedToCart ? 'Přidáno do košíku' : 'Přidat do košíku') : 'Prodáno' }}
               </button>
             </div>
           </div>

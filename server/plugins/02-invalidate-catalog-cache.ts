@@ -37,7 +37,19 @@ export default defineNitroPlugin((nitroApp) => {
     // shows up on the wall an hour later — which reads as "it didn't save".
     // `isCatalogKey` already matches the homepage's `nitro:routes:_:index.*` key,
     // so nothing else has to change.
-    if (!/^\/api\/admin\/(products|categories)\b/.test(path) && !/^\/api\/user\/reviews\b/.test(path)) return
+    // Admin catalog writes; the one customer-facing write that changes what the
+    // homepage renders (a new review); and anything that moves stock. An order
+    // flips a one-off original to "PRODÁNO" and a cancellation flips it back —
+    // both change the catalog, and without this the storefront would keep
+    // offering a piece that is already sold for up to the full swr hour.
+    const changesCatalog =
+      /^\/api\/admin\/(products|categories)\b/.test(path) ||
+      /^\/api\/user\/reviews\b/.test(path) ||
+      /^\/api\/orders\b/.test(path) ||
+      /^\/api\/paypal\/capture-order\b/.test(path) ||
+      /^\/api\/user\/orders\/\d+\/cancel\b/.test(path) ||
+      /^\/api\/admin\/orders\/\d+$/.test(path)
+    if (!changesCatalog) return
 
     const status = getResponseStatus(event)
     if (status >= 400) return

@@ -101,6 +101,10 @@ export const products = pgTable('products', {
   image: text('image'),
   images: jsonb('images').$type<string[]>().default([]),
   categoryId: integer('category_id').references(() => categories.id),
+  // When stock last reached zero. The storefront keeps such a piece visible —
+  // labelled "PRODÁNO" and not purchasable — for 24 hours, then hides it.
+  // Written and cleared alongside every stock change; NULL = not sold out.
+  soldOutAt: timestamp('sold_out_at'),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
 });

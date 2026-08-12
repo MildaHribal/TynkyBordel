@@ -9,4 +9,7 @@ export interface Product {
     description?: string | null;
     stock?: number;
     slug?: string;
+    /** Sold, but still shown on the storefront for 24 hours (see shared/catalog.ts). */
+    soldOut?: boolean;
+    soldOutAt?: string | Date | null;
 }

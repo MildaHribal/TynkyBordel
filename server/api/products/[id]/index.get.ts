@@ -1,6 +1,7 @@
 import { db } from '../../../utils/db';
 import { products, categories } from '../../../database/schema';
 import { eq } from 'drizzle-orm';
+import { SOLD_OUT_VISIBLE_HOURS } from '../../../../shared/catalog';
 
 export default defineEventHandler(async (event) => {
   const idOrSlug = getRouterParam(event, 'id');
@@ -29,6 +30,7 @@ export default defineEventHandler(async (event) => {
       image: products.image,
       images: products.images,
       stock: products.stock,
+      soldOutAt: products.soldOutAt,
       category: categories.name,
       categoryId: products.categoryId,
       createdAt: products.createdAt,
@@ -45,14 +47,24 @@ export default defineEventHandler(async (event) => {
     });
   }
 
-  // Public detail: a sold-out product (stock reached 0) is hidden from the
-  // storefront, so a direct link 404s. Admin uses its own endpoints.
-  if ((result[0].stock ?? 0) <= 0) {
+  const product = result[0]!;
+  const soldOut = (product.stock ?? 0) <= 0;
+
+  // A sold piece stays reachable for the same 24 hours the catalog keeps
+  // listing it — otherwise every "PRODÁNO" card on the homepage would link
+  // straight to a 404, which is precisely the broken behaviour this window
+  // exists to fix. Older sold-outs 404 as before.
+  const soldRecently =
+    soldOut &&
+    product.soldOutAt != null &&
+    Date.now() - new Date(product.soldOutAt).getTime() < SOLD_OUT_VISIBLE_HOURS * 3600_000;
+
+  if (soldOut && !soldRecently) {
     throw createError({
       statusCode: 404,
       statusMessage: 'Product not found',
     });
   }
 
-  return result[0];
+  return { ...product, soldOut };
 });

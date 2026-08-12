@@ -122,7 +122,16 @@ onBeforeUnmount(() => {
   }
 })
 
+// A piece stays on the storefront for 24 hours after it sells, labelled and
+// unbuyable. The server decides this (it owns the stock and the window); the
+// card only renders it.
+const isSoldOut = computed(() => {
+  const p = props.product as any
+  return p.soldOut === true || (typeof p.stock === 'number' && p.stock <= 0)
+})
+
 const handleAddToCart = (event: MouseEvent) => {
+  if (isSoldOut.value) return
   cart.addToCart(props.product)
   showAddedState()
 
@@ -164,7 +173,11 @@ const toggleFavorite = async () => {
     @focusin="onCardEnter"
   >
     <!-- Image frame -->
-    <div ref="imageWrapRef" class="card-image relative w-full aspect-[5/4] overflow-hidden rounded-xl">
+    <div
+      ref="imageWrapRef"
+      class="card-image relative w-full aspect-[5/4] overflow-hidden rounded-xl"
+      :class="{ 'is-sold': isSoldOut }"
+    >
       <NuxtImg
         v-if="imageSrc && !isImageError"
         :src="imageSrc"
@@ -209,8 +222,13 @@ const toggleFavorite = async () => {
         <Icon name="mdi:image-off-outline" height="44" />
       </div>
 
-      <!-- Desktop add-to-cart button -->
-      <div class="card-cta absolute inset-x-0 bottom-0 p-2.5 hidden lg:flex justify-end">
+      <!-- Sold: a stamp across the photo, and the photo itself desaturated. -->
+      <div v-if="isSoldOut" class="sold-overlay">
+        <span class="sold-stamp">Prodáno</span>
+      </div>
+
+      <!-- Desktop add-to-cart button — never offered for a sold piece. -->
+      <div v-if="!isSoldOut" class="card-cta absolute inset-x-0 bottom-0 p-2.5 hidden lg:flex justify-end">
         <button
           @click.prevent.stop="handleAddToCart"
           class="add-btn"
@@ -253,6 +271,42 @@ const toggleFavorite = async () => {
 </template>
 
 <style scoped>
+/* ── Sold pieces ────────────────────────────────────────────────────────────
+   The card stays on the wall for a day after it sells. It has to read as
+   "gone" at a glance — hence the drained photo — while still looking like part
+   of the zine, so the stamp is the same rubber-stamp treatment as the rest of
+   the site rather than a grey e-shop ribbon. */
+.card-image.is-sold :deep(.card-img) {
+  filter: grayscale(0.85) contrast(0.92) brightness(0.92);
+}
+
+.sold-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  z-index: 3;
+  background: color-mix(in srgb, var(--pop-paper, #fdf6e8) 22%, transparent);
+}
+
+.sold-stamp {
+  font-family: var(--font-zine), var(--font-gloock), Georgia, serif;
+  font-size: clamp(1.05rem, 3.4vw, 1.5rem);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--pop-pink-ink, #b3324c);
+  border: 3px solid currentColor;
+  border-radius: 6px;
+  padding: 0.28em 0.7em;
+  transform: rotate(-11deg);
+  background: color-mix(in srgb, var(--pop-paper, #fdf6e8) 88%, transparent);
+  box-shadow: 0 2px 0 color-mix(in srgb, currentColor 35%, transparent);
+  /* Slightly uneven edges read as ink on paper rather than a CSS box. */
+  opacity: 0.92;
+}
+
 .product-card {
   /* THE OLIVE CARD IS DARK IN BOTH THEMES — --pop-plum only lifts a little for
      dark mode, it never flips. So every foreground painted on it is

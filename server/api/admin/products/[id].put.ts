@@ -1,6 +1,6 @@
 import { db } from '../../../utils/db';
 import { products, categories } from '../../../database/schema';
-import { eq } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 import { requireAdmin } from '../../../utils/session';
 
 function slugify(str: string): string {
@@ -35,7 +35,15 @@ export default defineEventHandler(async (event) => {
   if (body.price !== undefined) updateData.price = Number(body.price);
   if (body.image !== undefined) updateData.image = body.image;
   if (body.images !== undefined) updateData.images = body.images;
-  if (body.stock !== undefined) updateData.stock = Number(body.stock);
+  if (body.stock !== undefined) {
+    const stock = Number(body.stock);
+    updateData.stock = stock;
+    // Keep sold_out_at consistent with whatever the admin just typed, the same
+    // way checkout and cancellation do. COALESCE preserves the original sale
+    // time: editing a sold piece's description must not restart its 24-hour
+    // window on the storefront.
+    updateData.soldOutAt = stock > 0 ? null : sql`coalesce(${products.soldOutAt}, now())`;
+  }
 
   // Resolve category
   if (body.categoryId !== undefined) {

@@ -1,6 +1,7 @@
 import { db } from '../../utils/db';
 import { products, categories } from '../../database/schema';
 import { and, eq, or, sql, desc, gt, type SQLWrapper } from 'drizzle-orm';
+import { SOLD_OUT_VISIBLE_INTERVAL } from '../../../shared/catalog';
 
 // Diakritika: `ilike` je v Postgresu case-insensitive, ale NE accent-insensitive,
 // takže „klicenka" nikdy nenašlo „Klíčenka" — a to je u českého shopu většina
@@ -30,9 +31,20 @@ export default defineCachedEventHandler(async (event) => {
   const category = typeof query.category === 'string' ? query.category.trim() : '';
 
   const conditions = [];
-  // Public storefront: hide sold-out products (stock reached 0). Admin has its
-  // own endpoints, so out-of-stock items stay visible/editable there.
-  conditions.push(gt(products.stock, 0));
+  // Public storefront: in stock, OR sold within the last 24 hours. A one-off
+  // original vanishing the instant it sells made the shop look emptier the
+  // better it did, and turned every link someone had just seen into a dead end.
+  // Recently-sold pieces stay listed, marked "PRODÁNO" and not purchasable.
+  // Anything sold longer ago disappears, as before. Admin has its own endpoints,
+  // so everything stays visible/editable there.
+  conditions.push(
+    or(
+      gt(products.stock, 0),
+      // NULL sold_out_at compares as NULL here, i.e. not matched — which is what
+      // we want for a product that was never sold out.
+      sql`${products.soldOutAt} > now() - interval '${sql.raw(SOLD_OUT_VISIBLE_INTERVAL)}'`,
+    ),
+  );
   // Každé slovo z dotazu musí sedět (v názvu, popisu nebo kategorii) — díky tomu
   // najde „meduza klicenka" i „Klíčenka Medúza z hlubin", nejen ve správném pořadí.
   const terms = search ? foldInput(search).split(/\s+/).filter(Boolean).slice(0, 6) : [];
@@ -60,6 +72,11 @@ export default defineCachedEventHandler(async (event) => {
       image: products.image,
       images: products.images,
       stock: products.stock,
+      // Everything the card needs to render the "PRODÁNO" state, decided here
+      // rather than from `stock` in the browser — the two must agree with the
+      // filter above, and that logic belongs in one place.
+      soldOut: sql<boolean>`${products.stock} <= 0`,
+      soldOutAt: products.soldOutAt,
       category: categories.name,
       categoryId: products.categoryId,
       createdAt: products.createdAt,

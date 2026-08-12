@@ -190,7 +190,15 @@ export async function persistOrder(
         for (const { id, quantity } of cart) {
           const [reserved] = await tx
             .update(products)
-            .set({ stock: sql`${products.stock} - ${quantity}`, updatedAt: new Date() })
+            .set({
+              stock: sql`${products.stock} - ${quantity}`,
+              // Stamped in the SAME statement that takes the stock, so the
+              // timestamp can never disagree with the stock value — the
+              // storefront reads both to decide whether to show the piece as
+              // "PRODÁNO". `products.stock` here is still the pre-update value.
+              soldOutAt: sql`CASE WHEN ${products.stock} - ${quantity} <= 0 THEN now() ELSE NULL END`,
+              updatedAt: new Date(),
+            })
             .where(and(eq(products.id, id), gte(products.stock, quantity)))
             .returning();
 
@@ -283,7 +291,9 @@ export async function releaseStock(items: OrderItemData[]): Promise<void> {
     try {
       await db
         .update(products)
-        .set({ stock: sql`${products.stock} + ${item.quantity}`, updatedAt: new Date() })
+        // Back in stock, so it is no longer sold out — clearing this is what
+        // takes the "PRODÁNO" label off a cancelled order's piece.
+        .set({ stock: sql`${products.stock} + ${item.quantity}`, soldOutAt: null, updatedAt: new Date() })
         .where(eq(products.id, item.productId));
     } catch (err) {
       console.error(`[stock] failed to release ${item.quantity}× product ${item.productId}:`, err);
