@@ -93,6 +93,30 @@ async function changePayment(orderId: number, newPayment: string) {
 }
 
 const selectedOrder = ref<any>(null)
+
+// Deleting is for clearing test orders out of production, where we have no
+// database access. Real cancellations belong in the status dropdown — those keep
+// the record. This one is irreversible, hence the spelled-out confirmation.
+const deletingId = ref<number | null>(null)
+async function deleteOrder(o: any) {
+  const label = `#${o.orderNumber || o.id} — ${o.customerName}`
+  if (!confirm(`Nenávratně smazat objednávku ${label}?\n\nSmaže se i její obsah a případná rozpracovaná faktura. Kusy se vrátí na sklad.`)) return
+
+  deletingId.value = o.id
+  try {
+    const res = await $fetch<{ restocked: number }>(`/api/admin/orders/${o.id}`, { method: 'DELETE' })
+    if (selectedOrder.value?.id === o.id) selectedOrder.value = null
+    await refresh()
+    toast.success(
+      'Smazáno',
+      res.restocked ? `Objednávka je pryč, ${res.restocked} ks se vrátilo na sklad.` : 'Objednávka je pryč.',
+    )
+  } catch (e: any) {
+    toast.error('Nepodařilo se smazat', e?.data?.statusMessage || e?.message || 'Zkus to znovu.')
+  } finally {
+    deletingId.value = null
+  }
+}
 </script>
 
 <template>
@@ -186,6 +210,15 @@ const selectedOrder = ref<any>(null)
                   >
                     <option v-for="s in STATUSES" :key="s.value" :value="s.value">{{ s.label }}</option>
                   </select>
+                  <button
+                    class="action-btn delete-btn"
+                    :disabled="deletingId === o.id"
+                    title="Smazat objednávku (nevratné)"
+                    @click="deleteOrder(o)"
+                  >
+                    <Icon v-if="deletingId === o.id" name="lucide:loader-2" class="spin" height="14" />
+                    <Icon v-else name="lucide:trash-2" height="14" />
+                  </button>
                 </div>
               </td>
             </tr>
