@@ -61,11 +61,29 @@ export function getBankAccount() {
 }
 
 /**
+ * SPAYD values must be plain ASCII and must not contain `*` (the field
+ * separator) — a stray one silently splits the payload into fields the banking
+ * app cannot parse, which is exactly the "invalid QR" a customer would report.
+ * Diacritics are decomposed and their accents dropped, so "Tynky Bordel s.r.o."
+ * survives and "Tyňky" becomes "Tynky" rather than being blanked out.
+ */
+function asciiField(value: string | undefined, maxLength: number): string {
+  return String(value || '')
+    .normalize('NFD')
+    .replace(/\p{Diacritic}/gu, '')
+    .replace(/[^\x20-\x7E]/g, ' ')
+    .replace(/\*/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, maxLength);
+}
+
+/**
  * Build SPAYD payment string. Returns empty string if IBAN is not configured.
  * Message is stripped of non-ASCII and truncated to 60 chars per spec.
  */
 export function buildSpayd({ amount, variableSymbol, message }: SpaydArgs): string {
-  const { iban } = getBankAccount();
+  const { iban, holder } = getBankAccount();
   if (!iban) return '';
 
   const parts = [
@@ -73,17 +91,23 @@ export function buildSpayd({ amount, variableSymbol, message }: SpaydArgs): stri
     `ACC:${iban}`,
     `AM:${amount.toFixed(2)}`,
     'CC:CZK',
-    `X-VS:${String(variableSymbol)}`,
   ];
-  if (message) {
-    const clean = message
-      .normalize('NFD')
-      .replace(/[̀-ͯ]/g, '')
-      .replace(/[^\x20-\x7E]/g, ' ')
-      .replace(/\*/g, ' ')
-      .slice(0, 60);
-    parts.push(`MSG:${clean}`);
-  }
+
+  // Recipient name. Optional in the spec, but banking apps show it on the
+  // confirmation screen and some refuse to pre-fill a payment without knowing
+  // who it is going to — a nameless payment reads as suspicious to both the app
+  // and the customer. ASCII-only and ≤35 chars, same rule the spec puts on MSG.
+  const recipient = asciiField(holder, 35);
+  if (recipient) parts.push(`RN:${recipient}`);
+
+  // Variable symbol: digits only, max 10 — the spec is strict here and a
+  // non-numeric value makes the whole descriptor invalid.
+  const vs = String(variableSymbol).replace(/\D/g, '').slice(0, 10);
+  if (vs) parts.push(`X-VS:${vs}`);
+
+  const clean = asciiField(message, 60);
+  if (clean) parts.push(`MSG:${clean}`);
+
   return parts.join('*');
 }
 
@@ -102,7 +126,9 @@ export async function spaydToDataUrl(spayd: string): Promise<string | null> {
     }
     return await toDataURL(spayd, {
       errorCorrectionLevel: 'M',
-      margin: 1,
+      // 4 modules is the quiet zone the QR standard requires. This used to be 1,
+      // which strict scanners — bank apps among them — are entitled to reject.
+      margin: 4,
       width: 400,
       color: { dark: '#000000', light: '#FFFFFF' },
     });
@@ -129,7 +155,9 @@ export async function spaydToBuffer(spayd: string): Promise<Buffer | null> {
     }
     return await toBuffer(spayd, {
       errorCorrectionLevel: 'M',
-      margin: 1,
+      // 4 modules is the quiet zone the QR standard requires. This used to be 1,
+      // which strict scanners — bank apps among them — are entitled to reject.
+      margin: 4,
       width: 400,
       color: { dark: '#000000', light: '#FFFFFF' },
     });
