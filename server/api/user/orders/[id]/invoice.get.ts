@@ -79,7 +79,7 @@ export default defineEventHandler(async (event) => {
     'content-disposition': `${download ? 'attachment' : 'inline'}; filename="${filename}"`,
     // A customer's invoice must never be cached by Cloudflare or a shared proxy.
     'cache-control': 'private, no-store',
-    'content-length': String(pdf.length),
+    'content-length': pdf.length,
   });
 
   return pdf;

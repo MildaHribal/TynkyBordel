@@ -35,6 +35,10 @@ const cardEnabled = computed(() => CARD_PAYMENT_ENABLED && Boolean(paypalClientI
 
 type BankInfo = {
   iban: string;
+  // Local format ("8294444956/5500") — what a customer actually types into
+  // their banking app. The template has always rendered it; it was missing from
+  // this type, so nothing would have caught the API dropping it.
+  accountNumber: string | null;
   holder: string;
   amount: number;
   variableSymbol: number | string;

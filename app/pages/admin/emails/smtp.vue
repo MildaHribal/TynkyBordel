@@ -120,7 +120,7 @@ const save = async () => {
     // An absent smtp_pass means "keep the stored one" — only send a typed value.
     if (!form.smtp_pass) delete payload.smtp_pass
 
-    const res = await $fetch<{ verify: { ok: boolean; error?: string } }>('/api/admin/mail-settings', {
+    const res = await $fetch<{ verify: { ok: boolean; configured: boolean; error?: string } }>('/api/admin/mail-settings', {
       method: 'PUT',
       body: payload,
     })

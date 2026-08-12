@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import ProductCard from '~/components/products/ProductCard.vue'
+import type { Product } from '~~/types'
 
 const { data: products, pending, error } = useLazyFetch<Product[]>('/api/products')
 </script>
