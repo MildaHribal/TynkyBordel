@@ -146,6 +146,12 @@ async function getTransport() {
     host: cfg.host,
     port: cfg.port,
     secure: cfg.secure,
+    // On port 587 `secure` is false and nodemailer upgrades with STARTTLS only if
+    // the server offers it — otherwise it would happily send the mailbox password
+    // in the clear. Requiring the upgrade turns that silent downgrade into a
+    // failed connection. (Hetzner blocks 465 outbound, so 587 is the port this
+    // shop actually sends on; verified against Seznam with requireTLS on.)
+    requireTLS: !cfg.secure,
     auth: { user: cfg.user, pass: cfg.password },
     // Give slow/handshaking SMTP servers room, but don't hang a request forever.
     connectionTimeout: 10_000,

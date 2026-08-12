@@ -29,8 +29,7 @@ import { BUSINESS } from "~~/shared/shop";
                 <span class="footer-brand-name">Týnky Bordel</span>
               </NuxtLink>
               <p class="footer-tagline">
-                Ručně dělané originály — obrazy, sochy, klíčenky.<br />
-                Každý kousek je jeden na světě.
+                Ručně dělané originály
               </p>
             </div>
             <!--

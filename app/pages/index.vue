@@ -188,7 +188,7 @@ function scrollToKolekce(e: MouseEvent) {
       <section class="zhero">
         <div class="zhero-inner">
           <div class="zhero-copy">
-            <span class="zine-eyebrow zhero-eyebrow">✶ Autor · Jeden kus · Žádná série</span>
+            <span class="zine-eyebrow zhero-eyebrow">✶ handmade bordel</span>
             <h1 class="zhero-title">
               Vytvářím <span class="zhero-mark">absolutní</span> bangery.
             </h1>
@@ -252,7 +252,7 @@ function scrollToKolekce(e: MouseEvent) {
       <section id="kolekce" class="zsection">
         <div class="zine-section-head">
           <div>
-            <span class="zine-eyebrow">Čerstvé z ateliéru</span>
+            <span class="zine-eyebrow">Čerstvé z pokojíčku</span>
             <h2 class="zine-section-title">Všechny kousky</h2>
           </div>
           <div v-if="categories.length" class="zfilters">
@@ -329,7 +329,7 @@ function scrollToKolekce(e: MouseEvent) {
               </p>
               <p>
                 Každý kousek, který tu najdeš, vznikl spontánním nápadem —
-                klidně ve <span class="zabout-mark">čtyři ráno</span> po nechtěném probuzení.
+                klidně ve <span class="zabout-mark">čtyři ráno</span>, po nechtěném probuzení.
               </p>
               <p>
                 Sdílet je s ostatními byl můj dlouholetý sen a jsem neskutečně ráda,
@@ -355,8 +355,8 @@ function scrollToKolekce(e: MouseEvent) {
           </div>
           <div class="ztile">
             <span class="ztile-num">03</span>
-            <h3 class="ztile-title">Každý kousek originál</h3>
-            <p class="ztile-desc">Žádná sériová výroba — co koupíš, to už nikdo jiný mít nebude.</p>
+            <h3 class="ztile-title">Balíme eko a s bonusem</h3>
+            <p class="ztile-desc">Objednávky balíme do recyklovaných materiálů a ke každé přibalíme samolepky.</p>
           </div>
         </div>
       </section>
