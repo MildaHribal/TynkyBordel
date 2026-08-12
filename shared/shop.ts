@@ -17,8 +17,8 @@
 // convincing but invented address.
 // ─────────────────────────────────────────────────────────────────────────────
 export const BUSINESS = {
-  /** Legal name of the sole trader (jméno podnikatele). */
-  legalName: 'Kristýna Egnerová',
+  /** Legal name of the sole trader (jméno podnikatele) — the holder of the IČO. */
+  legalName: 'Miroslav Turhobr',
   /** IČO from the trade licence. */
   ico: '17896789',
   /** DIČ — leave empty when not VAT-registered. */
@@ -42,12 +42,11 @@ export const BUSINESS = {
 } as const
 
 // ─── Invoice seller ──────────────────────────────────────────────────────────
-// The PDF invoice ("faktura") is issued under a different name than the public
-// storefront brand, while keeping the SAME IČO and registered address. The
-// storefront and legal pages keep showing BUSINESS.legalName (Kristýna); only
-// the generated invoice uses this identity.
+// The invoice is issued under the same legal identity the site states publicly
+// (the IČO holder). Kept as a separate constant only so the invoice renderer
+// has one stable import — the values just mirror BUSINESS.
 export const INVOICE_SELLER = {
-  name: 'Miroslav Turhobr',
+  name: BUSINESS.legalName,
   ico: BUSINESS.ico,
   address: BUSINESS.address,
   email: BUSINESS.email,

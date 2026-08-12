@@ -46,7 +46,9 @@ const handleSubmit = async () => {
         <ul class="contact-list">
           <li class="contact-item">
             <span class="contact-icon"><Icon name="mdi:account-outline" height="18" /></span>
-            <span class="contact-item-text">Kristýna Egnerová</span>
+            <!-- The artist persona, not the legal identity — the IČO holder
+                 (Miroslav Turhobr) is stated on the legal pages via BUSINESS. -->
+            <span class="contact-item-text">Kristýna</span>
           </li>
           <li class="contact-item">
             <span class="contact-icon"><Icon name="mdi:email-outline" height="18" /></span>
