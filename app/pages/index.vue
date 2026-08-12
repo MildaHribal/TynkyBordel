@@ -38,6 +38,35 @@ const collection = computed(() =>
   (allProducts.value ?? []).map((p, i) => ({ ...p, id: p.id || `col-${i}` }))
 )
 
+// ── Zeď recenzí ─────────────────────────────────────────────────────────────
+// Reviews live here, not on the product pages. Every piece is a one-off, so a
+// sold item's page is gone by the time anyone could review it — customers write
+// theirs from the order history (/user → Moje objednávky) and they all land on
+// this one wall.
+//
+// The page is `swr: 3600`, so this HTML is cached for an hour; a new review
+// purges it (POST /api/user/reviews → server/plugins/02-invalidate-catalog-cache.ts).
+interface HomeReview {
+  id: number
+  rating: number
+  comment: string | null
+  userName: string
+  createdAt: string | null
+  productName: string | null
+  productImage: string | null
+}
+const { data: reviewsData } = await useFetch<HomeReview[]>('/api/reviews', {
+  query: { limit: 12 },
+  default: () => [],
+})
+const reviews = computed<HomeReview[]>(() => reviewsData.value ?? [])
+
+function reviewDate(value: string | null) {
+  if (!value) return ''
+  const d = new Date(value)
+  return Number.isNaN(d.getTime()) ? '' : d.toLocaleDateString('cs-CZ')
+}
+
 const inStockCount = computed(() =>
   collection.value.filter((p: any) => (p.stock ?? 0) > 0).length
 )
@@ -332,8 +361,47 @@ function scrollToKolekce(e: MouseEvent) {
         </div>
       </section>
 
+      <!-- ═══ RECENZE ═══ -->
+      <!-- Only renders when someone has actually written something: an empty
+           "co říkají zákazníci" block on a brand-new shop looks worse than no
+           block at all. -->
+      <section v-if="reviews.length" id="recenze" class="zsection below-fold">
+        <div class="zine-section-head">
+          <div>
+            <span class="zine-eyebrow">✶ Vzkazy od vás</span>
+            <h2 class="zine-section-title">Co říkají ti, co už mají</h2>
+          </div>
+        </div>
+
+        <div class="zwall">
+          <article v-for="rev in reviews" :key="rev.id" class="znote">
+            <span class="zine-tape znote-tape" aria-hidden="true"></span>
+
+            <div class="znote-stars" :aria-label="`Hodnocení ${rev.rating} z 5`">
+              <Icon
+                v-for="n in 5" :key="n"
+                :name="n <= rev.rating ? 'mdi:star' : 'mdi:star-outline'"
+                height="16" aria-hidden="true"
+              />
+            </div>
+
+            <p class="znote-text">&bdquo;{{ rev.comment }}&ldquo;</p>
+
+            <div class="znote-foot">
+              <!-- Which piece it is about. Not a link: the original is sold, so
+                   its product page no longer exists. -->
+              <span v-if="rev.productName" class="znote-product">{{ rev.productName }}</span>
+              <span class="znote-by">
+                <span class="znote-author">{{ rev.userName }}</span>
+                <span v-if="reviewDate(rev.createdAt)" class="znote-date"> · {{ reviewDate(rev.createdAt) }}</span>
+              </span>
+            </div>
+          </article>
+        </div>
+      </section>
+
       <!-- No contact block here on purpose: the owner wants the form to live on
-           the product page only, so the homepage ends with the info tiles. -->
+           the product page only, so the homepage ends with the reviews wall. -->
     </template>
   </div>
 </template>
@@ -664,6 +732,93 @@ function scrollToKolekce(e: MouseEvent) {
   color: var(--pop-ink-mute);
   margin: 0;
 }
+
+/* ── Zeď recenzí ──
+   Note cards taped to the page, same paper/ink/offset-shadow language as the
+   polaroids and the info tiles. Every colour is a --pop-* token, so the wall
+   flips with the theme: --pop-card is cream paper in light and the raised violet
+   surface in dark, and --pop-ink / --pop-ink-mute invert with it. */
+.zwall {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.1rem;
+}
+@media (min-width: 640px) { .zwall { grid-template-columns: repeat(2, 1fr); gap: 1.35rem; } }
+@media (min-width: 1024px) { .zwall { grid-template-columns: repeat(3, 1fr); } }
+
+.znote {
+  position: relative;              /* anchor for the tape */
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  background: var(--pop-card);
+  border: 2px solid var(--pop-ink);
+  border-radius: 12px;
+  padding: 1.6rem 1.25rem 1.15rem; /* extra top padding: the tape overlaps it */
+  box-shadow: 5px 6px 0 var(--pop-shadow);
+}
+/* A hand-pinned wall, not a spreadsheet — alternate the tilt. */
+.znote:nth-child(3n+1) { transform: rotate(-0.9deg); }
+.znote:nth-child(3n+2) { transform: rotate(0.7deg); }
+.znote:nth-child(3n)   { transform: rotate(-0.3deg); }
+@media (prefers-reduced-motion: no-preference) {
+  .znote { transition: transform 0.18s ease, box-shadow 0.18s ease; }
+  .znote:hover { transform: rotate(0deg) translate(-1px, -1px); box-shadow: 7px 9px 0 var(--pop-pink); }
+}
+.znote-tape {
+  top: -13px;
+  left: 50%;
+  margin-left: -42px;
+  transform: rotate(-3deg);
+}
+
+/* Lime-family ink rather than the bright lime fill: on cream paper #B9E14B is
+   1.7:1, while --pop-lime-ink is tuned for text on paper in both themes. */
+.znote-stars {
+  display: flex;
+  gap: 0.1rem;
+  color: var(--pop-lime-ink);
+}
+.znote-text {
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: var(--pop-ink);
+  margin: 0;
+  /* Long reviews are capped so one essay cannot stretch a whole grid row. */
+  overflow-wrap: anywhere;
+}
+.znote-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-top: auto;
+  padding-top: 0.65rem;
+  border-top: 2px dashed var(--pop-line);
+}
+/* Blush sticker: the fill stays light in dark mode, so its text takes the
+   constant --pop-ink-on-accent (same rule as .zabout-mark / .zhero-mark). */
+.znote-product {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 0.68rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--pop-ink-on-accent);
+  background: var(--pop-blush);
+  border: 1.5px solid var(--pop-ink-on-accent);
+  border-radius: 999px;
+  padding: 0.15rem 0.55rem;
+}
+.znote-by {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+}
+.znote-author { font-weight: 700; color: var(--pop-ink); }
+.znote-date { color: var(--pop-ink-mute); }
 
 .loading-eyebrow {
   font-weight: 700;

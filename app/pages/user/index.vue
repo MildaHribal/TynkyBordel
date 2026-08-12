@@ -37,9 +37,9 @@ const { data: asyncProfile, refresh: refreshProfile, pending: profilePending } =
 const profile = computed(() => asyncProfile.value || null)
 
 // Zbytek "Lazy" - načtení proběhne asynchronně a neblokuje první vykreslení
-const { data: orders, pending: ordersPending } = useLazyFetch('/api/user/orders')
+const { data: orders, pending: ordersPending, refresh: refreshOrders } = useLazyFetch<any[]>('/api/user/orders')
 const { data: favorites, pending: favoritesPending } = useLazyFetch('/api/user/favorites')
-const { data: reviews, pending: reviewsPending } = useLazyFetch('/api/user/reviews')
+const { data: reviews, pending: reviewsPending, refresh: refreshReviews } = useLazyFetch<any[]>('/api/user/reviews')
 
 // Profile Form
 const isSaving = ref(false)
@@ -138,6 +138,57 @@ const shippingLabel = (m?: string | null) => {
   }
   return (m && (map[m] || m)) || '—'
 }
+// ── Recenze psané u zakoupené položky ───────────────────────────────────────
+// This is the ONLY place a review can be written. The shop sells one-off
+// originals, so a review form on the product page was unusable: by the time
+// anyone had an opinion, the piece was sold and the page gone. The API keys each
+// review on the order line (`orderItemId`), which is what proves the purchase
+// and limits it to one review per bought item — `item.canReview` and
+// `item.review` come straight from that same rule, so the form is only offered
+// where POST /api/user/reviews would actually accept it.
+const reviewFormFor = ref<number | null>(null)
+const reviewRating = ref(5)
+const reviewComment = ref('')
+const isSubmittingReview = ref(false)
+
+const openReviewForm = (item: any) => {
+  reviewFormFor.value = item.id
+  reviewRating.value = 5
+  reviewComment.value = ''
+}
+const closeReviewForm = () => {
+  reviewFormFor.value = null
+  reviewComment.value = ''
+}
+
+async function submitReview(item: any) {
+  if (isSubmittingReview.value) return
+  if (reviewComment.value.trim().length < 3) {
+    toast.info('Ještě chybí text', 'Napiš prosím pár slov o produktu.')
+    return
+  }
+  isSubmittingReview.value = true
+  try {
+    await $fetch('/api/user/reviews', {
+      method: 'POST',
+      body: {
+        orderItemId: item.id,
+        rating: reviewRating.value,
+        comment: reviewComment.value.trim(),
+      },
+    })
+    closeReviewForm()
+    // Both lists change: the order line now carries a review, and "Moje recenze"
+    // has one more row.
+    await Promise.all([refreshOrders(), refreshReviews()])
+    toast.success('Díky!', 'Recenze je venku — najdeš ji dole na hlavní stránce.')
+  } catch (err: any) {
+    toast.error('Recenzi se nepodařilo uložit', err?.data?.statusMessage || err?.message || 'Zkuste to prosím znovu.')
+  } finally {
+    isSubmittingReview.value = false
+  }
+}
+
 // The API only fills `productUrl` when the product still exists AND is in stock,
 // i.e. when /product/<slug> would actually render. Everything else (sold one-off
 // originals, deleted products) stays plain text — clicking through to a 404 from
@@ -332,40 +383,125 @@ const itemLink = (item: any): string | null => item?.productUrl || null
                   </div>
                 </div>
 
-                <!-- Items — clickable through to the product -->
+                <!-- Items — clickable through to the product, each with its own
+                     review slot. The review UI lives OUTSIDE the link component:
+                     a button or a form nested inside an <a> is invalid HTML and
+                     every click would also navigate. -->
                 <div class="text-sm font-medium text-white/70 mb-3">Položky ({{ order.items?.length || 0 }}):</div>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <component
-                    :is="itemLink(item) ? NuxtLink : 'div'"
-                    v-for="item in order.items" :key="item.id"
-                    :to="itemLink(item) || undefined"
-                    class="flex items-center gap-3 rounded-lg p-2 -m-2 transition-colors"
-                    :class="itemLink(item) ? 'group hover:bg-white/10 cursor-pointer' : ''"
-                    :title="itemLink(item) ? `Zobrazit produkt: ${item.title}` : undefined"
-                  >
-                    <div class="w-11 h-11 rounded-md bg-white/5 overflow-hidden flex-shrink-0">
-                      <NuxtImg
-                        v-if="item.image"
-                        :src="item.image.startsWith('http') ? item.image : `/${item.image}`"
-                        class="w-full h-full object-cover"
-                        width="88" height="88" format="webp" loading="lazy"
-                      />
-                    </div>
-                    <div class="min-w-0 flex-1">
-                      <div
-                        class="text-sm truncate transition-colors"
-                        :class="itemLink(item) ? 'text-white group-hover:text-primary-300' : 'text-white'"
-                      >{{ item.title }}</div>
-                      <div class="text-xs text-white/60">{{ item.quantity }} × {{ item.price }} Kč</div>
-                      <div v-if="!itemLink(item)" class="text-[11px] text-white/60 mt-0.5">
-                        Originál je fuč — už není v prodeji
+                  <div v-for="item in order.items" :key="item.id" class="rounded-lg">
+                    <component
+                      :is="itemLink(item) ? NuxtLink : 'div'"
+                      :to="itemLink(item) || undefined"
+                      class="flex items-center gap-3 rounded-lg p-2 -m-2 transition-colors"
+                      :class="itemLink(item) ? 'group hover:bg-white/10 cursor-pointer' : ''"
+                      :title="itemLink(item) ? `Zobrazit produkt: ${item.title}` : undefined"
+                    >
+                      <div class="w-11 h-11 rounded-md bg-white/5 overflow-hidden flex-shrink-0">
+                        <NuxtImg
+                          v-if="item.image"
+                          :src="item.image.startsWith('http') ? item.image : `/${item.image}`"
+                          class="w-full h-full object-cover"
+                          width="88" height="88" format="webp" loading="lazy"
+                        />
                       </div>
+                      <div class="min-w-0 flex-1">
+                        <div
+                          class="text-sm truncate transition-colors"
+                          :class="itemLink(item) ? 'text-white group-hover:text-primary-300' : 'text-white'"
+                        >{{ item.title }}</div>
+                        <div class="text-xs text-white/60">{{ item.quantity }} × {{ item.price }} Kč</div>
+                        <div v-if="!itemLink(item)" class="text-[11px] text-white/60 mt-0.5">
+                          Originál je fuč — už není v prodeji
+                        </div>
+                      </div>
+                      <Icon
+                        v-if="itemLink(item)" name="mdi:arrow-right" height="16"
+                        class="text-white/30 flex-shrink-0 transition-all group-hover:text-primary-300 group-hover:translate-x-0.5"
+                      />
+                    </component>
+
+                    <!-- Už napsaná recenze -->
+                    <div v-if="item.review" class="mt-3 pt-3 border-t border-white/10">
+                      <div class="flex items-center gap-2 mb-1">
+                        <div class="flex text-yellow-500">
+                          <Icon v-for="n in 5" :key="n" :name="n <= item.review.rating ? 'mdi:star' : 'mdi:star-outline'" height="14" />
+                        </div>
+                        <span class="text-[11px] uppercase tracking-wider text-white/60">Tvoje recenze</span>
+                      </div>
+                      <p class="text-xs text-white/70 italic">&bdquo;{{ item.review.comment }}&ldquo;</p>
                     </div>
-                    <Icon
-                      v-if="itemLink(item)" name="mdi:arrow-right" height="16"
-                      class="text-white/30 flex-shrink-0 transition-all group-hover:text-primary-300 group-hover:translate-x-0.5"
-                    />
-                  </component>
+
+                    <!-- Napsat recenzi -->
+                    <div v-else-if="item.canReview" class="mt-3 pt-3 border-t border-white/10">
+                      <button
+                        v-if="reviewFormFor !== item.id"
+                        type="button"
+                        @click="openReviewForm(item)"
+                        class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium bg-white/5 border border-white/10 text-white hover:bg-white/10 hover:border-primary-500/50 transition-colors"
+                      >
+                        <Icon name="mdi:star-outline" height="16" /> Napsat recenzi
+                      </button>
+
+                      <form v-else @submit.prevent="submitReview(item)" class="space-y-3">
+                        <div>
+                          <div class="text-[11px] uppercase tracking-wider text-white/60 mb-1">Hodnocení</div>
+                          <div class="flex gap-1">
+                            <button
+                              v-for="n in 5" :key="n" type="button"
+                              @click="reviewRating = n"
+                              class="p-0.5 text-yellow-500 hover:scale-110 transition-transform"
+                              :aria-label="`${n} z 5 hvězdiček`"
+                              :aria-pressed="reviewRating === n"
+                            >
+                              <Icon :name="n <= reviewRating ? 'mdi:star' : 'mdi:star-outline'" height="22" />
+                            </button>
+                          </div>
+                        </div>
+                        <div>
+                          <label class="block text-[11px] uppercase tracking-wider text-white/60 mb-1">
+                            Jak se ti kousek líbí?
+                          </label>
+                          <textarea
+                            v-model="reviewComment" rows="3" maxlength="1000"
+                            placeholder="Pár slov o produktu — ukáže se dole na hlavní stránce."
+                            class="input-cosmic w-full resize-none text-sm"
+                          />
+                        </div>
+                        <div class="flex flex-wrap items-center gap-2">
+                          <button type="submit" :disabled="isSubmittingReview" class="btn-cosmic px-4 py-2 text-sm flex items-center gap-2">
+                            <Icon v-if="isSubmittingReview" name="lucide:loader-2" class="animate-spin" height="16" />
+                            <Icon v-else name="mdi:send-outline" height="16" />
+                            {{ isSubmittingReview ? 'Odesílám…' : 'Odeslat recenzi' }}
+                          </button>
+                          <button type="button" @click="closeReviewForm" class="px-3 py-2 text-sm text-white/60 hover:text-white transition-colors">
+                            Zrušit
+                          </button>
+                        </div>
+                      </form>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Faktura — the same document that was e-mailed with the order,
+                     viewable inline or downloadable. Plain anchors so the session
+                     cookie rides along on the same-origin GET. -->
+                <div class="mt-5 pt-4 border-t border-white/10 flex flex-wrap items-center gap-3">
+                  <span class="text-xs uppercase tracking-wider text-white/60">Faktura</span>
+                  <a
+                    :href="`/api/user/orders/${order.id}/invoice`"
+                    target="_blank"
+                    rel="noopener"
+                    class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium bg-white/5 border border-white/10 text-white hover:bg-white/10 hover:border-primary-500/50 transition-colors"
+                  >
+                    <Icon name="mdi:file-document-outline" height="18" /> Zobrazit
+                  </a>
+                  <a
+                    :href="`/api/user/orders/${order.id}/invoice?download=1`"
+                    class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium bg-white/5 border border-white/10 text-white hover:bg-white/10 hover:border-primary-500/50 transition-colors"
+                  >
+                    <Icon name="mdi:download" height="18" /> Stáhnout
+                  </a>
                 </div>
               </div>
             </div>
@@ -426,9 +562,17 @@ const itemLink = (item: any): string | null => item?.productUrl || null
             <div v-for="i in 3" :key="i" class="p-5 rounded-xl border border-white/10 bg-white/5 animate-pulse h-24"></div>
           </div>
           <div v-else-if="reviews && reviews.length > 0" class="space-y-4">
+            <!-- The product may be long gone (sold one-off original, deleted by
+                 the admin): the API then returns the snapshotted name and a null
+                 slug, so nothing links anywhere. -->
             <div v-for="review in reviews" :key="review.id" class="p-5 rounded-xl border border-white/10 bg-white/5">
               <div class="flex gap-4">
-                <NuxtLink :to="`/product/${review.productSlug}`" class="w-16 h-16 rounded-lg bg-black/20 overflow-hidden flex-shrink-0 border border-white/10 hover:border-primary-400">
+                <component
+                  :is="review.productSlug ? NuxtLink : 'div'"
+                  :to="review.productSlug ? `/product/${review.productSlug}` : undefined"
+                  class="w-16 h-16 rounded-lg bg-black/20 overflow-hidden flex-shrink-0 border border-white/10"
+                  :class="review.productSlug ? 'hover:border-primary-400' : ''"
+                >
                   <NuxtImg
                     v-if="review.productImage"
                     :src="review.productImage.startsWith('http') ? review.productImage : `/${review.productImage}`"
@@ -438,12 +582,17 @@ const itemLink = (item: any): string | null => item?.productUrl || null
                     format="webp"
                     loading="lazy"
                   />
-                </NuxtLink>
+                </component>
                 <div class="flex-grow">
                   <div class="flex items-start justify-between mb-1">
-                    <NuxtLink :to="`/product/${review.productSlug}`" class="text-white font-medium hover:text-primary-300 transition-colors">
-                      {{ review.productName }}
-                    </NuxtLink>
+                    <component
+                      :is="review.productSlug ? NuxtLink : 'span'"
+                      :to="review.productSlug ? `/product/${review.productSlug}` : undefined"
+                      class="text-white font-medium transition-colors"
+                      :class="review.productSlug ? 'hover:text-primary-300' : ''"
+                    >
+                      {{ review.productName || 'Produkt' }}
+                    </component>
                     <div class="text-xs text-white/60">{{ review.createdAt ? new Date(review.createdAt).toLocaleDateString('cs-CZ') : '' }}</div>
                   </div>
                   <div class="flex text-yellow-500 mb-2">

@@ -209,15 +209,36 @@ export const invoices = pgTable('invoices', {
 ]);
 
 // ── Reviews ─────────────────────────────────────────────────────────────────────
+// Written from the customer's order history (/user → Moje objednávky), never
+// from the product page: this shop sells one-off originals, so by the time
+// anyone could review a piece it is already sold and its page is gone. They are
+// displayed together on the homepage instead.
+//
+// See migration 0012.
 export const reviews = pgTable('reviews', {
   id: serial('id').primaryKey(),
-  productId: integer('product_id').notNull().references(() => products.id, { onDelete: 'cascade' }),
+  // The purchased line this review belongs to. THIS is the proof of purchase and
+  // the "only once" key (unique index below) — a customer may review each item
+  // they bought exactly once, and a repeat buyer of the same product gets one
+  // review per purchase rather than being blocked by an earlier one.
+  //
+  // Nullable only because rows written by the old product-page form predate it.
+  orderItemId: integer('order_item_id').references(() => orderItems.id, { onDelete: 'cascade' }),
+  // Nullable + SET NULL, same reasoning as order_items.product_id (migration
+  // 0009): originals sell out and get deleted, and a deleted product must not
+  // silently delete the customer's review off the homepage wall.
+  productId: integer('product_id').references(() => products.id, { onDelete: 'set null' }),
+  // Snapshot of the product name, so the review still says what it is about
+  // after the product row is gone. Same snapshot idea as order_items.title.
+  productTitle: text('product_title'),
   userId: text('user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
   userName: text('user_name').notNull(),
   rating: integer('rating').notNull(),
   comment: text('comment'),
   createdAt: timestamp('created_at').defaultNow(),
-});
+}, (t) => [
+  uniqueIndex('reviews_order_item_id_unique_idx').on(t.orderItemId),
+]);
 
 // ── Email templates ─────────────────────────────────────────────────────────────
 // Editable in /admin/emails. Falls back to hardcoded defaults in server/utils/email.ts
@@ -280,6 +301,7 @@ export const invoicesRelations = relations(invoices, ({ one }) => ({
 export const reviewsRelations = relations(reviews, ({ one }) => ({
   product: one(products, { fields: [reviews.productId], references: [products.id] }),
   user: one(user, { fields: [reviews.userId], references: [user.id] }),
+  orderItem: one(orderItems, { fields: [reviews.orderItemId], references: [orderItems.id] }),
 }));
 
 export const favoritesRelations = relations(favorites, ({ one }) => ({

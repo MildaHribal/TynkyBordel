@@ -56,9 +56,6 @@ const thumbnailLoading = ref<Record<number, boolean>>({});
 const thumbnailError = ref<Record<number, boolean>>({});
 const isAddedToCart = ref(false)
 let addedToCartTimer: ReturnType<typeof setTimeout> | null = null
-const reviewRating = ref(5);
-const reviewComment = ref("");
-const isSubmittingReview = ref(false);
 const isTogglingFavorite = ref(false);
 const selectedQuantity = ref(1);
 
@@ -70,24 +67,6 @@ const { data: favoriteStatus, refresh: refreshFavorite } = useLazyFetch<Favorite
     immediate: !!product.value?.id,
     watch: [product],
     default: () => ({ isFavorite: false }) 
-  }
-);
-
-// Fetch reviews
-interface Review {
-  id: number;
-  userName: string;
-  rating: number;
-  comment: string | null;
-  createdAt: string;
-}
-
-const { data: productReviews, refresh: refreshReviews, pending: reviewsPending } = useLazyFetch<Review[]>(
-  () => product.value?.id ? `/api/products/${product.value.id}/reviews` : '',
-  { 
-    immediate: !!product.value?.id,
-    watch: [product],
-    default: () => [] 
   }
 );
 
@@ -209,7 +188,6 @@ useSeoMeta({
 const jsonLd = computed(() => {
   if (!product.value) return [];
   const p: any = product.value;
-  const reviews = productReviews.value || [];
   const img = selectedImage.value?.startsWith('http') ? selectedImage.value : `${siteUrl}${selectedImage.value || ''}`;
 
   // Keep prices "valid" a year out so Google doesn't flag a stale/expired offer.
@@ -262,31 +240,12 @@ const jsonLd = computed(() => {
     }
   };
 
-  if (reviews.length > 0) {
-    const avgRating = reviews.reduce((acc, r) => acc + r.rating, 0) / reviews.length;
-    schema.aggregateRating = {
-      '@type': 'AggregateRating',
-      ratingValue: avgRating.toFixed(1),
-      reviewCount: reviews.length,
-      bestRating: 5,
-      worstRating: 1
-    };
-    schema.review = reviews.map((r: any) => ({
-      '@type': 'Review',
-      reviewRating: {
-        '@type': 'Rating',
-        ratingValue: r.rating,
-        bestRating: 5,
-        worstRating: 1
-      },
-      author: {
-        '@type': 'Person',
-        name: r.userName || 'Zákazník'
-      },
-      reviewBody: r.comment || '',
-      datePublished: r.createdAt ? new Date(r.createdAt).toISOString().split('T')[0] : undefined
-    }));
-  } else if (p.rating) {
+  // No `review` / aggregateRating from customer reviews any more: reviews are
+  // written per purchased order line and displayed on the homepage, not here
+  // (see the note in the template). Google requires a review's markup to be
+  // visible on the same page, so emitting it here would be invalid structured
+  // data. The manual `p.rating` fallback below stays.
+  if (p.rating) {
     schema.aggregateRating = {
       '@type': 'AggregateRating',
       ratingValue: p.rating,
@@ -352,29 +311,6 @@ const toggleFavorite = async () => {
   }
 };
 
-const submitReview = async () => {
-  if (!product.value?.id || isSubmittingReview.value) return;
-  if (reviewRating.value < 1 || reviewRating.value > 5) return;
-  isSubmittingReview.value = true;
-  try {
-    await $fetch(`/api/products/${product.value.id}/review`, {
-      method: "POST",
-      body: { rating: reviewRating.value, comment: reviewComment.value },
-    });
-    reviewComment.value = "";
-    reviewRating.value = 5;
-    await refreshReviews();
-    toast.success('Díky!', 'Recenze byla odeslána.')
-  } catch (err: any) {
-    if (err?.statusCode === 401 || err?.data?.statusCode === 401) {
-      toast.info('Je potřeba přihlášení', 'Pro recenzi se prosím přihlaste.')
-      return
-    }
-    toast.error('Nepodařilo se odeslat recenzi', err?.data?.statusMessage || "Recenzi se nepodařilo odeslat.");
-  } finally {
-    isSubmittingReview.value = false;
-  }
-};
 </script>
 
 <template>
@@ -581,8 +517,10 @@ const submitReview = async () => {
                 </div>
               </div>
 
-              <!-- Quantity Selector -->
-              <div v-if="product.stock > 0" class="flex items-center gap-4 mb-6">
+              <!-- Quantity Selector — only when more than one piece is in stock.
+                   Most products are one-of-a-kind (stock 1), so a stepper there
+                   would be pointless; quantity stays pinned at 1. -->
+              <div v-if="product.stock > 1" class="flex items-center gap-4 mb-6">
                 <span class="text-sm font-semibold text-white/50 uppercase tracking-wider">Množství:</span>
                 <div class="pdp-chip pdp-chip--stepper flex items-center px-2 py-1">
                   <button 
@@ -636,61 +574,10 @@ const submitReview = async () => {
         <ProductCarousel :products="similarProducts" />
       </div>
 
-      <!-- Recenze -->
-      <div class="pdp-panel p-6 md:p-8 mt-12 md:mt-16 min-h-[500px]" v-fly="{ direction: 'up', delay: 70, distance: 48 }">
-        <h2 class="pdp-reviews-title text-xl font-bold mb-6 pb-4 flex items-center gap-2">
-          <Icon name="mdi:star-outline" class="pdp-star--on" height="24" />
-          Recenze ({{ productReviews?.length ?? 0 }})
-        </h2>
-
-        <!-- Formulář pro přihlášené -->
-        <div class="pdp-form mb-8 p-5">
-          <h3 class="pdp-form-title text-sm font-semibold mb-4">Napsat recenzi</h3>
-          <form @submit.prevent="submitReview" class="space-y-4">
-            <div>
-              <label class="pdp-label block text-xs mb-2">Hodnocení</label>
-              <div class="flex gap-1">
-                <button
-                  v-for="n in 5"
-                  :key="n"
-                  type="button"
-                  @click="reviewRating = n"
-                  class="p-1 transition-colors"
-                >
-                  <Icon :name="n <= reviewRating ? 'mdi:star' : 'mdi:star-outline'" height="24" :class="n <= reviewRating ? 'pdp-star--ink-on' : 'pdp-star--ink-off'" />
-                </button>
-              </div>
-            </div>
-            <div>
-              <label class="pdp-label block text-xs mb-2">Komentář (volitelné)</label>
-              <textarea v-model="reviewComment" rows="3" placeholder="Co se vám na produktu líbilo?" class="input-cosmic pdp-textarea w-full resize-none" />
-            </div>
-            <button type="submit" :disabled="isSubmittingReview" class="btn-cosmic micro-lift px-6 py-2.5 flex items-center gap-2">
-              <Icon v-if="isSubmittingReview" name="lucide:loader-2" class="animate-spin" height="18" />
-              <Icon v-else name="mdi:send-outline" height="18" />
-              {{ isSubmittingReview ? 'Odesílám...' : 'Odeslat recenzi' }}
-            </button>
-          </form>
-        </div>
-
-        <!-- Seznam recenzí -->
-        <div v-if="reviewsPending" class="space-y-4">
-          <div v-for="i in 3" :key="i" class="pdp-review pdp-review--ghost p-4 animate-pulse h-28"></div>
-        </div>
-        <div v-else-if="productReviews && productReviews.length > 0" class="space-y-4">
-          <div v-for="(rev, revIndex) in productReviews" :key="rev.id" class="pdp-review p-4" v-fly="{ direction: 'up', delay: (revIndex % 6) * 40, distance: 24, duration: 620 }">
-            <div class="flex items-center justify-between mb-2">
-              <span class="pdp-review-author font-medium">{{ rev.userName }}</span>
-              <div class="flex">
-                <Icon v-for="n in 5" :key="n" :name="n <= rev.rating ? 'mdi:star' : 'mdi:star-outline'" height="14" :class="n <= rev.rating ? 'pdp-star--on' : 'pdp-star--off'" />
-              </div>
-            </div>
-            <p v-if="rev.comment" class="pdp-review-body text-sm">&bdquo;{{ rev.comment }}&ldquo;</p>
-            <div class="pdp-review-date text-[11px] mt-2">{{ rev.createdAt ? new Date(rev.createdAt).toLocaleDateString('cs-CZ') : '' }}</div>
-          </div>
-        </div>
-        <div v-else class="pdp-review-empty text-center py-8 text-sm">Zatím zde nejsou žádné recenze.</div>
-      </div>
+      <!-- Recenze zde ZÁMĚRNĚ nejsou: každý kus je originál, takže ve chvíli, kdy
+           by ho někdo mohl hodnotit, je prodaný a tahle stránka už neexistuje.
+           Zákazník píše recenzi v historii objednávek (/user → Moje objednávky)
+           a všechny recenze se ukazují dole na hlavní stránce. -->
 
       <!-- Contact Form / Newsletter -->
       <div class="mt-16 md:mt-24 mb-10">
@@ -1006,70 +893,8 @@ const submitReview = async () => {
 }
 
 /* ── 6. Reviews ────────────────────────────────────────────────────────── */
-.pdp-reviews-title {
-  border-bottom: 2px solid color-mix(in srgb, var(--pdp-on-olive) 28%, transparent);
-}
-/* The write-a-review block is a paper form pinned to the olive board. Cream
-   also gives the .input-cosmic field (which zine.css paints #fbf7ee) a ground
-   it was designed for, and makes the pink btn-cosmic pop. */
-.pdp-form {
-  background: var(--pop-cream, #F0E7D2);
-  border: 2px solid var(--pop-ink, #14231a);
-  border-radius: 12px;
-  box-shadow: 4px 5px 0 color-mix(in srgb, var(--pop-shadow) 65%, transparent);
-}
-.product-detail .pdp-panel .pdp-form .pdp-form-title {
-  color: var(--pop-ink, #14231a) !important; /* 13.28:1 */
-  font-family: var(--font-mono, monospace);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-}
-.pdp-label {
-  color: color-mix(in srgb, var(--pop-ink) 72%, transparent); /* 5.84:1 */
-  font-family: var(--font-mono, monospace);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-}
-/* zine.css ships the shared placeholder at 40% ink, which is 2.42:1 on the
-   cream field — fine as a hint on a dark panel, not on this one. */
-.product-detail .pdp-textarea::placeholder {
-  color: color-mix(in srgb, var(--pop-ink) 62%, transparent) !important; /* 4.54:1 */
-}
-
-/* Stars: one family (lime) on both grounds, so the form and the list agree.
-   Bright lime on the dark surfaces, lime-ink on the cream form. */
-.pdp-star--on      { color: var(--pop-lime, #B9E14B); }      /* 5.77 olive / 4.45 plum-2 */
-.pdp-star--off     { color: color-mix(in srgb, var(--pdp-on-olive) 60%, transparent); }      /* 3.41:1 on plum-2 */
-.pdp-star--ink-on  { color: var(--pop-lime-ink, #4d6b0e); }  /* 4.98:1 on cream */
-.pdp-star--ink-off { color: color-mix(in srgb, var(--pop-ink) 60%, transparent); } /* 4.06:1 on cream */
-
-.pdp-review {
-  background: var(--pop-plum-2, #4c6330);
-  border: 2px solid color-mix(in srgb, var(--pdp-on-olive) 28%, transparent);
-  border-radius: 12px;
-}
-.pdp-review--ghost {
-  background: color-mix(in srgb, var(--pdp-on-olive) 10%, transparent);
-  border-style: dashed;
-}
-.pdp-review-author {
-  color: var(--pdp-on-olive); /* 6.28:1 on plum-2 */
-}
-/* The homepage olive panel uses cream at 0.85, but plum-2 is a lighter ground
-   and 0.85 drops to 4.45:1 — just under AA. This used 0.92 (4.90:1), which is
-   fine in light, but dark mode lifts plum-2 from #4c6330 to #4E6B2B and 0.92
-   falls back to 4.45:1. Solid --pop-on-dark clears both: 5.44:1 / 4.93:1. */
-.pdp-review-body,
-.pdp-review-date {
-  color: var(--pop-on-dark);
-}
-.pdp-review-date {
-  font-family: var(--font-mono, monospace);
-}
-.pdp-review-empty {
-  color: color-mix(in srgb, var(--pop-on-dark) 85%, transparent); /* 5.63:1 — this one sits on plain olive */
-  font-family: var(--font-mono, monospace);
-}
+/* Nothing here any more — the review list and form left this page (see the note
+   in the template); their styles left with them. */
 
 .hide-scrollbar {
   -ms-overflow-style: none;

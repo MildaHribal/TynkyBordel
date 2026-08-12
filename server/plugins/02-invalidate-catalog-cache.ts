@@ -31,7 +31,13 @@ export default defineNitroPlugin((nitroApp) => {
     if (method === 'GET' || method === 'HEAD' || method === 'OPTIONS') return
 
     const path = event.path || ''
-    if (!/^\/api\/admin\/(products|categories)\b/.test(path)) return
+    // Admin catalog writes, plus the one customer-facing write that changes what
+    // the homepage renders: a new review. The homepage is `swr: 3600`, so
+    // without this the customer writes a review from their order history and it
+    // shows up on the wall an hour later — which reads as "it didn't save".
+    // `isCatalogKey` already matches the homepage's `nitro:routes:_:index.*` key,
+    // so nothing else has to change.
+    if (!/^\/api\/admin\/(products|categories)\b/.test(path) && !/^\/api\/user\/reviews\b/.test(path)) return
 
     const status = getResponseStatus(event)
     if (status >= 400) return
