@@ -32,11 +32,20 @@ function isCatalogKey(key: string): boolean {
   // word does not.
   if (k.includes('nitro:routes')) {
     // `:product` covers both /product/** detail pages and the /product index.
-    // The homepage is matched on an explicit `index` segment — an earlier
-    // version made the trailing colon optional, which silently also matched
-    // `nitro:routes:obchodni-podminky` and threw away the legal pages' 24h
-    // cache on every product edit.
-    return k.includes(':product') || /nitro:routes:index(\.|:|$)/.test(k)
+    //
+    // The homepage is matched on its own `index` segment. It must NOT be
+    // anchored to `nitro:routes:index`: Nitro puts its cache base between the
+    // group and the name, so the real key is `nitro:routes:_:index.<hash>.json`
+    // and that anchored form never matched. The homepage HTML therefore survived
+    // every product edit and a full page load kept rendering deleted products
+    // for up to an hour, while client-side navigation (which reads the purged
+    // /api/products cache) showed the correct catalog — and clicking a
+    // no-longer-existing product 404'd.
+    //
+    // Matching the segment instead of the prefix keeps the fix that made this
+    // strict in the first place: `nitro:routes:_:obchodni-podminky.…` has no
+    // `index` segment, so the legal pages keep their 24h cache.
+    return k.includes(':product') || /(^|:)index(\.|:|$)/.test(k)
   }
 
   return false
