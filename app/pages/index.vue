@@ -395,7 +395,7 @@ function scrollToKolekce(e: MouseEvent) {
         <div class="zine-section-head">
           <div>
             <span class="zine-eyebrow">✶ Vzkazy od vás</span>
-            <h2 class="zine-section-title">Co říkají ti, co už mají</h2>
+            <h2 class="zine-section-title">Co říkají zákazníci?</h2>
             <!-- Mandatory since 2023 (§ 5 (3) of the Czech consumer protection
                  act, the "Omnibus" rules): a shop showing reviews has to say
                  whether and how it checks they come from real buyers.

@@ -67,21 +67,21 @@ const phoneHref = `tel:${BUSINESS.phone.replace(/\s+/g, '')}`;
           <Icon name="mdi:heart-outline" class="text-secondary-400" />
           Kde nás najdeš
         </h2>
-        <p class="text-sm mb-5">Nové kousky ukazujeme nejdřív na sítích. Napsat můžeš i tam, ale do mailu se dívám častěji.</p>
+        <p class="text-sm mb-5">Nové produkty ukazuju nejdřív na sockách. Napsat můžeš i tam 😜.</p>
         <div class="flex flex-col gap-3">
-          <a href="https://www.instagram.com/_kristyna_aaa/" target="_blank" rel="noopener noreferrer" class="social-pill" aria-label="Instagram Kristýna">
+          <a href="https://www.instagram.com/_kristyna_aaa/" target="_blank" rel="noopener noreferrer" class="social-pill social-pill--instagram" aria-label="Instagram Kristýna">
             <Icon name="mdi:instagram" height="18" />
             <span>Instagram</span>
           </a>
-          <a href="https://www.instagram.com/tynky_bordel/" target="_blank" rel="noopener noreferrer" class="social-pill" aria-label="Instagram Tynky Bordel">
+          <a href="https://www.instagram.com/tynky_bordel/" target="_blank" rel="noopener noreferrer" class="social-pill social-pill--instagram" aria-label="Instagram Tynky Bordel">
             <Icon name="mdi:instagram" height="18" />
             <span>Instagram (Tynky Bordel)</span>
           </a>
-          <a href="https://www.tiktok.com/@_kristyna_aaa" target="_blank" rel="noopener noreferrer" class="social-pill" aria-label="TikTok">
+          <a href="https://www.tiktok.com/@_kristyna_aaa" target="_blank" rel="noopener noreferrer" class="social-pill social-pill--tiktok" aria-label="TikTok">
             <Icon name="ic:baseline-tiktok" height="18" />
             <span>TikTok</span>
           </a>
-          <a href="https://linktr.ee/tynky_bordel" target="_blank" rel="noopener noreferrer" class="social-pill" aria-label="Linktree">
+          <a href="https://linktr.ee/tynky_bordel" target="_blank" rel="noopener noreferrer" class="social-pill social-pill--linktree" aria-label="Linktree">
             <Icon name="simple-icons:linktree" height="18" />
             <span>Linktree</span>
           </a>
@@ -144,10 +144,12 @@ const phoneHref = `tel:${BUSINESS.phone.replace(/\s+/g, '')}`;
    white alpha. */
 .page-lede { color: var(--pop-ink-mute); }
 
-/* Social buttons copy the footer's pills, minus the brand-coloured hovers: those
-   were tuned for the wine footer, while these sit on the dark panel. --pop-on-dark
-   is the cream that is constant in both themes, which is what a surface that never
-   flips needs (--pop-ink would flip and disappear here). */
+/* Social buttons copy the footer's pills, brand-coloured hovers included — they
+   read the same here because this panel is dark in both themes, exactly like the
+   wine footer they were tuned against. --pop-on-dark is the cream that is constant
+   in both themes, which is what a surface that never flips needs (--pop-ink would
+   flip and disappear here). Keep these in sync with .footer-social in
+   layouts/default.vue: the two places are meant to feel like one component. */
 .social-pill {
   display: inline-flex;
   align-items: center;
@@ -171,5 +173,29 @@ const phoneHref = `tel:${BUSINESS.phone.replace(/\s+/g, '')}`;
   /* Deliberate literal white — the brightest hover available on a ground that is
      dark in both themes; no token means "brighter than the cream". */
   color: #ffffff;
+}
+
+/* Brand-coloured hovers, identical to the footer: each button lights up in its
+   own app's colours. The gradient/fills are logo colours, so they are literals
+   and never themed. */
+.social-pill--instagram:hover {
+  background: linear-gradient(45deg, #f09433 0%, #e6683c 22%, #dc2743 46%, #cc2366 70%, #bc1888 100%);
+  border-color: transparent;
+  color: #ffffff;
+  box-shadow: 0 8px 20px rgba(220, 39, 67, 0.35);
+}
+.social-pill--tiktok:hover {
+  background: #010101;
+  border-color: #25f4ee;
+  color: #ffffff;
+  box-shadow: 0 0 14px rgba(37, 244, 238, 0.45), 0 6px 18px rgba(254, 44, 85, 0.35);
+}
+/* Linktree's brand green is LIGHT, so unlike the two above the label has to go
+   dark — --pop-ink-on-accent is the token for ink on a fill that never darkens. */
+.social-pill--linktree:hover {
+  background: #43e55e;
+  border-color: #43e55e;
+  color: var(--pop-ink-on-accent);
+  box-shadow: 0 6px 18px rgba(67, 229, 94, 0.35);
 }
 </style>
