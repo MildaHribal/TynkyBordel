@@ -2,6 +2,7 @@ import { and, eq } from 'drizzle-orm';
 import { db } from '../../../../utils/db';
 import { fakturoidSubjects, invoices, orderItems, orders } from '../../../../database/schema';
 import { requireAdmin } from '../../../../utils/session';
+import { sendInvoiceEmail } from '../../../../utils/email';
 import {
   createInvoice,
   downloadInvoicePdf,
@@ -383,15 +384,36 @@ export default defineEventHandler(async (event) => {
       .where(eq(invoices.id, invoiceRow.id))
       .returning();
 
-    // ── Phase 5 seam: e-mail the invoice to the customer ────────────────────
-    // NOT IMPLEMENTED HERE ON PURPOSE. When it lands it goes exactly here:
-    // after the PDF is stored, after the row is `issued`, and OUTSIDE any
-    // database transaction — a bounced e-mail must never roll back an invoice
-    // that Fakturoid has already issued and numbered. It should stamp
-    // `invoices.sent_at` on success and otherwise only log, leaving the
-    // invoice `issued`.
+    // ── E-mail the invoice to the customer ──────────────────────────────────
+    // Here and nowhere earlier: after the PDF is stored and the row is
+    // `issued`, and outside any transaction. A bounced e-mail must never roll
+    // back an invoice Fakturoid has already issued and numbered, so a failure
+    // only logs and leaves the invoice `issued` — the admin can resend by
+    // downloading the archived PDF.
+    //
+    // The mailed file is the archived buffer, not a re-download: the customer
+    // must receive exactly the document that is on record.
+    let sentAt: Date | null = null;
+    try {
+      const sent = await sendInvoiceEmail({
+        to: email,
+        customerName: order.customerName,
+        orderNumber: String(order.orderNumber || order.id),
+        invoiceNumber: created.number ?? null,
+        pdf,
+      });
+      if (sent) {
+        sentAt = new Date();
+        await db.update(invoices).set({ sentAt }).where(eq(invoices.id, invoiceRow.id));
+      } else {
+        // sendMail already logged why (no SMTP configured, or the send failed).
+        console.warn(`[invoice] ${created.number ?? created.id} not e-mailed to ${email} — see the [mail] line above.`);
+      }
+    } catch (err) {
+      console.error(`[invoice] e-mailing ${created.number ?? created.id} to ${email} failed:`, err);
+    }
 
-    return toResponse(issued ?? invoiceRow, false);
+    return toResponse(sentAt && issued ? { ...issued, sentAt } : (issued ?? invoiceRow), false);
   } catch (err: any) {
     // ── 4. Record the failure on the row we own ─────────────────────────────
     const message = String(
