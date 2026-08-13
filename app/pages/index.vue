@@ -95,7 +95,7 @@ const filtered = computed(() =>
 // the one image source that exists on production no matter what the database
 // or the uploads volume are doing.
 const heroPics = [
-  { id: 'hero-1', image: '/hero/polaroid-1.webp', title: '' },
+  { id: 'hero-1', image: '/hero/polaroid-1-v2.webp', title: '' },
   { id: 'hero-2', image: '/hero/polaroid-2.webp', title: '' },
   { id: 'hero-3', image: '/hero/polaroid-3.webp', title: '' },
 ]
