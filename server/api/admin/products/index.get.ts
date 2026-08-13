@@ -17,6 +17,8 @@ export default defineEventHandler(async (event) => {
       image: products.image,
       images: products.images,
       stock: products.stock,
+      soldOutAt: products.soldOutAt,
+      hidden: products.hidden,
       category: categories.name,
       categoryId: products.categoryId,
       createdAt: products.createdAt,

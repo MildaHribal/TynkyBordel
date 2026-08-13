@@ -280,31 +280,33 @@ const toggleFavorite = async () => {
   filter: grayscale(0.85) contrast(0.92) brightness(0.92);
 }
 
+/* Sits along the bottom rather than across the middle: the photo is the reason
+   anyone looks at the card, and a stamp through its centre hides exactly the
+   part worth seeing. No wash over the image either — the drained colour above
+   already says "gone". */
 .sold-overlay {
   position: absolute;
-  inset: 0;
+  inset: auto 0 0 0;
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: center;
+  padding-bottom: 0.5rem;
   pointer-events: none;
   z-index: 3;
-  background: color-mix(in srgb, var(--pop-paper, #fdf6e8) 22%, transparent);
 }
 
 .sold-stamp {
   font-family: var(--font-zine), var(--font-gloock), Georgia, serif;
-  font-size: clamp(1.05rem, 3.4vw, 1.5rem);
-  letter-spacing: 0.14em;
+  font-size: clamp(0.78rem, 2.2vw, 0.98rem);
+  letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--pop-pink-ink, #b3324c);
-  border: 3px solid currentColor;
-  border-radius: 6px;
-  padding: 0.28em 0.7em;
-  transform: rotate(-11deg);
-  background: color-mix(in srgb, var(--pop-paper, #fdf6e8) 88%, transparent);
-  box-shadow: 0 2px 0 color-mix(in srgb, currentColor 35%, transparent);
-  /* Slightly uneven edges read as ink on paper rather than a CSS box. */
-  opacity: 0.92;
+  border: 2px solid currentColor;
+  border-radius: 5px;
+  padding: 0.2em 0.62em;
+  transform: rotate(-4deg);
+  background: color-mix(in srgb, var(--pop-paper, #fdf6e8) 92%, transparent);
+  box-shadow: 0 2px 0 color-mix(in srgb, currentColor 30%, transparent);
 }
 
 .product-card {

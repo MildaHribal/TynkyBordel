@@ -1,7 +1,6 @@
 import { db } from '../../utils/db';
 import { products, categories } from '../../database/schema';
-import { and, eq, or, sql, desc, gt, type SQLWrapper } from 'drizzle-orm';
-import { SOLD_OUT_VISIBLE_INTERVAL } from '../../../shared/catalog';
+import { and, eq, or, sql, desc, gt, isNotNull, type SQLWrapper } from 'drizzle-orm';
 
 // Diakritika: `ilike` je v Postgresu case-insensitive, ale NE accent-insensitive,
 // takže „klicenka" nikdy nenašlo „Klíčenka" — a to je u českého shopu většina
@@ -31,20 +30,15 @@ export default defineCachedEventHandler(async (event) => {
   const category = typeof query.category === 'string' ? query.category.trim() : '';
 
   const conditions = [];
-  // Public storefront: in stock, OR sold within the last 24 hours. A one-off
-  // original vanishing the instant it sells made the shop look emptier the
-  // better it did, and turned every link someone had just seen into a dead end.
-  // Recently-sold pieces stay listed, marked "PRODÁNO" and not purchasable.
-  // Anything sold longer ago disappears, as before. Admin has its own endpoints,
-  // so everything stays visible/editable there.
-  conditions.push(
-    or(
-      gt(products.stock, 0),
-      // NULL sold_out_at compares as NULL here, i.e. not matched — which is what
-      // we want for a product that was never sold out.
-      sql`${products.soldOutAt} > now() - interval '${sql.raw(SOLD_OUT_VISIBLE_INTERVAL)}'`,
-    ),
-  );
+  // Public storefront: anything the owner has not taken down, whether it is in
+  // stock or already sold. Sold pieces stay — a one-off vanishing the instant it
+  // sells made the shop look emptiest right after its best days, and turned
+  // every link someone had just seen into a dead end. They are listed as
+  // "PRODÁNO", cannot be bought, and sort to the very end (see below).
+  conditions.push(eq(products.hidden, false));
+  // A zero-stock piece is only shown once it has actually SOLD. sold_out_at is
+  // what distinguishes "sold, leave it up" from a draft that was never stocked.
+  conditions.push(or(gt(products.stock, 0), isNotNull(products.soldOutAt)));
   // Každé slovo z dotazu musí sedět (v názvu, popisu nebo kategorii) — díky tomu
   // najde „meduza klicenka" i „Klíčenka Medúza z hlubin", nejen ve správném pořadí.
   const terms = search ? foldInput(search).split(/\s+/).filter(Boolean).slice(0, 6) : [];
@@ -87,17 +81,24 @@ export default defineCachedEventHandler(async (event) => {
     .where(whereClause)
     .$dynamic();
 
+  // Sold pieces always sink to the bottom, whatever the ordering above them is.
+  // They are there to show the shop's history, not to push what is actually for
+  // sale below the fold — and a visitor scrolling a wall of "PRODÁNO" before
+  // reaching anything buyable is the fastest way to look sold out.
+  const availableFirst = sql`(${products.stock} > 0) desc`;
+
   if (query.random === 'true') {
-    queryBuilder = queryBuilder.orderBy(sql`RANDOM()`);
+    queryBuilder = queryBuilder.orderBy(availableFirst, sql`RANDOM()`);
   } else if (terms.length) {
     // Shoda v názvu je pro uživatele relevantnější než zmínka kdesi v popisu.
     const phrase = `%${escapeLike(foldInput(search))}%`;
     queryBuilder = queryBuilder.orderBy(
+      availableFirst,
       sql`(${fold(products.name)} like ${phrase}) desc`,
       desc(products.id),
     );
   } else {
-    queryBuilder = queryBuilder.orderBy(desc(products.id));
+    queryBuilder = queryBuilder.orderBy(availableFirst, desc(products.id));
   }
 
   if (query.limit && !isNaN(Number(query.limit))) {

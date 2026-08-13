@@ -303,6 +303,29 @@ async function saveProduct() {
   }
 }
 
+// Sold pieces stay on the storefront until they're taken down here. Hiding is
+// deliberately separate from deleting: the product, its photos and its links
+// from past orders all survive, it just stops being listed.
+const togglingId = ref<number | null>(null)
+async function toggleVisibility(p: any) {
+  togglingId.value = p.id
+  try {
+    await $fetch(`/api/admin/products/${p.id}/visibility`, {
+      method: 'POST',
+      body: { hidden: !p.hidden },
+    })
+    await refresh()
+    toast.success(
+      p.hidden ? 'Zpět na webu' : 'Staženo z webu',
+      p.hidden ? `„${p.title}" se zase zobrazuje.` : `„${p.title}" už na eshopu není. Produkt zůstal uložený.`,
+    )
+  } catch (e: any) {
+    toast.error('Chyba', e?.data?.statusMessage || e?.message || 'Nepodařilo se změnit.')
+  } finally {
+    togglingId.value = null
+  }
+}
+
 const deletingId = ref<number | null>(null)
 const pendingDeleteId = ref<number | null>(null)
 const deleteConfirmUntil = ref(0)
@@ -400,12 +423,26 @@ function getImageSrc(image: string) {
               <td class="price" data-label="Cena">{{ p.price.toLocaleString('cs-CZ') }} Kč</td>
               <td data-label="Sklad">
                 <span :class="['stock-badge', p.stock <= 5 ? 'stock-low' : 'stock-ok']">{{ p.stock }}</span>
+                <span v-if="p.hidden" class="state-tag is-hidden">Staženo z webu</span>
+                <span v-else-if="p.stock < 1" class="state-tag is-sold">Prodáno · na webu</span>
               </td>
               <td class="mono" data-label="Vytvořeno">{{ new Date(p.createdAt).toLocaleDateString('cs-CZ') }}</td>
               <td class="cell-actions">
                 <div class="actions-cell">
                   <button class="action-btn" @click="openEdit(p)" title="Upravit">
                     <Icon name="lucide:pencil" height="14" />
+                  </button>
+                  <button
+                    class="action-btn"
+                    @click="toggleVisibility(p)"
+                    :disabled="togglingId === p.id"
+                    :title="p.hidden ? 'Vrátit na web' : 'Stáhnout z webu (produkt zůstane uložený)'"
+                  >
+                    <Icon
+                      :name="togglingId === p.id ? 'lucide:loader-2' : (p.hidden ? 'lucide:eye-off' : 'lucide:eye')"
+                      height="14"
+                      :class="{ spin: togglingId === p.id }"
+                    />
                   </button>
                   <button
                     class="action-btn delete-btn"
@@ -607,6 +644,31 @@ function getImageSrc(image: string) {
 </template>
 
 <style scoped>
+/* Storefront state next to the stock number: a sold piece is still on the shop
+   until it's taken down, so "0 in stock" alone no longer tells the whole story. */
+.state-tag {
+  display: inline-block;
+  margin-left: 0.4rem;
+  padding: 0.1rem 0.45rem;
+  border-radius: 999px;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  border: 1px solid transparent;
+}
+.state-tag.is-sold {
+  color: var(--adx-accent);
+  background: var(--adx-accent-10);
+  border-color: var(--adx-accent-25);
+}
+.state-tag.is-hidden {
+  color: var(--adx-vink-55);
+  background: var(--adx-vink-06);
+  border-color: var(--adx-vink-18);
+}
+
 .loading {
   display: inline-flex;
   align-items: center;

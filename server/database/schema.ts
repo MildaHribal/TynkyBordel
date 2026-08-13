@@ -101,10 +101,14 @@ export const products = pgTable('products', {
   image: text('image'),
   images: jsonb('images').$type<string[]>().default([]),
   categoryId: integer('category_id').references(() => categories.id),
-  // When stock last reached zero. The storefront keeps such a piece visible —
-  // labelled "PRODÁNO" and not purchasable — for 24 hours, then hides it.
-  // Written and cleared alongside every stock change; NULL = not sold out.
+  // When stock last reached zero. A sold piece stays on the storefront labelled
+  // "PRODÁNO" and unpurchasable until the owner hides it — this timestamp is what
+  // marks it as sold (rather than never-stocked) and sorts it to the end of the
+  // catalog. Written and cleared alongside every stock change; NULL = not sold.
   soldOutAt: timestamp('sold_out_at'),
+  // Taken off the storefront by the owner. Not a delete: the row, its photos and
+  // its links from past orders all survive, it simply stops being listed.
+  hidden: boolean('hidden').notNull().default(false),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
 });
