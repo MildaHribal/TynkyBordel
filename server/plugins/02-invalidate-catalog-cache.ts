@@ -48,7 +48,10 @@ export default defineNitroPlugin((nitroApp) => {
       /^\/api\/orders\b/.test(path) ||
       /^\/api\/paypal\/capture-order\b/.test(path) ||
       /^\/api\/user\/orders\/\d+\/cancel\b/.test(path) ||
-      /^\/api\/admin\/orders\/\d+$/.test(path)
+      /^\/api\/admin\/orders\/\d+$/.test(path) ||
+      // Editable homepage copy (the marquee) — the strip is rendered into the
+      // cached HTML, so a save has to drop it or the change shows up an hour late.
+      /^\/api\/admin\/site-content\b/.test(path)
     if (!changesCatalog) return
 
     const status = getResponseStatus(event)

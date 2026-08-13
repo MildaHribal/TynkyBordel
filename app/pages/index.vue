@@ -136,7 +136,12 @@ useHead(() => ({
   script: jsonLd.value.map(schema => ({ type: 'application/ld+json', innerHTML: JSON.stringify(schema) })),
 }))
 
-const ticker = ['odesílám do 2 dnů', 'handmade', 'platba převodem i dobírkou', 'made with passion']
+// Marquee copy is editable in /admin/obsah. Fetched during SSR so the strip is
+// in the first painted frame — it sits directly under the hero, and having it
+// pop in after hydration would be a visible jump. The server falls back to the
+// built-in text, so this is never empty.
+const { data: siteContent } = await useFetch<{ ticker: string[] }>('/api/site-content')
+const ticker = computed(() => siteContent.value?.ticker ?? [])
 
 // Fast, controlled smooth scroll (~500ms regardless of distance) that overrides
 // the browser's distance-dependent native smooth scroll for in-hero anchors.

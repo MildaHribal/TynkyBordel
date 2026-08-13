@@ -10,6 +10,7 @@ const navItems = [
   { label: 'Objednávky', icon: 'lucide:shopping-bag',     to: '/admin/orders' },
   { label: 'Zákazníci',  icon: 'lucide:users',            to: '/admin/customers' },
   { label: 'E-maily',    icon: 'lucide:mail',             to: '/admin/emails' },
+  { label: 'Obsah',      icon: 'lucide:type',             to: '/admin/obsah' },
 ]
 
 const isActive = (path: string) => {
