@@ -329,10 +329,26 @@ export const productsRelations = relations(products, ({ one, many }) => ({
 }));
 
 // ── Newsletter subscribers ───────────────────────────────────────────────────
+// Double opt-in (migration 0015_newsletter_double_optin): a row only proves a
+// consent once `confirmedAt` is set, i.e. once the owner of the address clicked
+// the link in the confirmation email. Anything with NULL is an unverified
+// interest — never mail it, anyone can type a stranger's address into a form.
+// `consentSource` and `consentIpHash` are the evidence GDPR art. 7(1) asks for:
+// which form the consent came from and, pseudonymously, from where.
 export const newsletterSubscribers = pgTable('newsletter_subscribers', {
   id: serial('id').primaryKey(),
   email: text('email').notNull().unique(),
   createdAt: timestamp('created_at').notNull().defaultNow(),
+  /** NULL until the address confirms itself by clicking the emailed link. */
+  confirmedAt: timestamp('confirmed_at'),
+  /** Which form the consent was given through, e.g. 'footer-form'. */
+  consentSource: text('consent_source'),
+  /**
+   * sha256(BETTER_AUTH_SECRET : ip) — never the raw address. Enough to show a
+   * consent came from somewhere real, useless for tracking anybody. NULL when
+   * the request carried no usable IP.
+   */
+  consentIpHash: text('consent_ip_hash'),
 });
 
 // ── Traffic counting ─────────────────────────────────────────────────────────

@@ -269,6 +269,7 @@ export default defineNuxtConfig({
         '/obchodni-podminky':      { swr: 86400 },
         '/ochrana-osobnich-udaju':  { swr: 86400 },
         '/reklamace':               { swr: 86400 },
+        '/kontakt':                 { swr: 86400 },
         // Cart/checkout are user-specific — no SSR, no caching.
         '/cart':            { ssr: false },
         '/checkout':        { ssr: false },

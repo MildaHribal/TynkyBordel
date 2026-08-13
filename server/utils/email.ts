@@ -21,6 +21,10 @@
 // Imported explicitly rather than left to Nitro's auto-imports: scripts/test-email.ts
 // loads this module under plain tsx, where an auto-import would be an undefined global.
 import { getSetting } from './settings';
+// Relative, not the `~~/shared/shop` alias used elsewhere in server/: the alias
+// is a Nuxt/Nitro resolution and scripts/test-email.ts loads this module under
+// plain tsx, where it would fail to resolve.
+import { BUSINESS, formattedAddress } from '../../shared/shop';
 
 type SendArgs = {
   to: string;
@@ -248,6 +252,68 @@ function esc(value: unknown): string {
     .replaceAll("'", '&#39;');
 }
 
+/**
+ * Absolute base URL for links inside emails.
+ *
+ * An inbox has no origin to resolve "/obchodni-podminky" against, so every link
+ * in an email must be absolute. NUXT_PUBLIC_SITE_URL is what the rest of the app
+ * builds URLs from; when it is missing or malformed (a half-configured box, or
+ * the plain-tsx test script) fall back to the shop's own domain instead of
+ * emitting a dead link — these particular links are legally required, so they
+ * must never depend on one env var having arrived.
+ */
+function siteBaseUrl(): string {
+  const configured = env('NUXT_PUBLIC_SITE_URL');
+  const fallback = `https://${BUSINESS.domain}`;
+  if (!configured) return fallback;
+  // A value like "tynkybordel.shop" (no scheme) would be treated as a relative
+  // path by mail clients; give it one. A localhost URL is left alone — in dev
+  // that IS the right target.
+  const withScheme = /^https?:\/\//i.test(configured) ? configured : `https://${configured}`;
+  try {
+    return new URL(withScheme).origin;
+  } catch {
+    return fallback;
+  }
+}
+
+/**
+ * Seller identity + the legally required links, appended to every email footer.
+ *
+ * § 1811/1820 NOZ requires the seller to be identifiable and the consumer to
+ * have the terms, the complaints procedure (which carries the model withdrawal
+ * form) and the privacy notice available on a durable medium. The email is that
+ * medium, so the links travel with every message rather than living only on the
+ * website.
+ */
+function legalFooterHtml(): string {
+  const base = siteBaseUrl();
+  const link = (path: string, label: string) =>
+    `<a href="${base}${path}" style="color:#b3305f;text-decoration:none;">${label}</a>`;
+  return `
+          <div style="font-family:${FONT_SANS};font-size:11px;line-height:1.7;color:#8a6f9a;margin-top:14px;padding-top:12px;border-top:1px solid rgba(42,19,64,0.08);">
+            ${esc(BUSINESS.legalName)} · ${esc(formattedAddress())} · IČO ${esc(BUSINESS.ico)}${BUSINESS.isVatPayer ? '' : ' · neplátce DPH'}<br>
+            ${link('/obchodni-podminky', 'Obchodní podmínky')}
+            &nbsp;·&nbsp;
+            ${link('/reklamace', 'Reklamace a odstoupení od smlouvy')}
+            &nbsp;·&nbsp;
+            ${link('/ochrana-osobnich-udaju', 'Ochrana osobních údajů')}
+          </div>`;
+}
+
+/** The same identity + links as plain text, for the text/plain part of an email. */
+function legalFooterText(): string {
+  const base = siteBaseUrl();
+  return [
+    '—',
+    `${BUSINESS.legalName} · ${formattedAddress()} · IČO ${BUSINESS.ico}${BUSINESS.isVatPayer ? '' : ' · neplátce DPH'}`,
+    `E-mail: ${BUSINESS.email}`,
+    `Obchodní podmínky: ${base}/obchodni-podminky`,
+    `Reklamace a odstoupení od smlouvy (vzorový formulář): ${base}/reklamace`,
+    `Ochrana osobních údajů: ${base}/ochrana-osobnich-udaju`,
+  ].join('\n');
+}
+
 type PillTone = 'pink' | 'green' | 'violet' | 'teal';
 const PILL_TONES: Record<PillTone, { bg: string; fg: string; bd: string }> = {
   pink: { bg: '#fbe0e9', fg: '#b3305f', bd: '#f3b8cd' },
@@ -264,8 +330,12 @@ function statusPill(label: string, tone: PillTone) {
 /**
  * Wraps inner content in the shared shell (header band + gradient rule + footer).
  * `preheader` is the grey preview line shown by inbox clients.
+ *
+ * Exported so every email the shop sends carries the same footer — the seller
+ * identity and legal links below are mandatory, and a second module rolling its
+ * own shell is exactly how a message ends up without them.
  */
-function emailShell(opts: { subject: string; preheader: string; content: string }) {
+export function emailShell(opts: { subject: string; preheader: string; content: string }) {
   return `<!doctype html>
 <html lang="cs">
 <head>
@@ -291,8 +361,8 @@ function emailShell(opts: { subject: string; preheader: string; content: string 
             Ručně dělané originály — obrazy, sochy, klíčenky.<br>
             <a href="https://www.instagram.com/tynky_bordel/" style="color:#b3305f;text-decoration:none;">Instagram</a>
             &nbsp;·&nbsp;
-            <a href="mailto:info@tynkybordel.shop" style="color:#b3305f;text-decoration:none;">info@tynkybordel.shop</a>
-          </div>
+            <a href="mailto:${esc(BUSINESS.email)}" style="color:#b3305f;text-decoration:none;">${esc(BUSINESS.email)}</a>
+          </div>${legalFooterHtml()}
         </td></tr>
       </table>
       <div style="font-family:${FONT_SANS};font-size:11px;text-align:center;color:#a294ad;margin-top:16px;">© Tynky Bordel · Každý kousek je jeden na světě ✦</div>
@@ -378,7 +448,7 @@ type OrderForEmail = {
   totalPrice: number;
   shippingAddress: string;
   items?: Array<{ title: string; quantity: number; price: number }>;
-  // Used to attach the invoice (faktura) to the order-confirmation email.
+  // Used to build the order-confirmation PDF attached to the email.
   paymentMethod?: string | null;
   variableSymbol?: string | number | null;
 };
@@ -458,6 +528,10 @@ function renderHtml(
   copy: { subject: string; headline: string; body: string },
   status: OrderStatusKey,
   extra?: BankTransferBlock,
+  // Whether the confirmation PDF actually made it onto the message — its
+  // generation is allowed to fail, and the email must not point at an
+  // attachment that isn't there.
+  hasConfirmationPdf = false,
 ) {
   const itemsRows = (order.items || [])
     .map(
@@ -470,6 +544,32 @@ function renderHtml(
     .join('');
 
   const pill = ORDER_PILLS[status] || ORDER_PILLS.created;
+
+  // § 1827(2) NOZ: the confirmation of a distance contract must repeat the
+  // § 1811/1820 information — notably the right to withdraw, where to send the
+  // withdrawal and the model form — unless it was already given on a durable
+  // medium. Only the "order received" email is that confirmation; repeating it
+  // on every later status update would just be noise.
+  const base = siteBaseUrl();
+  const legalBlock = status !== 'created' ? '' : `
+    <div style="margin-top:20px;padding:18px 20px;background:rgba(42,19,64,0.04);border-radius:14px;">
+      <div style="font-family:${FONT_SANS};font-size:11px;letter-spacing:0.16em;text-transform:uppercase;color:#8a6f9a;font-weight:700;margin-bottom:8px;">Tvoje práva</div>
+      <p style="margin:0;font-family:${FONT_SERIF};font-size:14px;line-height:1.6;color:#3a2150;">
+        Od smlouvy můžeš odstoupit bez udání důvodu do <strong>14 dnů</strong> od převzetí zboží. Lhůtu stihneš,
+        pokud odstoupení v jejím průběhu odešleš — napiš na
+        <a href="mailto:${esc(BUSINESS.email)}" style="color:#b3305f;text-decoration:none;">${esc(BUSINESS.email)}</a>
+        nebo na adresu ${esc(formattedAddress())}.
+        Můžeš použít <a href="${base}/reklamace" style="color:#b3305f;text-decoration:none;">vzorový formulář pro odstoupení</a>,
+        kde najdeš i postup vrácení a lhůty pro vrácení peněz.
+      </p>
+      <p style="margin:10px 0 0;font-family:${FONT_SERIF};font-size:14px;line-height:1.6;color:#3a2150;">
+        Vadu zboží můžeš vytknout do <strong>24 měsíců</strong> od převzetí. Celá pravidla jsou v
+        <a href="${base}/obchodni-podminky" style="color:#b3305f;text-decoration:none;">obchodních podmínkách</a>.
+      </p>
+      ${hasConfirmationPdf ? `<p style="margin:10px 0 0;font-family:${FONT_SANS};font-size:12px;line-height:1.55;color:#8a6f9a;">
+        Přiložené PDF je potvrzení objednávky, ne faktura — tu ti pošlu samostatně.
+      </p>` : ''}
+    </div>`;
 
   const content = `
     ${statusPill(pill.label, pill.tone)}
@@ -504,7 +604,8 @@ function renderHtml(
       ${extra.qrBuffer
         ? `<div style="text-align:center;margin-top:14px;"><img src="cid:${QR_CID}" alt="QR kód pro platbu" width="172" height="172" style="display:inline-block;border-radius:10px;border:1px solid rgba(42,19,64,0.08);"></div>`
         : (extra.qrDataUrl ? `<div style="text-align:center;margin-top:14px;"><img src="${extra.qrDataUrl}" alt="QR kód pro platbu" width="172" height="172" style="display:inline-block;border-radius:10px;border:1px solid rgba(42,19,64,0.08);"></div>` : '')}
-    </div>` : ''}`;
+    </div>` : ''}
+    ${legalBlock}`;
 
   return emailShell({ subject: copy.subject, preheader: copy.body.slice(0, 90), content });
 }
@@ -540,15 +641,16 @@ export async function sendOrderStatusEmail(
       ? [{ filename: 'platba-qr.png', content: extra.qrBuffer, cid: QR_CID, contentType: 'image/png' }]
       : [];
 
-  // Attach the invoice (faktura) to the order-confirmation email. Never let a PDF
-  // failure block the email itself.
+  // Attach the order confirmation PDF (NOT a faktura — the accounting invoice is
+  // issued separately in Fakturoid). Never let a PDF failure block the email itself.
+  let hasConfirmationPdf = false;
   if ((status === 'created' || status === 'paid') && order.items?.length) {
     try {
-      const { generateInvoicePdf } = await import('./invoice');
+      const { generateOrderConfirmationPdf } = await import('./invoice');
       // Race against a timeout: the attachment is a nice-to-have, the email is not.
       // A stalled PDF must never cost the customer their order confirmation.
       const pdf = await Promise.race([
-        generateInvoicePdf({
+        generateOrderConfirmationPdf({
           number: order.id,
           issuedAt: new Date(),
           customerName: order.customerName,
@@ -564,17 +666,43 @@ export async function sendOrderStatusEmail(
           setTimeout(() => reject(new Error('invoice PDF generation timed out after 15s')), 15_000).unref?.(),
         ),
       ]);
-      attachments.push({ filename: `faktura-${order.id}.pdf`, content: pdf, contentType: 'application/pdf' });
+      attachments.push({
+        filename: `potvrzeni-objednavky-${order.id}.pdf`,
+        content: pdf,
+        contentType: 'application/pdf',
+      });
+      hasConfirmationPdf = true;
     } catch (err) {
-      console.error('[email] invoice PDF generation failed (email still sent):', err);
+      console.error('[email] order confirmation PDF generation failed (email still sent):', err);
     }
   }
+
+  // The text/plain part must carry the same information as the HTML one: a client
+  // that shows only plain text (or a customer who blocks HTML) would otherwise
+  // receive a confirmation stripped of the legally required notices.
+  const textParts = [
+    `${copy.headline}\n\n${copy.body}\n\nObjednávka #${order.id}, celkem ${order.totalPrice.toFixed(0)} Kč.`,
+  ];
+  if (status === 'created') {
+    textParts.push(
+      [
+        'TVOJE PRÁVA',
+        `Od smlouvy můžeš odstoupit bez udání důvodu do 14 dnů od převzetí zboží; lhůta je dodržena, pokud odstoupení v jejím průběhu odešleš na ${BUSINESS.email} nebo na adresu ${formattedAddress()}.`,
+        `Vzorový formulář pro odstoupení: ${siteBaseUrl()}/reklamace`,
+        'Vadu zboží můžeš vytknout do 24 měsíců od převzetí.',
+        ...(hasConfirmationPdf
+          ? ['Přiložené PDF je potvrzení objednávky, ne faktura — tu ti pošlu samostatně.']
+          : []),
+      ].join('\n'),
+    );
+  }
+  textParts.push(legalFooterText());
 
   return sendMail({
     to: order.customerEmail,
     subject: copy.subject,
-    html: renderHtml(order, copy, status, extra),
-    text: `${copy.headline}\n\n${copy.body}\n\nObjednávka #${order.id}, celkem ${order.totalPrice.toFixed(0)} Kč.`,
+    html: renderHtml(order, copy, status, extra, hasConfirmationPdf),
+    text: textParts.join('\n\n'),
     attachments,
   });
 }

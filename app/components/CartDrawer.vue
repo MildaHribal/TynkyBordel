@@ -2,6 +2,11 @@
 import { nextTick, onUnmounted, ref, watch } from 'vue'
 
 import { useCartStore } from '~/stores/cart'
+// Flat shipping is charged on every order (server/utils/createOrder.ts), so the
+// drawer's amount is a subtotal, not a total. The drawer is a quick peek — the
+// COD surcharge depends on a payment method picked later, so it stays for the
+// cart page and checkout.
+import { SHIPPING_FEE } from '~~/shared/shop'
 
 const cart = useCartStore()
 
@@ -157,9 +162,10 @@ onUnmounted(() => {
         <!-- Footer -->
         <footer v-if="cart.items.length > 0" class="cart-foot">
           <div class="cart-total">
-            <span class="cart-total-label">Celkem</span>
+            <span class="cart-total-label">Mezisoučet</span>
             <span class="zine-price cart-total-amount">{{ cart.totalPrice.toLocaleString('cs-CZ') }} Kč</span>
           </div>
+          <p class="cart-total-note">+ doprava {{ SHIPPING_FEE }} Kč</p>
           <NuxtLink to="/checkout" class="zine-btn zine-btn--lime cart-checkout" @click="cart.closeDrawer()">
             K pokladně
             <Icon name="lucide:arrow-right" height="17" />
@@ -474,6 +480,18 @@ onUnmounted(() => {
   padding: 0.25rem 0.6rem;
   transform: rotate(-1.5deg);
   box-shadow: 3px 3px 0 var(--pop-shadow);
+}
+/* Sits right under the amount it qualifies, so it pulls back against the
+   footer's 0.75rem flex gap and stays right-aligned with the price tag. */
+.cart-total-note {
+  margin: -0.4rem 0 0;
+  text-align: right;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 0.66rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--pop-ink-soft, #4e6153);
 }
 .cart-checkout { width: 100%; }
 .cart-view-link {

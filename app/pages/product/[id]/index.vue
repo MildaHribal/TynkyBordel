@@ -1,5 +1,9 @@
 <script setup lang="ts">
 import { useCartStore } from "~/stores/cart";
+// The one flat shipping fee the server actually prices orders with — never
+// re-typed here, so the PDP note and the structured data can't drift from the
+// checkout total (see shared/shop.ts).
+import { SHIPPING_FEE } from "~~/shared/shop";
 
 import ContactForm from "~/components/ContactForm.vue";
 
@@ -225,15 +229,34 @@ const jsonLd = computed(() => {
         returnPolicyCategory: 'https://schema.org/MerchantReturnFiniteReturnWindow',
         merchantReturnDays: 14,
         returnMethod: 'https://schema.org/ReturnByMail',
-        returnFees: 'https://schema.org/FreeReturn'
+        // NOT FreeReturn — both the VOP and /reklamace say the buyer pays the
+        // return postage, and Google renders FreeReturn as a "free returns"
+        // badge in the search result, which would be a false claim.
+        // ReturnFeesCustomerResponsibility is the enum for exactly that case.
+        // ReturnShippingFees is the wrong one here: it obliges us to state a
+        // concrete returnShippingFeesAmount, and we can't — the buyer picks
+        // their own carrier, so the amount is unknown to us.
+        returnFees: 'https://schema.org/ReturnFeesCustomerResponsibility'
       },
       // Shipping — dispatched from Czechia via Zásilkovna/Balíkovna.
       shippingDetails: {
         '@type': 'OfferShippingDetails',
         shippingDestination: { '@type': 'DefinedRegion', addressCountry: 'CZ' },
+        // The flat fee charged on every order. Without it Google guesses (and
+        // may show the product as shipping-cost-unknown); with it the rich
+        // result matches the checkout total to the crown.
+        shippingRate: {
+          '@type': 'MonetaryAmount',
+          value: SHIPPING_FEE,
+          currency: 'CZK'
+        },
         deliveryTime: {
           '@type': 'ShippingDeliveryTime',
-          handlingTime: { '@type': 'QuantitativeValue', minValue: 1, maxValue: 3, unitCode: 'DAY' },
+          // 2–7 working days, the same window /obchodni-podminky, /reklamace and
+          // the shipping note on this page all promise. It used to claim 1–3,
+          // which undercut every one of them — structured data a buyer can hold
+          // us to must not be more optimistic than the terms.
+          handlingTime: { '@type': 'QuantitativeValue', minValue: 2, maxValue: 7, unitCode: 'DAY' },
           transitTime: { '@type': 'QuantitativeValue', minValue: 1, maxValue: 3, unitCode: 'DAY' }
         }
       }
@@ -477,11 +500,34 @@ const toggleFavorite = async () => {
               {{ product.title }}
             </h1>
 
-            <!-- Price -->
-            <div class="flex items-baseline gap-2 mb-5 md:mb-8">
+            <!-- Price. The gap below it belongs to the shipping note when that
+                 note is shown; a sold-out piece has no note, so the price keeps
+                 the original spacing itself. -->
+            <div
+              class="flex items-baseline gap-2"
+              :class="product.stock > 0 ? 'mb-2 md:mb-3' : 'mb-5 md:mb-8'"
+            >
               <span class="text-3xl md:text-4xl font-black neon-text-rainbow">{{ product.price }}</span>
               <span class="pdp-currency text-lg md:text-xl">Kč</span>
             </div>
+
+            <!-- What the price does NOT include, said here rather than three
+                 clicks later in the checkout. Meeting the shipping fee and the
+                 dispatch window for the first time on the payment step is a
+                 classic reason to abandon a cart, so it's a footnote to the
+                 price — attached to it, never shouting over it.
+                 The 2–7 pracovních dnů is the same promise /reklamace and
+                 /obchodni-podminky make; if one changes, all three must.
+                 The fee itself comes from shared/shop.ts, so it can't drift
+                 from what the server actually charges.
+                 Hidden for a sold-out piece (those stay up for 24 h marked
+                 PRODÁNO) — promising a dispatch window for something nobody can
+                 buy would be a claim we can't keep. -->
+            <p v-if="product.stock > 0" class="pdp-ship-note mb-5 md:mb-8">
+              <Icon name="mdi:truck-outline" height="14" class="pdp-ship-note__icon" />
+              <span>+ doprava {{ SHIPPING_FEE }} Kč · odesíláme do 2–7 pracovních dnů</span>
+              <NuxtLink to="/reklamace" class="pdp-ship-note__link">Doprava a reklamace</NuxtLink>
+            </p>
 
             <!-- Description -->
             <div v-if="product.description" class="text-white/50 mb-6 md:mb-10 leading-relaxed text-sm md:text-base border-l-2 border-primary-500/30 pl-4">
@@ -763,6 +809,46 @@ const toggleFavorite = async () => {
   color: var(--pop-lime, #B9E14B) !important;
   font-family: var(--font-mono) !important;
 }
+/* Shipping / dispatch footnote under the price. It has no Tailwind colour
+   utility on purpose — the attribute selectors above would only re-point it,
+   and this line needs its own deliberate weight — so everything is set here.
+   Muted cream at 85% is the same on-olive secondary already used for the
+   description (5.63:1), one step below the lime price, and the mono face at
+   0.75rem keeps it in the "small print" register next to the 2rem price.
+   Both colours are constants that do not flip: the panel is dark olive in
+   light AND dark mode, so the note reads identically in both. */
+.pdp-ship-note {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.5rem;
+  font-family: var(--font-mono, monospace);
+  font-size: 0.75rem;
+  line-height: 1.4;
+  color: color-mix(in srgb, var(--pop-on-dark) 85%, transparent);
+}
+@media (min-width: 768px) {
+  .pdp-ship-note { font-size: 0.8125rem; }
+}
+/* The truck is decorative — dimmer than the text so it doesn't become the
+   first thing the eye lands on after the price. */
+.pdp-ship-note__icon {
+  flex-shrink: 0;
+  color: color-mix(in srgb, var(--pdp-on-olive) 60%, transparent);
+}
+/* Lime, not pink: pink only reaches 3.42:1 on olive, which is fine for an icon
+   but not for a link this small. Lime is 5.77:1 — the same value the price
+   uses, which also reads as "these two belong together". */
+.pdp-ship-note__link {
+  color: var(--pop-lime, #B9E14B);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1px;
+}
+.pdp-ship-note__link:hover {
+  text-decoration-thickness: 2px;
+}
+
 /* Divider hairlines: white/10 disappears on olive, cream/0.28 is the same
    hairline the homepage olive panel uses for its image border. */
 .product-detail .pdp-panel [class*="border-white/"] {

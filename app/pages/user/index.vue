@@ -505,11 +505,17 @@ const itemLink = (item: any): string | null => item?.productUrl || null
                   </div>
                 </div>
 
-                <!-- Faktura — the same document that was e-mailed with the order,
-                     viewable inline or downloadable. Plain anchors so the session
-                     cookie rides along on the same-origin GET. -->
+                <!-- Potvrzení objednávky — the same document that was e-mailed with
+                     the order, viewable inline or downloadable. It is NOT a faktura:
+                     the accounting invoice is issued separately in Fakturoid with its
+                     own number series, so calling it one here would promise a
+                     document this endpoint doesn't serve. The URL keeps saying
+                     /invoice on purpose — links to it already exist in sent e-mails
+                     and bookmarks, and renaming the route would break them.
+                     Plain anchors so the session cookie rides along on the
+                     same-origin GET. -->
                 <div class="mt-5 pt-4 border-t border-white/10 flex flex-wrap items-center gap-3">
-                  <span class="text-xs uppercase tracking-wider text-white/60">Faktura</span>
+                  <span class="text-xs uppercase tracking-wider text-white/60">Potvrzení objednávky</span>
                   <a
                     :href="`/api/user/orders/${order.id}/invoice`"
                     target="_blank"

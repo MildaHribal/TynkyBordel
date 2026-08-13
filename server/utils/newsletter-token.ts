@@ -15,16 +15,16 @@ function secret(): string {
   return value;
 }
 
-export function newsletterToken(email: string): string {
+function sign(purpose: string, email: string): string {
   return createHmac('sha256', secret())
-    .update(`newsletter:${email.trim().toLowerCase()}`)
+    .update(`${purpose}:${email.trim().toLowerCase()}`)
     .digest('hex');
 }
 
-export function verifyNewsletterToken(email: string, token: string): boolean {
+function matches(expectedToken: string, token: string): boolean {
   if (!token) return false;
   try {
-    const expected = Buffer.from(newsletterToken(email));
+    const expected = Buffer.from(expectedToken);
     const provided = Buffer.from(String(token));
     // timingSafeEqual throws on length mismatch — compare lengths first.
     return expected.length === provided.length && timingSafeEqual(expected, provided);
@@ -33,9 +33,40 @@ export function verifyNewsletterToken(email: string, token: string): boolean {
   }
 }
 
+export function newsletterToken(email: string): string {
+  return sign('newsletter', email);
+}
+
+export function verifyNewsletterToken(email: string, token: string): boolean {
+  return matches(newsletterToken(email), token);
+}
+
+/**
+ * Double opt-in confirmation token.
+ *
+ * Deliberately a different purpose prefix than the unsubscribe token: both are
+ * HMACs of the same address, so without the prefix one link would work as the
+ * other — an unsubscribe URL harvested from a footer could confirm a signup the
+ * recipient never wanted, which is exactly the proof-of-consent this is for.
+ */
+export function confirmToken(email: string): string {
+  return sign('newsletter-confirm', email);
+}
+
+export function verifyConfirmToken(email: string, token: string): boolean {
+  return matches(confirmToken(email), token);
+}
+
 /** Absolute URL to drop into the footer of a newsletter. */
 export function unsubscribeUrl(email: string, siteUrl?: string): string {
   const base = (siteUrl || process.env.NUXT_PUBLIC_SITE_URL || '').replace(/\/$/, '');
   const params = new URLSearchParams({ email, token: newsletterToken(email) });
   return `${base}/newsletter/odhlaseni?${params.toString()}`;
+}
+
+/** Absolute URL for the "confirm your subscription" button in the opt-in email. */
+export function confirmUrl(email: string, siteUrl?: string): string {
+  const base = (siteUrl || process.env.NUXT_PUBLIC_SITE_URL || '').replace(/\/$/, '');
+  const params = new URLSearchParams({ email, token: confirmToken(email) });
+  return `${base}/newsletter/potvrzeni?${params.toString()}`;
 }

@@ -42,7 +42,7 @@ const partners = [
   },
   {
     name: 'Analytika (jen se souhlasem)',
-    description: 'PostHog — měření návštěvnosti. Spouští se výhradně po tvém souhlasu v cookie liště; bez něj se nenačte vůbec.',
+    description: 'PostHog — měření návštěvnosti. Spouští se výhradně po tvém souhlasu v cookie liště; bez něj se nenačte vůbec. Naše vlastní počítání návštěv (viz sekce 4) běží přímo na serveru e-shopu, žádnou další službu nezapojuje a nepředáváme ho nikomu.',
     icon: 'mdi:chart-bar',
   },
 ];
@@ -72,8 +72,26 @@ const purposes = [
     basis: 'Souhlas (čl. 6 odst. 1 písm. a GDPR)',
     retention: 'Do odvolání souhlasu / odhlášení z odběru.',
   },
+  // Two separate rows on purpose: the shop counts traffic itself on the server
+  // (server/utils/analytics.ts) whether or not anyone touches the cookie banner,
+  // and PostHog runs only after consent. Different legal basis and different
+  // retention, so folding them into one line would make the page untrue.
   {
-    title: 'Měření návštěvnosti',
+    title: 'Počítání návštěv na našem serveru (bez cookies)',
+    data: 'Navštívená stránka a datum. Návštěvník se ukládá jen jako nevratný otisk spočítaný z IP adresy, prohlížeče a soli, která se každý den mění — samotnou IP adresu neukládáme a do tvého zařízení se nic nezapisuje ani z něj nečte.',
+    basis: 'Oprávněný zájem (čl. 6 odst. 1 písm. f GDPR) — vědět, kolik lidí e-shop navštíví',
+    retention: 'Otisky návštěvníků mažeme po 90 dnech. Anonymní denní součty návštěv (kolik lidí, které stránky) zůstávají bez časového omezení.',
+  },
+  // The contact form (components/ContactForm.vue → /api/contact) now links here,
+  // so this page has to say what happens to a message sent through it.
+  {
+    title: 'Zodpovězení dotazu z kontaktního formuláře',
+    data: 'Jméno, e-mailová adresa a text zprávy.',
+    basis: 'Oprávněný zájem (čl. 6 odst. 1 písm. f GDPR) — odpovědět ti na dotaz',
+    retention: 'Zpráva se přepošle do e-mailové schránky obchodu a nikam jinam se neukládá; ve schránce zůstane po dobu vyřízení dotazu.',
+  },
+  {
+    title: 'Měření návštěvnosti přes PostHog',
     data: 'Anonymizované údaje o používání webu.',
     basis: 'Souhlas (čl. 6 odst. 1 písm. a GDPR)',
     retention: 'Do odvolání souhlasu.',
@@ -158,9 +176,23 @@ const purposes = [
           Nezbytné úložiště (obsah košíku, přihlášení, tvoje volba níže) používáme vždy — bez něj by e-shop nefungoval
           a souhlas pro něj zákon nevyžaduje.
         </p>
+        <p class="mb-4">
+          Kolik lidí e-shop navštíví, si počítáme <strong class="text-white">sami na svém serveru a bez cookies</strong>.
+          Do tvého zařízení se přitom nic neukládá ani se z něj nic nečte — počítá se jen z toho, co prohlížeč pošle
+          s každým požadavkem. Tvoji IP adresu nikam neukládáme: návštěvník se uloží jako nevratný otisk spočítaný
+          z IP adresy, prohlížeče a soli, která se každý den mění, takže tě podle něj nejde sledovat den po dni.
+          Otisky mažeme po 90 dnech a zůstávají jen anonymní denní součty. Roboty a vlastní návštěvy z e-shopu
+          nepočítáme a data z tohoto měření nikomu nepředáváme.
+        </p>
+        <p class="mb-4">
+          Tohle měření běží vždy, na základě našeho <strong class="text-white">oprávněného zájmu</strong>
+          (čl. 6 odst. 1 písm. f GDPR) — protože do tvého zařízení nic neukládá, souhlas pro něj zákon nevyžaduje.
+          Můžeš proti němu vznést námitku, viz sekce 5.
+        </p>
         <p class="mb-6">
-          Analytiku spouštíme <strong class="text-white">výhradně s tvým souhlasem</strong>. Dokud ho nedáš, nenačte se
-          vůbec žádný analytický skript. Souhlas můžeš kdykoliv změnit:
+          Naproti tomu <strong class="text-white">PostHog</strong>, externí analytiku běžící v tvém prohlížeči,
+          spouštíme výhradně s tvým souhlasem. Dokud ho nedáš, nenačte se vůbec žádný analytický skript.
+          Souhlas můžeš kdykoliv změnit:
         </p>
         <div class="p-5 bg-white/5 border border-white/10 rounded-2xl flex flex-col sm:flex-row sm:items-center gap-4">
           <div class="flex-grow">

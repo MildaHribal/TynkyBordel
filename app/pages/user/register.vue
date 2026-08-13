@@ -137,6 +137,21 @@ const handleGoogleRegister = async () => {
             <Icon v-if="loading" name="mdi:loading" class="animate-spin" height="20" />
             {{ loading ? 'Registrace...' : 'Registrovat se 🌌' }}
           </button>
+
+          <!-- Art. 13 GDPR: the information duty is owed at the moment the data
+               is collected, so it belongs on the form itself, not only on the
+               legal page. Deliberately NOT a consent checkbox — the privacy
+               policy files "Uživatelský účet" and "Vyřízení objednávky" under
+               plnění smlouvy (Art. 6(1)(b)), and asking for a consent we do not
+               rely on would misstate the legal basis and imply a withdrawal
+               right that does not exist here. -->
+          <p class="reg-note">
+            Registrací potvrzujete, že znáte
+            <NuxtLink to="/obchodni-podminky" class="reg-note-link">obchodní podmínky</NuxtLink>.
+            Váš e-mail a údaje v účtu zpracováváme kvůli vedení účtu a vyřízení objednávek —
+            na základě plnění smlouvy, ne souhlasu. Víc v
+            <NuxtLink to="/ochrana-osobnich-udaju" class="reg-note-link">zásadách ochrany osobních údajů</NuxtLink>.
+          </p>
         </form>
 
         <!-- Divider -->
@@ -201,4 +216,28 @@ const handleGoogleRegister = async () => {
 /* Masks the divider rule behind the label, so it has to be exactly the card's
    own fill — it used to be a fixed near-black that only matched by accident. */
 .auth-divider-label { background: var(--pop-panel); }
+
+/* ── GDPR fine print ─────────────────────────────────────────────────────
+   This one sits INSIDE .glass-card-strong, which zine.css pins to --pop-panel
+   (dark in both themes), so unlike .auth-lede above it must stay light in both
+   — the theme-flipping ink tokens would go dark-on-dark in light mode. Muted
+   enough to read as a footnote, still ~7:1 on the panel. */
+/* No margin-top here on purpose: the form's own space-y-5 wins on specificity
+   (`.space-y-5 > :not([hidden]) ~ :not([hidden])`), so setting one would be a
+   dead declaration — the note keeps the form's rhythm instead. */
+.reg-note {
+  font-size: 0.72rem;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.62);
+}
+/* --pop-pink-ink is the on-paper rose and flips to a deep #b34a72 in light
+   mode, which would be near-invisible on a panel that never lightens; the dark
+   branch of that same token is pinned here instead. */
+.reg-note-link {
+  color: #F5A3C2;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  transition: color 0.2s ease;
+}
+.reg-note-link:hover { color: #ffffff; }
 </style>

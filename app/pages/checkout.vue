@@ -511,7 +511,10 @@ watch(paymentMethod, async (m) => {
                   Dobírka
                   <span class="payment-fee">+{{ COD_FEE }} Kč</span>
                 </div>
-                <div class="payment-note">Zaplatíte při vyzvednutí v Z-BOXu.</div>
+                <!-- Neither the pickup point nor the polite form is fixed here:
+                     the parcel can also go to Balíkovna, and the rest of the
+                     checkout addresses the customer informally. -->
+                <div class="payment-note">Zaplatíš při vyzvednutí zásilky.</div>
               </div>
             </label>
             <label class="payment-option" :class="{ 'is-active': paymentMethod === 'bank-transfer' }">
@@ -521,7 +524,9 @@ watch(paymentMethod, async (m) => {
               </div>
               <div class="flex-grow">
                 <div class="payment-title">Převod na účet</div>
-                <div class="payment-note">Zobrazí se QR kód pro rychlou platbu. Objednávka se odešle po přijetí platby.</div>
+                <!-- "Objednávka se odešle" clashed with the submit button: the
+                     order is placed right away, it's the parcel that waits. -->
+                <div class="payment-note">Zobrazí se QR kód pro rychlou platbu. Zboží odešleme po přijetí platby.</div>
               </div>
             </label>
             <label v-if="cardEnabled" class="payment-option" :class="{ 'is-active': paymentMethod === 'card' }">
@@ -557,16 +562,21 @@ watch(paymentMethod, async (m) => {
           </div>
           <div id="paypal-buttons" class="paypal-buttons" :class="{ 'is-disabled': !formValid }"></div>
         </template>
+        <!-- § 1826a občanského zákoníku: the control that closes a distance
+             contract must be labelled so the customer cannot miss that it
+             creates an obligation to pay ("objednávka zavazující k platbě" is
+             the wording the law itself names). A shorter, friendlier label
+             leaves the contract unenforceable — do not "improve" this text. -->
         <button
           v-else
           @click="placeOrder"
           :disabled="isSubmitting"
           :class="{ 'is-incomplete': !formValid }"
-          class="btn-primary-pop w-full justify-center py-4 text-lg"
+          class="btn-primary-pop submit-order w-full justify-center py-4 text-lg"
         >
           <Icon v-if="isSubmitting" name="lucide:loader-2" height="22" class="animate-spin" />
           <Icon v-else name="mdi:check-decagram" height="22" />
-          {{ isSubmitting ? 'Odesíláme...' : 'Odeslat objednávku' }}
+          {{ isSubmitting ? 'Odesíláme...' : 'Objednávka zavazující k platbě' }}
         </button>
       </div>
 
@@ -1208,6 +1218,21 @@ watch(paymentMethod, async (m) => {
   opacity: 0.4;
   cursor: not-allowed;
   box-shadow: none;
+}
+/* The submit label is fixed by law (§ 1826a) and is far longer than a usual
+   CTA, so the button bends instead of the text: it may wrap, and on narrow
+   phones it drops below text-lg rather than overflowing the pill. */
+.btn-primary-pop.submit-order {
+  text-align: center;
+  line-height: 1.25;
+  text-wrap: balance;
+}
+@media (max-width: 420px) {
+  .btn-primary-pop.submit-order {
+    font-size: 1rem;
+    gap: 0.45rem;
+    padding-inline: 0.9rem;
+  }
 }
 
 /* ── Summary card ── */

@@ -1,5 +1,9 @@
 <script setup lang="ts">
 import { useCartStore } from "~/stores/cart";
+// Same constants the server prices the order with (server/utils/createOrder.ts)
+// — the cart summary must show what will actually be charged, not a lower
+// subtotal, otherwise the price here contradicts the one at checkout.
+import { COD_FEE, SHIPPING_FEE } from "~~/shared/shop";
 
 
 const cart = useCartStore()
@@ -108,14 +112,21 @@ const cart = useCartStore()
             </div>
             <div class="flex justify-between">
               <dt class="text-white/40">Doprava</dt>
-              <dd class="font-medium text-green-400">Zdarma</dd>
+              <dd class="font-medium text-white">{{ SHIPPING_FEE }} Kč</dd>
             </div>
             <div class="cosmic-divider !my-3 md:!my-4"></div>
             <div class="flex items-center justify-between">
               <dt class="text-sm md:text-base font-bold text-white">Celkem</dt>
-              <dd class="text-xl md:text-2xl font-black neon-text-rainbow">{{ cart.totalPrice }} Kč</dd>
+              <dd class="text-xl md:text-2xl font-black neon-text-rainbow">{{ cart.totalPrice + SHIPPING_FEE }} Kč</dd>
             </div>
           </dl>
+
+          <!-- The COD surcharge depends on the payment method, which is only
+               picked at checkout — flag it here so the total can still rise.
+               Kept outside the <dl>, which may only hold dt/dd pairs. -->
+          <p class="mt-3 text-[10px] md:text-xs text-white/30 leading-snug">
+            Při platbě dobírkou se v pokladně připočte doběrečné {{ COD_FEE }} Kč.
+          </p>
 
           <NuxtLink to="/checkout" class="btn-cosmic w-full mt-6 md:mt-8 py-3.5 md:py-4 text-sm md:text-base flex items-center justify-center gap-2">
             <Icon name="mdi:credit-card-outline" height="18" />

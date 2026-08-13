@@ -18,7 +18,8 @@ const { needsDecision, accept, reject } = useCookieConsent()
           <p class="cookie-desc">
             Pro provoz e-shopu (košík, přihlášení) používáme jen nezbytné úložiště — to běží vždy.
             Navíc bychom rádi anonymně měřili, jak se ti web používá, abychom ho mohli vylepšovat.
-            Bez tvého souhlasu žádnou analytiku nespouštíme.
+            Bez tvého souhlasu se do tvého prohlížeče nenačte žádný analytický skript. Kolik lidí
+            e-shop navštíví, si počítáme sami na svém serveru — bez cookies a bez ukládání IP adresy.
             <NuxtLink to="/ochrana-osobnich-udaju" class="cookie-link">Více v zásadách ochrany údajů</NuxtLink>.
           </p>
         </div>

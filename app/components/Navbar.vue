@@ -146,6 +146,7 @@ onUnmounted(() => {
     <nav class="navbar-main hidden md:flex" :class="{ 'navbar--scrolled': isScrolled }">
       <NuxtLink to="/#kolekce" class="nav-link">Shop</NuxtLink>
       <NuxtLink to="/#about" class="nav-link">About</NuxtLink>
+      <NuxtLink to="/kontakt" class="nav-link">Kontakt</NuxtLink>
 
       <div class="nav-search" ref="searchWrapRef">
         <Icon name="iconamoon:search-fill" height="16" class="nav-search-icon" />
@@ -371,6 +372,10 @@ onUnmounted(() => {
             <NuxtLink to="/#about" class="mobile-link" @click="isMobileMenuOpen = false">
               <Icon name="lucide:user-round" height="20" />
               <span>About</span>
+            </NuxtLink>
+            <NuxtLink to="/kontakt" class="mobile-link" @click="isMobileMenuOpen = false">
+              <Icon name="lucide:mail" height="20" />
+              <span>Kontakt</span>
             </NuxtLink>
             <NuxtLink to="/cart" class="mobile-link" @click="isMobileMenuOpen = false">
               <Icon name="lucide:shopping-cart" height="20" />

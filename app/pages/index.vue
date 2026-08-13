@@ -375,6 +375,19 @@ function scrollToKolekce(e: MouseEvent) {
           <div>
             <span class="zine-eyebrow">✶ Vzkazy od vás</span>
             <h2 class="zine-section-title">Co říkají ti, co už mají</h2>
+            <!-- Mandatory since 2023 (§ 5 (3) of the Czech consumer protection
+                 act, the "Omnibus" rules): a shop showing reviews has to say
+                 whether and how it checks they come from real buyers.
+                 What it claims is exactly what server/api/user/reviews.post.ts
+                 enforces — the review hangs off an order LINE of the signed-in
+                 customer's own order, in a status the admin has moved forward,
+                 and a unique index allows one review per line. There is no
+                 other way for a review to reach this wall. -->
+            <p class="zwall-verified">
+              Recenzi tu může napsat jen přihlášený zákazník, a to ke kusu, který si u nás
+              opravdu koupil a má u něj vyřízenou objednávku — jeden koupený kus, jedna recenze.
+              Jinou recenzi sem nepřidáváme.
+            </p>
           </div>
         </div>
 
@@ -824,6 +837,23 @@ function scrollToKolekce(e: MouseEvent) {
 }
 .znote-author { font-weight: 700; color: var(--pop-ink); }
 .znote-date { color: var(--pop-ink-mute); }
+
+/* The legally required "these are verified buyers" line under the section
+   title. It has to be readable, but it is a footnote, not a headline — so it
+   takes the body face at a small size and --pop-ink-mute, the same muted ink
+   every secondary line on this page uses (.ztile-desc, .znote-date). That token
+   is defined per theme, so the line stays legible on the cream paper and on the
+   dark ground alike. The measure is capped because the section head is a flex
+   row: without it the sentence would run the full width of the wall on desktop
+   and read as a paragraph of copy rather than as a note. */
+.zwall-verified {
+  font-family: var(--font-body);
+  font-size: 0.82rem;
+  line-height: 1.55;
+  color: var(--pop-ink-mute);
+  margin: 0.7rem 0 0;
+  max-width: 56ch;
+}
 
 .loading-eyebrow {
   font-weight: 700;

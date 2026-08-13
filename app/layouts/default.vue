@@ -57,7 +57,12 @@ import { BUSINESS } from "~~/shared/shop";
               <h2 class="footer-heading">Podpora</h2>
               <ul class="footer-links">
                 <li><NuxtLink to="/obchodni-podminky" class="footer-link">Obchodní podmínky</NuxtLink></li>
+                <!-- Holds the reklamační řád AND the withdrawal form template, so
+                     it has to be reachable from every page — not only from inside
+                     the terms, where it was the single link to it. -->
+                <li><NuxtLink to="/reklamace" class="footer-link">Doprava a reklamace</NuxtLink></li>
                 <li><NuxtLink to="/ochrana-osobnich-udaju" class="footer-link">Ochrana soukromí</NuxtLink></li>
+                <li><NuxtLink to="/kontakt" class="footer-link">Kontakt</NuxtLink></li>
               </ul>
             </div>
 
@@ -87,6 +92,9 @@ import { BUSINESS } from "~~/shared/shop";
               <h2 class="footer-heading">Kontakt</h2>
               <ul class="footer-links">
                 <li><a href="mailto:info@tynkybordel.shop" class="footer-link">info@tynkybordel.shop</a></li>
+                <!-- The contact page also carries the seller identity (IČO, sídlo),
+                     which a mailto: link alone can't show. -->
+                <li><NuxtLink to="/kontakt" class="footer-link">Kontaktní formulář</NuxtLink></li>
               </ul>
             </div>
           </div>

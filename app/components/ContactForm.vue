@@ -102,6 +102,18 @@ const handleSubmit = async () => {
           <span v-else>Odeslat zprávu</span>
           <Icon v-if="!isSubmitting" name="mdi:send" height="18" />
         </button>
+
+        <!-- Art. 13 GDPR: the information duty falls due when the data is
+             collected, i.e. here. Wording tracks what /api/contact actually
+             does — sendContactMessage() only mails the shop mailbox with the
+             sender as Reply-To, nothing is written to the database — so no
+             consent box: answering the question you asked is the legitimate
+             interest, and a consent we do not rely on would be misleading. -->
+        <p class="form-note">
+          Jméno, e-mail a text zprávy použijeme jen k zodpovězení tvého dotazu — zpráva se
+          pošle do e-mailové schránky obchodu a nikam se neukládá. Víc v
+          <NuxtLink to="/ochrana-osobnich-udaju" class="form-note-link">zásadách ochrany osobních údajů</NuxtLink>.
+        </p>
       </form>
     </div>
   </div>
@@ -310,4 +322,27 @@ const handleSubmit = async () => {
   transform: translateY(-2px);
 }
 .form-submit:disabled { opacity: 0.7; cursor: wait; }
+
+/* ── GDPR fine print ─────────────────────────────────────────────────────
+   Footnote under the button, so it takes the same muted token as .form-label
+   rather than body ink — it must recede, not compete with the form. The card
+   ground is --pop-sheet, which flips through light-dark(), and --pop-ink-mute
+   flips with it, so both themes are covered by the one declaration. */
+.form-note {
+  font-family: var(--font-body);
+  font-size: 0.72rem;
+  line-height: 1.5;
+  color: var(--pop-ink-mute);
+  margin: -0.4rem 0 0;
+}
+/* Inheriting the muted colour keeps the link legible in both themes for free —
+   the underline is what marks it as a link. Hover borrows the card's accent,
+   which is already theme-guarded above. */
+.form-note-link {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  transition: color 0.2s ease;
+}
+.form-note-link:hover { color: var(--contact-accent); }
 </style>
