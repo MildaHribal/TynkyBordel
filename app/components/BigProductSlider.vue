@@ -87,15 +87,21 @@ defineExpose({ next, prev });
       <article :key="current.id" class="slide">
         <!-- Left: full product image (contain, black bg) -->
         <NuxtLink :to="productUrl(current)" class="slide-image-link" :aria-label="`Detail produktu: ${current.title || current.name}`">
+          <!-- 830px is the real ceiling: the slide is max-width 1400 split
+               1.6fr/1fr, so the image column is ~861px, and .slide-image adds
+               2rem of padding inside it. 900px + the (unwanted) 2× candidate
+               meant a 1800px fetch. `densities="1"` because nuxt.config's
+               `image.densities: [1]` is silently merged into [1,1,2] by defu. -->
           <NuxtImg
             v-if="resolveImage(current.image)"
             :src="resolveImage(current.image)!"
             :alt="current.title || current.name"
-            width="1000"
-            height="1000"
+            width="830"
+            height="830"
             format="webp"
             quality="75"
-            sizes="sm:100vw md:60vw lg:900px"
+            sizes="sm:100vw md:62vw lg:830px"
+            densities="1"
             loading="eager"
             fetchpriority="high"
             class="slide-image"

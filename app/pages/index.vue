@@ -13,7 +13,10 @@ useSeoMeta({
   ogDescription: 'Ručně malované obrazy, sochy, klíčenky. Každý kousek originál.',
   ogType: 'website',
   ogUrl: `${siteUrl}/`,
-  ogImage: `${siteUrl}/hero/frog-forest-hero.png`,
+  // 1200×630 JPEG — the size Facebook/X/Discord actually render (the old
+  // 1200×670 PNG was cropped by all of them) and 592 kB → 162 kB. Not on any
+  // visitor's critical path; social scrapers are the only fetchers.
+  ogImage: `${siteUrl}/hero/og-cover.jpg`,
   twitterCard: 'summary_large_image',
 })
 
@@ -213,15 +216,33 @@ function scrollToKolekce(e: MouseEvent) {
           <div class="zhero-collage" aria-hidden="true">
             <div v-for="(pic, i) in heroPics" :key="pic.id" :class="['zpolaroid', `zpolaroid--${i}`]">
               <span class="zine-tape zpolaroid-tape"></span>
-              <!-- `sizes` mirrors the CSS `clamp(140px, 40vw, 220px)` on
-                   .zpolaroid. Without it NuxtImg falls back to the raw `width`
-                   and shipped a 720px file into a 145px slot on phones. -->
+              <!-- `sizes` is the PHOTO's box, not the polaroid's: .zpolaroid is
+                   clamp(140px, 40vw, 220px) wide and adds 8px of paper on each
+                   side, so the <img> itself is 124…204 px — never 220. 204px is
+                   therefore the largest pixel width this ever needs.
+
+                   `densities="1"` because the global `image.densities: [1]` in
+                   nuxt.config does NOT take effect: Nuxt merges module options
+                   with defu, which CONCATENATES arrays, so the runtime value is
+                   [1, 1, 2] and every srcset still carries a 2× candidate. That
+                   is what made a 412px phone (DPR ≥ 2) download the 440×440
+                   variant — 55 KB — as the LCP image. Capped to 1× it fetches
+                   204×204 ≈ 12 KB instead. Drop this prop once the config is
+                   fixed to actually apply [1].
+
+                   No `preload`: @nuxt/image 2.0.0 only emits `imagesrcset` on the
+                   preload <link> for DENSITY srcsets ("1x, 2x"); for a width
+                   srcset it emits bare `href` + `imagesizes`, and `imagesizes`
+                   without `imagesrcset` is ignored — so the preload always
+                   fetched the LARGEST variant while the <img> picked a smaller
+                   one, i.e. two downloads racing during LCP. The image is in the
+                   SSR HTML, so the preload scanner finds it anyway and
+                   fetchpriority="high" is what actually orders it. -->
               <NuxtImg
                 :src="heroSrc(pic.image)" :alt="pic.title || ''"
-                width="220" height="220" format="webp" quality="79"
-                sizes="160px sm:200px md:220px"
+                width="204" height="204" format="webp" quality="79"
+                sizes="150px sm:204px" densities="1"
                 :loading="i === 0 ? 'eager' : 'lazy'"
-                :preload="i === 0 || undefined"
                 :fetchpriority="i === 0 ? 'high' : 'auto'"
                 class="zpolaroid-img"
               />

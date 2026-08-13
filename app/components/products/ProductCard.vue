@@ -13,6 +13,24 @@ const props = defineProps<{
 const imageWrapRef = ref<HTMLElement | null>(null)
 const { flyToCart } = useFlyToCartAnimation()
 
+// How wide the photo ACTUALLY renders, measured off the grid it lives in
+// (`.zgrid` in pages/index.vue, inside `.zsection` → max-width 1400 / padding
+// 1rem, then a max-w-[1340px] wrapper) minus the card's own chrome (2px card
+// border + 0.5rem padding + 2px frame border ≈ 24px):
+//
+//   viewport   cols  gap    column   photo
+//   412        2     13.6   183      161   ← Lighthouse's mobile emulation
+//   639        2     13.6   297      273
+//   768        3     20     221      197
+//   1023       3     20     306      282
+//   1280       4     24     286      262
+//   ≥1404      4     24     317      293   ← the widest it ever gets
+//
+// The previous value (180/240/280/320) overshot the 768–1024 band and the wide
+// desktop by ~15%. Nuxt maps a key to "up to the NEXT breakpoint", so the bare
+// entry covers ≤640, sm covers ≤768, md covers ≤1280 and xl is the fallback.
+const CARD_SIZES = '180px sm:210px md:270px xl:300px'
+
 const imageSrc = computed(() => {
   const image = props.product.image
   if (!image) {
@@ -178,19 +196,31 @@ const toggleFavorite = async () => {
       class="card-image relative w-full aspect-[5/4] overflow-hidden rounded-xl"
       :class="{ 'is-sold': isSoldOut }"
     >
+      <!-- `densities="1"` — nuxt.config's `image.densities: [1]` never applies
+           (defu concatenates module-option arrays, so the runtime value is
+           [1,1,2]) and every card still shipped a 2× candidate; a DPR-2.6 phone
+           picked 640×512 for a 161px slot. Capped here until the config is
+           fixed.
+           No `preload` on the priority cards either: @nuxt/image 2.0.0 writes
+           the preload <link> with `imagesizes` but WITHOUT `imagesrcset` for a
+           width-based srcset, so the browser ignores the sizes and eagerly
+           fetches the largest variant — a second, wasted download next to the
+           one the <img> actually chooses. These cards are in the SSR HTML, so
+           the preload scanner sees them regardless; fetchpriority is what
+           actually promotes them. -->
       <NuxtImg
         v-if="imageSrc && !isImageError"
         :src="imageSrc"
         :alt="product.title"
         class="card-img w-full h-full object-cover"
         :class="[ isImageLoading ? 'is-loading' : '' ]"
-        width="500"
-        height="400"
+        width="300"
+        height="240"
         format="webp"
         quality="73"
-        sizes="180px sm:240px md:280px lg:320px"
+        :sizes="CARD_SIZES"
+        densities="1"
         :loading="isPriority ? 'eager' : 'lazy'"
-        :preload="isPriority || undefined"
         :fetchpriority="isPriority ? 'high' : 'auto'"
         @load="onImageLoaded"
         @error="onImageError"
@@ -202,11 +232,12 @@ const toggleFavorite = async () => {
         :src="secondImageSrc"
         :alt="product.title"
         class="card-img card-img--hover w-full h-full object-cover"
-        width="500"
-        height="400"
+        width="300"
+        height="240"
         format="webp"
         quality="73"
-        sizes="180px sm:240px md:280px lg:320px"
+        :sizes="CARD_SIZES"
+        densities="1"
         loading="lazy"
         aria-hidden="true"
       />

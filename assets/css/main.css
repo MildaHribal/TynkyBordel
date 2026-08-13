@@ -491,8 +491,10 @@ html.is-scrolling-smooth {
 /* Page and View Transitions are switched off in nuxt.config (`pageTransition`,
    `layoutTransition` and `viewTransition` are all false) — they snapshotted
    loading skeletons and fought with scroll restoration. The ~250 lines of
-   ::view-transition-* keyframes and .slide-*/.page-* classes that used to live
-   here were dead weight in the critical CSS and have been removed. */
+   ::view-transition-* keyframes and the .slide- / .page- classes that used to
+   live here were dead weight in the critical CSS and have been removed.
+   (Written without the star-slash sequence on purpose: it closes a CSS comment,
+   which ended this one early and made the parser choke on the rest.) */
 
 /* ══════════════════════════════════════════════════════════════
    SCROLL FLY-IN REVEAL  (v-fly directive, plugins/fly-in.client.ts)

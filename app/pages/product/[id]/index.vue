@@ -415,6 +415,12 @@ const toggleFavorite = async () => {
                   :key="selectedImage ? `${selectedImage}-${selectedImageIndex}` : `fallback-${selectedImageIndex}`"
                   class="absolute inset-0"
                 >
+                  <!-- The product page's LCP element. `densities="1"` because
+                       nuxt.config's image.densities never applies: defu
+                       concatenates module-option arrays, so the runtime value is
+                       [1,1,2] and a DPR-2.6 phone pulled a 1280×1280 render for
+                       a half-width slot. Remove the prop once the config is
+                       fixed, not before. -->
                   <NuxtImg
                     v-if="selectedImage && !isMainImageError"
                     :src="selectedImage"
@@ -423,8 +429,11 @@ const toggleFavorite = async () => {
                     width="1200"
                     height="1200"
                     format="webp"
-                    sizes="sm:100vw md:100vw lg:50vw xl:50vw"
+                    quality="80"
+                    densities="1"
+                    sizes="100vw md:560px lg:620px"
                     loading="eager"
+                    fetchpriority="high"
                     @load="onMainImageLoaded"
                     @error="onMainImageError"
                   />

@@ -105,7 +105,12 @@ defineExpose({
           threshold: 0.12,
         }"
       >
-        <ProductCard :product="product" :isPriority="index < 2" class="h-full" />
+        <!-- Never priority: this carousel is the "podobné kousky" rail at the
+             very bottom of the product page, far below the fold. Marking the
+             first two as priority made them load eagerly at high fetch priority
+             and compete with the product's own hero photo — i.e. it slowed down
+             the LCP of the page they sit on. -->
+        <ProductCard :product="product" class="h-full" />
       </div>
     </div>
   </div>

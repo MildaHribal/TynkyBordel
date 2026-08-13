@@ -581,7 +581,9 @@ const itemLink = (item: any): string | null => item?.productUrl || null
                   width="500"
                   height="500"
                   format="webp"
-                  sizes="(max-width: 640px) 50vw, 33vw"
+                  quality="75"
+                  densities="1"
+                  sizes="150px sm:180px lg:220px"
                   loading="lazy"
                 />
               </div>

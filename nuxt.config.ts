@@ -10,6 +10,12 @@ const fontManifest = JSON.parse(
     readFileSync(fileURLToPath(new URL('./public/fonts/manifest.json', import.meta.url)), 'utf8'),
 ) as { preload: string[] }
 
+// Inline every server-rendered component's CSS into the HTML instead of loading
+// it over the network. Read as a single constant because TWO settings below have
+// to agree on it: `features.inlineStyles` and the `build:manifest` hook that
+// strips the now-redundant <link rel="stylesheet"> tags. See both for detail.
+const INLINE_STYLES = true
+
 export default defineNuxtConfig({
     compatibilityDate: '2024-07-15',
     devtools: { enabled: process.env.NODE_ENV === 'development' },
@@ -29,9 +35,95 @@ export default defineNuxtConfig({
     // removed and Tailwind kept on its own.
     vite: {
         plugins: [tailwindcss()],
+
+        // NOTE: there is deliberately no `build.target` / `esbuild.target` here.
+        // Lighthouse's "Legacy JavaScript — 7.4 kB" points at `Math.trunc` and
+        // blames a too-low transpile target, but that was measured and is wrong
+        // for this app:
+        //
+        //   • Vite 7's default target is already `baseline-widely-available`
+        //     (chrome107 / edge107 / firefox104 / safari16). A full rebuild with
+        //     `target: 'esnext'` produced a byte-for-byte equivalent bundle —
+        //     entry chunk 92 097 B vs 92 025 B brotli, i.e. noise — and the
+        //     `Math.trunc` occurrence did not move. esbuild is not downlevelling
+        //     anything of ours: there is not a single `__async`/`__spreadValues`
+        //     helper in the entry chunk.
+        //
+        //   • The `Math.trunc` in question is a hand-written polyfill inside
+        //     posthog-js's own published bundle (`Math.trunc||(Math.trunc=…)`,
+        //     from its vendored uuidv7, next to a Babel `Object.assign` helper).
+        //     It lives in the lazily-imported posthog chunk, not in ours, and no
+        //     build target we choose can remove it — only a posthog-js release
+        //     that ships modern output would.
+        //
+        // Raising the target above the default would therefore buy nothing while
+        // dropping support for older iOS (Safari <16), which is exactly the kind
+        // of phone this shop's visitors carry. Leave it on Vite's default.
+        $client: {
+            build: {
+                rollupOptions: {
+                    output: {
+                        // Keep the generated @nuxt/icon client bundle out of the
+                        // entry chunk. It is a leaf module (no imports, just a
+                        // JSON.parse of the icon set), so splitting it is safe,
+                        // and it moves 35 KB raw / 7.4 KB brotli of icon path
+                        // data off the entry: 92.1 KB → 84.6 KB brotli.
+                        //
+                        // Total bytes on a cold load are unchanged (it is a
+                        // static import, fetched in parallel via modulepreload),
+                        // but the icon data only changes when icon USAGE changes,
+                        // while the entry chunk's hash changes on every deploy.
+                        // Splitting them means a returning visitor keeps the icon
+                        // chunk from cache across deploys instead of re-downloading
+                        // it inside a new entry chunk every single time.
+                        manualChunks(id: string) {
+                            if (id.includes('nuxt-icon-client-bundle')) return 'icons'
+                        },
+                    },
+                },
+            },
+        },
     },
 
-    features: { inlineStyles: true },
+    features: { inlineStyles: INLINE_STYLES },
+
+    // `inlineStyles` above inlines the CSS of every server-rendered component
+    // into the HTML — but Nuxt ALSO keeps emitting a render-blocking
+    // `<link rel="stylesheet">` for the very same CSS, so the page paid for it
+    // twice. Measured on this build, every byte of every linked stylesheet was
+    // already present in the inline <style> blocks above it:
+    //
+    //   /                  entry.EDTSEIcf.css  37 rules, 0 not inlined
+    //                      ProductCard.css     38 rules, 0 not inlined
+    //   /product/44        entry.css + ContactForm.css — 0 not inlined
+    //   /cart /checkout /admin /user/login /my-account …  entry.css, 0 not inlined
+    //
+    // Across the ten routes checked that is 13 fully-redundant render-blocking
+    // requests. Lighthouse's critical path showed two of them on the homepage at
+    // 95 ms each. Two causes, both upstream bugs rather than anything we did:
+    // the vite-builder clears `chunk.css` for chunks whose CSS it inlined but
+    // skips the ENTRY chunk, and CSS that Rollup hoists into a shared chunk
+    // (ProductCard, ContactForm) is keyed by chunk name rather than by the .vue
+    // path it clears against, so it is missed too.
+    //
+    // Clearing `css` in the manifest is safe because it only feeds the SSR
+    // renderer's <link> tags. Client-side navigation is unaffected: Vite bakes
+    // its own CSS dependency list into `__vite__mapDeps` in the client JS, so a
+    // route chunk imported after hydration still pulls its stylesheet in.
+    // Verified after the change: the inline <style> byte counts on every route
+    // are identical, and zero stylesheet links remain.
+    // ⚠️ This hook is only correct while `features.inlineStyles` above is true —
+    // it deletes the ONLY other route the CSS has into the initial HTML. Flip
+    // inlineStyles off without removing this and every page ships unstyled, so
+    // the guard below ties the two together explicitly.
+    hooks: {
+        'build:manifest'(manifest) {
+            if (!INLINE_STYLES) return
+            for (const chunk of Object.values(manifest)) {
+                if (chunk.css?.length) chunk.css = []
+            }
+        },
+    },
 
     // @nuxt/icon: bundle every icon the source references straight into the
     // CLIENT JS. Without this, the client @nuxt/icon runtime fetches icon data
@@ -42,6 +134,19 @@ export default defineNuxtConfig({
     // source for `collection:name` string literals — which covers the ternary
     // and object-driven `:name` bindings too, since those names are literals in
     // the source — so the icons ship in the bundle and never need a runtime call.
+    //
+    // Audited for size (Lighthouse flags the bundle as 10.6 KB of "unused
+    // JavaScript"): the scan is already tight. It bundles 124 icons / 33.9 KB
+    // raw, and all 124 are genuinely referenced from a .vue file — there is no
+    // dead weight to trim. The one reducible slice is the 42 icons used ONLY by
+    // /admin, and dropping those saves just 1.6 KB brotli (33.9 → 21.9 KB raw,
+    // but SVG path data compresses extremely well). That is not worth making
+    // the admin depend on the runtime /api/_nuxt_icon fetch that broke in
+    // production, so all 124 stay. The bundle is split out of the entry chunk
+    // instead — see `vite.$client.build.rollupOptions` above.
+    //
+    // Two names in the source do not exist in their collections and silently
+    // resolve to nothing: `mdi:shopping-off-outline` and `ep:hover`.
     icon: {
         clientBundle: {
             scan: true,
