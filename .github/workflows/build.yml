@@ -56,21 +56,16 @@ jobs:
     needs: build-and-push-image
     runs-on: ubuntu-latest
     steps:
-      - name: Trigger deploy webhook
+      - name: Deploy
         if: success()
-        env:
-          DEPLOY_WEBHOOK_URL: ${{ secrets.DEPLOY_WEBHOOK_URL }}
         run: |
-          if [ -z "$DEPLOY_WEBHOOK_URL" ]; then
-            echo "DEPLOY_WEBHOOK_URL secret is not set — skipping deploy trigger."
-            exit 0
-          fi
-          curl -fsSL -X POST "$DEPLOY_WEBHOOK_URL"
+          curl -sSN --fail-with-body -X POST -H "X-Deploy-Token: ${{ secrets.DEPLOY_TOKEN }}" \
+            https://deploy.turhobr.cz/tynkybordel-shop | tee deploy.log
+          tail -n 1 deploy.log | grep -qx OK
 
-      # Purge the Cloudflare edge cache AFTER the VPS has pulled + restarted, so
-      # Cloudflare re-caches the NEW build instead of the old one still serving.
-      # The webhook is fire-and-forget, so we wait through the restart window and
-      # purge a few times to be safe. Never fails the workflow.
+      # Purge the Cloudflare edge cache once the new version is live, so
+      # Cloudflare re-caches the NEW build. Deploy waits until the container is
+      # healthy, so a single purge is enough. Never fails the workflow.
       - name: Purge Cloudflare cache
         if: success()
         env:
@@ -81,22 +76,13 @@ jobs:
             echo "Cloudflare secrets not set — skipping cache purge."
             exit 0
           fi
-          purge() {
-            resp=$(curl -sS -X POST "https://api.cloudflare.com/client/v4/zones/$CF_ZONE/purge_cache" \
-                 -H "Authorization: Bearer $CF_TOKEN" \
-                 -H "Content-Type: application/json" \
-                 --data '{"purge_everything":true}')
-            if echo "$resp" | grep -q '"success":true'; then
-              echo "✓ Cloudflare cache purged"
-            else
-              # Response body (no token) shows the real cause, e.g. bad zone id / token scope.
-              echo "✗ purge failed: $resp"
-            fi
-          }
-          # Spread purges across the pull+restart window (~2.5 min total).
-          sleep 45; purge
-          sleep 45; purge
-          sleep 60; purge
-          echo "Done."
-
-
+          resp=$(curl -sS -X POST "https://api.cloudflare.com/client/v4/zones/$CF_ZONE/purge_cache" \
+               -H "Authorization: Bearer $CF_TOKEN" \
+               -H "Content-Type: application/json" \
+               --data '{"purge_everything":true}')
+          if echo "$resp" | grep -q '"success":true'; then
+            echo "✓ Cloudflare cache purged"
+          else
+            # Response body (no token) shows the real cause, e.g. bad zone id / token scope.
+            echo "✗ purge failed: $resp"
+          fi
